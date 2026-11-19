@@ -1,0 +1,2867 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Evaluasi &amp; Analisa Petir Transmisi — UPT Palembang &amp; Babel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="data/rekap_lds_data.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      backdrop-filter: blur(12px);
+    }
+    .main-nav-tab {
+      transition: all 0.2s ease;
+    }
+    .main-nav-tab.active-lds {
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      color: #0f172a;
+      border-color: #fbbf24;
+      box-shadow: 0 4px 18px rgba(245, 158, 11, 0.35);
+    }
+    .main-nav-tab.active-ggn {
+      background: linear-gradient(135deg, #f43f5e, #e11d48);
+      color: #ffffff;
+      border-color: #fb7185;
+      box-shadow: 0 4px 18px rgba(244, 63, 94, 0.35);
+    }
+    .main-nav-tab.active-prot {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #0f172a;
+      border-color: #34d399;
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+    }
+    .month-chip {
+      transition: all 0.15s ease;
+    }
+    .month-chip.active {
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      color: #ffffff;
+      border-color: #fbbf24;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.45);
+      font-weight: 700;
+    }
+    .month-chip.empty-month {
+      opacity: 0.42;
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-12">
+
+  <!-- TOP NAVBAR & 3 MENU TAB UTAMA -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 border-b border-slate-800 backdrop-blur-md">
+    <div class="max-w-[1600px] mx-auto px-4 lg:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-slate-950 text-2xl font-extrabold shadow-lg shadow-amber-500/20">
+          ⚡
+        </div>
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 class="text-lg lg:text-xl font-extrabold tracking-tight text-white">
+              DASHBOARD ANALISA &amp; PROTEKSI PETIR TRANSMISI
+            </h1>
+            <span class="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              3 MODUL TERINTEGRASI
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            PT PLN (Persero) UPT Palembang &amp; UPK Bangka Belitung • Google Spreadsheet <span id="sync-timestamp" class="text-emerald-400 font-medium">Memuat...</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <a id="sheet-link" href="https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=286301078#gid=286301078"
+           target="_blank" rel="noopener"
+           class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition">
+          <span>📄</span><span id="sheet-link-label">Buka Google Sheet</span>
+        </a>
+        <button id="btn-export-csv"
+                class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600/90 hover:bg-emerald-500 text-white flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition">
+          <span>📥</span><span>Export Rekap CSV</span>
+        </button>
+        <button id="btn-sync"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 flex items-center gap-1.5 shadow-lg shadow-amber-500/25 transition">
+          <span id="sync-icon">🔄</span><span id="sync-text">Sinkronisasi 3 Sheet</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- BARIS 3 TAB MENU UTAMA -->
+    <div class="bg-slate-950/70 border-t border-slate-800/80">
+      <div class="max-w-[1600px] mx-auto px-4 lg:px-6 py-2.5 flex flex-wrap items-center gap-2.5">
+        <button id="main-tab-lds" onclick="switchMainView('lds')"
+                class="main-nav-tab active-lds px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2">
+          <span>⚡</span>
+          <span>1. Analisa Sambaran Petir (LDS)</span>
+          <span id="badge-nav-lds" class="px-2 py-0.5 text-[11px] rounded-full bg-slate-950/30 font-bold">0</span>
+        </button>
+
+        <button id="main-tab-ggn" onclick="switchMainView('ggn')"
+                class="main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2">
+          <span>🌩️</span>
+          <span>2. Gangguan Petir</span>
+          <span id="badge-nav-ggn" class="px-2 py-0.5 text-[11px] rounded-full bg-rose-500/20 text-rose-300 font-bold">0</span>
+        </button>
+
+        <button id="main-tab-prot" onclick="switchMainView('prot')"
+                class="main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2">
+          <span>🛡️</span>
+          <span>3. Proteksi Petir Terpasang</span>
+          <span id="badge-nav-prot" class="px-2 py-0.5 text-[11px] rounded-full bg-emerald-500/20 text-emerald-300 font-bold">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- VIEW 1: ANALISA SAMBARAN PETIR (REKAP LDS PERBULAN)                       -->
+  <!-- ========================================================================= -->
+  <main id="view-lds" class="max-w-[1600px] mx-auto px-4 lg:px-6 pt-5 space-y-5">
+
+    <!-- PANEL FILTER UTAMA LDS -->
+    <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3.5 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="text-amber-400 text-base">🎛️</span>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">Filter Analisa Sambaran Petir LDS (Per Bulan &amp; Tahun)</h2>
+          <span id="active-filter-badge" class="ml-2 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+            Semua Tahun • Semua Bulan
+          </span>
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
+            <input type="checkbox" id="chk-dedup" class="rounded bg-slate-800 border-slate-600 text-amber-500 focus:ring-amber-500" />
+            <span>Deduplikasi Double-Paste (<span id="dup-count-label">0</span> baris)</span>
+          </label>
+          <button id="btn-reset-filter" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+            Reset Filter
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-amber-400 mb-1.5">📅 Filter Tahun</label>
+          <select id="filter-year" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white font-semibold focus:outline-none focus:border-amber-500">
+            <option value="ALL">Semua Tahun</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-amber-400 mb-1.5">🗓️ Filter Bulan</label>
+          <select id="filter-month" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white font-semibold focus:outline-none focus:border-amber-500">
+            <option value="ALL">Semua Bulan</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">🏢 Filter ULTG</label>
+          <select id="filter-ultg" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-500">
+            <option value="ALL">Semua ULTG</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">⚡ Filter Penghantar (Induk)</label>
+          <select id="filter-induk" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-500">
+            <option value="ALL">Semua Penghantar</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">📊 Metrik Sambaran</label>
+          <select id="filter-metric" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-500">
+            <option value="total">Jumlah Sambaran Total (Count)</option>
+            <option value="stacked">Rincian Count (-) &amp; Count (+)</option>
+            <option value="neg">Sambaran Negatif — Count (-)</option>
+            <option value="pos">Sambaran Positif — Count (+)</option>
+            <option value="pka">Max kA Gabungan</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
+        <span class="text-xs font-semibold text-slate-400 mr-1">Klik Cepat Bulan:</span>
+        <div id="month-pills-container" class="flex flex-wrap gap-1.5"></div>
+      </div>
+    </section>
+
+    <!-- KARTU KPI LDS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-amber-500">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Sambaran Petir</span>
+          <span class="text-lg">⚡</span>
+        </div>
+        <div id="kpi-total-count" class="text-2xl lg:text-3xl font-extrabold text-white mt-1.5">0</div>
+        <div id="kpi-polarity-sub" class="text-[11px] text-slate-400 mt-1">Negatif: 0 • Positif: 0</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-rose-500">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Penghantar Tertinggi</span>
+          <span class="text-lg">🔥</span>
+        </div>
+        <div id="kpi-top-induk-val" class="text-xl lg:text-2xl font-extrabold text-rose-400 mt-1.5">0 Sambaran</div>
+        <div id="kpi-top-induk-name" class="text-[11px] text-slate-300 font-medium truncate mt-1" title="-">-</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-orange-500">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Tower Paling Rawan</span>
+          <span class="text-lg">🗼</span>
+        </div>
+        <div id="kpi-top-tower-val" class="text-xl lg:text-2xl font-extrabold text-orange-400 mt-1.5">0 Sambaran</div>
+        <div id="kpi-top-tower-name" class="text-[11px] text-slate-300 font-medium truncate mt-1" title="-">-</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-sky-500">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Max kA Gabungan</span>
+          <span class="text-lg">📈</span>
+        </div>
+        <div id="kpi-max-ka" class="text-2xl lg:text-3xl font-extrabold text-sky-400 mt-1.5">0 kA</div>
+        <div id="kpi-ka-sub" class="text-[11px] text-slate-400 mt-1">Min(-): 0 kA • Max(+): 0 kA</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-emerald-500">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Cakupan Aset Terdampak</span>
+          <span class="text-lg">🛡️</span>
+        </div>
+        <div id="kpi-asset-count" class="text-xl lg:text-2xl font-extrabold text-emerald-400 mt-1.5">0 Penghantar</div>
+        <div id="kpi-asset-sub" class="text-[11px] text-slate-400 mt-1">0 Tower • 0 Baris Data</div>
+      </div>
+    </section>
+
+    <!-- GRAFIK 1 LDS -->
+    <section class="glass-card rounded-2xl p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-amber-500 text-slate-950">GRAFIK 1 • UTAMA</span>
+            <h2 class="text-base lg:text-lg font-extrabold text-white">
+              Grafik Jumlah Sambaran Petir Total Tiap Penghantar
+            </h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Diurutkan dari penghantar dengan akumulasi sambaran tertinggi. <strong class="text-amber-300">Klik pada batang penghantar</strong> untuk memfilter detail tower penghantar tersebut.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-slate-700 text-xs">
+            <button data-limit="15" class="limit-btn px-2.5 py-1 rounded-lg font-semibold text-slate-300 hover:text-white">Top 15</button>
+            <button data-limit="25" class="limit-btn px-2.5 py-1 rounded-lg font-semibold text-slate-300 hover:text-white">Top 25</button>
+            <button data-limit="ALL" class="limit-btn px-2.5 py-1 rounded-lg font-semibold bg-amber-500 text-slate-950">Semua (40)</button>
+          </div>
+          <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-slate-700 text-xs">
+            <button data-orient="vertical" class="orient-btn px-2.5 py-1 rounded-lg font-semibold bg-sky-500 text-slate-950">Batang Tegak</button>
+            <button data-orient="horizontal" class="orient-btn px-2.5 py-1 rounded-lg font-semibold text-slate-300 hover:text-white">Batang Mendatar</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="induk-chart-wrapper" class="relative w-full" style="height: 480px;">
+        <canvas id="chart-per-induk"></canvas>
+      </div>
+    </section>
+
+    <!-- GRAFIK 2 & 3 LDS -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div class="glass-card rounded-2xl p-5 lg:col-span-2 shadow-xl">
+        <div class="pb-3 mb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-sky-500 text-slate-950">GRAFIK 2</span>
+            <h3 class="text-sm lg:text-base font-bold text-white">Tren Sambaran Petir Per Bulan &amp; Tahun</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Perbandingan akumulasi sambaran negatif, positif, dan total per bulan (klik titik bulan untuk memfilter bulan tersebut).</p>
+        </div>
+        <div class="relative w-full" style="height: 310px;">
+          <canvas id="chart-monthly-trend"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 shadow-xl">
+        <div class="pb-3 mb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-emerald-500 text-slate-950">GRAFIK 3</span>
+            <h3 class="text-sm lg:text-base font-bold text-white">Proporsi Sambaran per ULTG</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Total sambaran petir berdasarkan wilayah kerja ULTG.</p>
+        </div>
+        <div class="relative w-full" style="height: 310px;">
+          <canvas id="chart-per-ultg"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRAFIK 4 & PETA LDS -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div class="glass-card rounded-2xl p-5 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-rose-500 text-white">GRAFIK 4 • TOWER</span>
+              <h3 id="tower-chart-title" class="text-sm lg:text-base font-bold text-white">Top 25 Tower Paling Rawan Sambaran Petir</h3>
+            </div>
+            <p id="tower-chart-subtitle" class="text-xs text-slate-400 mt-0.5">Menampilkan 25 tower dengan akumulasi sambaran tertinggi sesuai filter Bulan &amp; Tahun.</p>
+          </div>
+          <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-slate-700 text-xs">
+            <button data-towermode="top25" class="towermode-btn px-2.5 py-1 rounded-lg font-semibold bg-rose-500 text-white">Top 25 Rawan</button>
+            <button data-towermode="sequence" class="towermode-btn px-2.5 py-1 rounded-lg font-semibold text-slate-300 hover:text-white">Urut Nomor Tower</button>
+          </div>
+        </div>
+        <div class="relative w-full" style="height: 360px;">
+          <canvas id="chart-top-towers"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 shadow-xl flex flex-col">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-purple-500 text-white">PETA SPASIAL</span>
+              <h3 class="text-sm lg:text-base font-bold text-white">Peta Sebaran Hotspot Sambaran Tower</h3>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Warna &amp; ukuran titik merepresentasikan jumlah sambaran petir pada koordinat tower.</p>
+          </div>
+          <div class="flex items-center gap-2 text-[11px]">
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>Rendah (&lt;10)</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>Sedang (10–25)</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>Tinggi (&gt;25)</span>
+          </div>
+        </div>
+        <div id="map-container" class="w-full rounded-xl overflow-hidden border border-slate-700 flex-1" style="min-height: 360px;"></div>
+      </div>
+    </section>
+
+    <!-- TABEL REKAP LDS -->
+    <section class="glass-card rounded-2xl p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <button id="tab-btn-induk" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition">
+            📋 Tabel Rekap Per Penghantar (<span id="count-tab-induk">0</span>)
+          </button>
+          <button id="tab-btn-tower" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            🗼 Tabel Rekap Per Tower (<span id="count-tab-tower">0</span>)
+          </button>
+        </div>
+        <div class="flex items-center gap-2.5 w-full sm:w-auto">
+          <input id="table-search" type="text" placeholder="Cari penghantar, ULTG, atau nama tower..."
+                 class="w-full sm:w-72 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-500" />
+        </div>
+      </div>
+
+      <div id="table-wrap-induk" class="overflow-x-auto max-h-[520px]">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase text-[11px] border-b border-slate-700 z-10">
+            <tr>
+              <th class="py-3 px-3">Rank</th>
+              <th class="py-3 px-3">Penghantar (Induk)</th>
+              <th class="py-3 px-3">ULTG</th>
+              <th class="py-3 px-3 text-right">Jml Tower</th>
+              <th class="py-3 px-3 text-right text-amber-400">Total Sambaran (Count)</th>
+              <th class="py-3 px-3 text-right text-sky-400">Count (-)</th>
+              <th class="py-3 px-3 text-right text-rose-400">Count (+)</th>
+              <th class="py-3 px-3 text-right">% Positif</th>
+              <th class="py-3 px-3 text-right">Rata-rata / Tower</th>
+              <th class="py-3 px-3 text-right text-sky-300">Min kA (-)</th>
+              <th class="py-3 px-3 text-right text-rose-300">Max kA (+)</th>
+              <th class="py-3 px-3 text-right text-amber-300">Max kA Gabungan</th>
+              <th class="py-3 px-3 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-induk" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+          <tfoot id="tfoot-induk" class="sticky bottom-0 bg-slate-900 font-bold text-white border-t-2 border-amber-500/50"></tfoot>
+        </table>
+      </div>
+
+      <div id="table-wrap-tower" class="hidden overflow-x-auto max-h-[520px]">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase text-[11px] border-b border-slate-700 z-10">
+            <tr>
+              <th class="py-3 px-3">Rank</th>
+              <th class="py-3 px-3">Nama Tower</th>
+              <th class="py-3 px-3">Penghantar (Induk)</th>
+              <th class="py-3 px-3">ULTG</th>
+              <th class="py-3 px-3 text-right text-amber-400">Total Sambaran</th>
+              <th class="py-3 px-3 text-right text-sky-400">Count (-)</th>
+              <th class="py-3 px-3 text-right text-rose-400">Count (+)</th>
+              <th class="py-3 px-3 text-right text-sky-300">Min kA (-)</th>
+              <th class="py-3 px-3 text-right text-rose-300">Max kA (+)</th>
+              <th class="py-3 px-3 text-right text-amber-300">Max kA Gabungan</th>
+              <th class="py-3 px-3 text-right">Koordinat</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-tower" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- VIEW 2: GANGGUAN PETIR (SHEET: LIST GGN DAMPAK)                           -->
+  <!-- ========================================================================= -->
+  <main id="view-ggn" class="hidden max-w-[1600px] mx-auto px-4 lg:px-6 pt-5 space-y-5">
+
+    <!-- PANEL FILTER GANGGUAN PETIR -->
+    <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3.5 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="text-rose-400 text-base">🌩️</span>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">Filter Analisa Gangguan Petir Transmisi (2021 – 2026)</h2>
+          <span id="ggn-filter-badge" class="ml-2 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+            Semua Tahun • Semua Bulan
+          </span>
+        </div>
+        <button id="btn-reset-ggn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+          Reset Filter
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-rose-400 mb-1.5">📅 Filter Tahun</label>
+          <select id="ggn-year" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white font-semibold focus:outline-none focus:border-rose-500">
+            <option value="ALL">Semua Tahun (2021–2026)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-rose-400 mb-1.5">🗓️ Filter Bulan</label>
+          <select id="ggn-month" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white font-semibold focus:outline-none focus:border-rose-500">
+            <option value="ALL">Semua Bulan</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">🏢 Filter ULTG</label>
+          <select id="ggn-ultg" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-rose-500">
+            <option value="ALL">Semua ULTG</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">⚡ Filter Penghantar</label>
+          <select id="ggn-induk" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-rose-500">
+            <option value="ALL">Semua Penghantar</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">🎯 Mode Perhitungan</label>
+          <select id="ggn-mode" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-rose-500">
+            <option value="unique">Kejadian Fisik Unik (ID Gangguan)</option>
+            <option value="dampak">Total Titik Tower / Span Terdampak</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
+        <span class="text-xs font-semibold text-slate-400 mr-1">Klik Cepat Bulan:</span>
+        <div id="ggn-month-pills" class="flex flex-wrap gap-1.5"></div>
+      </div>
+    </section>
+
+    <!-- KARTU KPI GANGGUAN PETIR -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-rose-500">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Kejadian Petir</span>
+          <span class="text-lg">🌩️</span>
+        </div>
+        <div id="ggn-kpi-unique" class="text-2xl lg:text-3xl font-extrabold text-white mt-1.5">0</div>
+        <div id="ggn-kpi-dampak-sub" class="text-[11px] text-slate-400 mt-1">0 Titik Tower/Span Terdampak</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-emerald-500">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Status Auto-Reclose</span>
+          <span class="text-lg">🔄</span>
+        </div>
+        <div id="ggn-kpi-reclose" class="text-2xl lg:text-3xl font-extrabold text-emerald-400 mt-1.5">0%</div>
+        <div id="ggn-kpi-status-sub" class="text-[11px] text-slate-400 mt-1">Reclose: 0 • Trip: 0</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-amber-500">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Penghantar Tertinggi</span>
+          <span class="text-lg">🔥</span>
+        </div>
+        <div id="ggn-kpi-top-induk-val" class="text-xl lg:text-2xl font-extrabold text-amber-400 mt-1.5">0 Kejadian</div>
+        <div id="ggn-kpi-top-induk-name" class="text-[11px] text-slate-300 font-medium truncate mt-1">-</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-orange-500">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Tower / Span Berulang</span>
+          <span class="text-lg">🗼</span>
+        </div>
+        <div id="ggn-kpi-top-tower-val" class="text-xl lg:text-2xl font-extrabold text-orange-400 mt-1.5">0 Kali</div>
+        <div id="ggn-kpi-top-tower-name" class="text-[11px] text-slate-300 font-medium truncate mt-1">-</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-sky-500">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Penghantar Terdampak</span>
+          <span class="text-lg">📊</span>
+        </div>
+        <div id="ggn-kpi-seg-count" class="text-xl lg:text-2xl font-extrabold text-sky-400 mt-1.5">0 Penghantar</div>
+        <div id="ggn-kpi-ultg-sub" class="text-[11px] text-slate-400 mt-1">Tersebar di 0 ULTG</div>
+      </div>
+    </section>
+
+    <!-- GRAFIK 1 GANGGUAN PETIR: TIAP PENGHANTAR -->
+    <section class="glass-card rounded-2xl p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-rose-500 text-white">GRAFIK 1 • GANGGUAN PETIR</span>
+            <h2 class="text-base lg:text-lg font-extrabold text-white">
+              Grafik Jumlah Gangguan Petir Tiap Penghantar
+            </h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Diurutkan dari penghantar dengan frekuensi gangguan petir tertinggi. <strong class="text-rose-300">Klik pada batang penghantar</strong> untuk melihat tower/span terdampak.
+          </p>
+        </div>
+      </div>
+      <div class="relative w-full" style="height: 440px;">
+        <canvas id="chart-ggn-induk"></canvas>
+      </div>
+    </section>
+
+    <!-- GRAFIK 2 & 3 GANGGUAN PETIR -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div class="glass-card rounded-2xl p-5 lg:col-span-2 shadow-xl">
+        <div class="pb-3 mb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-amber-500 text-slate-950">GRAFIK 2</span>
+            <h3 class="text-sm lg:text-base font-bold text-white">Tren Gangguan Petir Per Tahun &amp; Bulan</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Distribusi frekuensi gangguan petir berdasarkan periode waktu.</p>
+        </div>
+        <div class="relative w-full" style="height: 310px;">
+          <canvas id="chart-ggn-trend"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 shadow-xl">
+        <div class="pb-3 mb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-sky-500 text-slate-950">GRAFIK 3</span>
+            <h3 class="text-sm lg:text-base font-bold text-white">Top 15 Tower / Span Paling Sering Gangguan</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Aset tower/span dengan kejadian flashover petir berulang tertinggi.</p>
+        </div>
+        <div class="relative w-full" style="height: 310px;">
+          <canvas id="chart-ggn-towers"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- TABEL REKAP GANGGUAN PETIR -->
+    <section class="glass-card rounded-2xl p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <button id="ggn-tab-btn-induk" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-500 text-white transition">
+            📋 Rekap Gangguan Per Penghantar (<span id="ggn-count-induk">0</span>)
+          </button>
+          <button id="ggn-tab-btn-log" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            ⚡ Daftar Kejadian &amp; Temuan Tower/Span (<span id="ggn-count-log">0</span>)
+          </button>
+        </div>
+        <input id="ggn-search" type="text" placeholder="Cari penghantar, ID gangguan, tower, atau detail temuan..."
+               class="w-full sm:w-80 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-rose-500" />
+      </div>
+
+      <!-- TABEL 1 GGN: PER PENGHANTAR -->
+      <div id="ggn-wrap-induk" class="overflow-x-auto max-h-[520px]">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase text-[11px] border-b border-slate-700 z-10">
+            <tr>
+              <th class="py-3 px-3">Rank</th>
+              <th class="py-3 px-3">Penghantar (Segmen)</th>
+              <th class="py-3 px-3">ULTG</th>
+              <th class="py-3 px-3 text-right">2021</th>
+              <th class="py-3 px-3 text-right">2022</th>
+              <th class="py-3 px-3 text-right">2023</th>
+              <th class="py-3 px-3 text-right">2024</th>
+              <th class="py-3 px-3 text-right">2025</th>
+              <th class="py-3 px-3 text-right">2026</th>
+              <th class="py-3 px-3 text-right text-rose-400">Total Kejadian Unik</th>
+              <th class="py-3 px-3 text-right text-amber-300">Titik Tower/Span</th>
+              <th class="py-3 px-3 text-right text-emerald-400">Reclose</th>
+              <th class="py-3 px-3 text-right text-orange-400">Trip</th>
+            </tr>
+          </thead>
+          <tbody id="ggn-tbody-induk" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+        </table>
+      </div>
+
+      <!-- TABEL 2 GGN: LOG KEJADIAN & TEMUAN -->
+      <div id="ggn-wrap-log" class="hidden overflow-x-auto max-h-[520px]">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase text-[11px] border-b border-slate-700 z-10">
+            <tr>
+              <th class="py-3 px-3">ID Gangguan</th>
+              <th class="py-3 px-3">Tanggal</th>
+              <th class="py-3 px-3">ULTG</th>
+              <th class="py-3 px-3">Penghantar</th>
+              <th class="py-3 px-3">Tipe</th>
+              <th class="py-3 px-3">Aset Terdampak (Tower / Span)</th>
+              <th class="py-3 px-3">Line</th>
+              <th class="py-3 px-3">Status</th>
+              <th class="py-3 px-3">Detail Temuan Lapangan</th>
+            </tr>
+          </thead>
+          <tbody id="ggn-tbody-log" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- VIEW 3: PROTEKSI PETIR TERPASANG (SHEET: ROADMAP PROTEKSI PETIR)          -->
+  <!-- ========================================================================= -->
+  <main id="view-prot" class="hidden max-w-[1600px] mx-auto px-4 lg:px-6 pt-5 space-y-5">
+
+    <!-- PANEL FILTER PROTEKSI PETIR TERPASANG -->
+    <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3.5 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-400 text-base">🛡️</span>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">Filter Realisasi Proteksi Petir Terpasang Pada Tower</h2>
+          <span id="prot-filter-badge" class="ml-2 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            Semua ULTG • Semua Penghantar
+          </span>
+        </div>
+        <button id="btn-reset-prot" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+          Reset Filter
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-emerald-400 mb-1.5">🏢 Filter ULTG</label>
+          <select id="prot-ultg" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white font-semibold focus:outline-none focus:border-emerald-500">
+            <option value="ALL">Semua ULTG</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-emerald-400 mb-1.5">⚡ Filter Penghantar (Section)</label>
+          <select id="prot-induk" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white font-semibold focus:outline-none focus:border-emerald-500">
+            <option value="ALL">Semua Penghantar</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">🛡️ Jenis Proteksi Terpasang</label>
+          <select id="prot-type" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500">
+            <option value="ALL">Semua Jenis Proteksi (Gabungan)</option>
+            <option value="mrg">MRG (Multi Rod Grounding)</option>
+            <option value="mggs">MGGS (Multi Grounding Grid System)</option>
+            <option value="dgs">DGS (Down Grounding System)</option>
+            <option value="igsw">IGSW (Improved Ground Steel Wire)</option>
+            <option value="mdg">MDG (Modifikasi Grounding)</option>
+            <option value="tla">TLA (Transmission Line Arrester L1/L2)</option>
+            <option value="cln">Cleaning Insulator</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">📅 Filter Tahun / Kontrak Realisasi</label>
+          <select id="prot-contract" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500">
+            <option value="ALL">Semua Kontrak / Tahun</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- KARTU KPI PROTEKSI PETIR TERPASANG -->
+    <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-slate-400">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Tower</div>
+        <div id="prot-kpi-towers" class="text-2xl font-extrabold text-white mt-1">0</div>
+        <div id="prot-kpi-protected-sub" class="text-[11px] text-emerald-400 mt-1">0 Tower Terproteksi</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-emerald-500">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">DGS Terpasang</div>
+        <div id="prot-kpi-dgs" class="text-2xl font-extrabold text-emerald-400 mt-1">0</div>
+        <div class="text-[11px] text-slate-400 mt-1">Down Grounding System</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-amber-500">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">MRG Terpasang</div>
+        <div id="prot-kpi-mrg" class="text-2xl font-extrabold text-amber-400 mt-1">0</div>
+        <div class="text-[11px] text-slate-400 mt-1">Multi Rod Grounding</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-sky-500">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">MGGS Terpasang</div>
+        <div id="prot-kpi-mggs" class="text-2xl font-extrabold text-sky-400 mt-1">0</div>
+        <div class="text-[11px] text-slate-400 mt-1">Multi Grounding Grid</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-purple-500">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">IGSW Terpasang</div>
+        <div id="prot-kpi-igsw" class="text-2xl font-extrabold text-purple-400 mt-1">0</div>
+        <div class="text-[11px] text-slate-400 mt-1">Improved Ground Wire</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-rose-500">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">TLA &amp; MDG</div>
+        <div id="prot-kpi-tla" class="text-2xl font-extrabold text-rose-400 mt-1">0</div>
+        <div id="prot-kpi-clean-sub" class="text-[11px] text-slate-400 mt-1">Cleaning: 0 Tower</div>
+      </div>
+    </section>
+
+    <!-- GRAFIK 1 PROTEKSI PETIR: TIAP PENGHANTAR -->
+    <section class="glass-card rounded-2xl p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-emerald-500 text-slate-950">GRAFIK 1 • PROTEKSI TERPASANG</span>
+            <h2 class="text-base lg:text-lg font-extrabold text-white">
+              Grafik Realisasi Proteksi Petir Terpasang Tiap Penghantar
+            </h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Menampilkan jumlah tower yang sudah terpasang DGS, MRG, MGGS, IGSW, MDG, dan TLA pada masing-masing penghantar. <strong class="text-emerald-300">Klik pada batang penghantar</strong> untuk melihat detail towernya.
+          </p>
+        </div>
+      </div>
+      <div class="relative w-full" style="height: 460px;">
+        <canvas id="chart-prot-induk"></canvas>
+      </div>
+    </section>
+
+    <!-- GRAFIK 2 & 3 PROTEKSI PETIR -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div class="glass-card rounded-2xl p-5 shadow-xl">
+        <div class="pb-3 mb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-amber-500 text-slate-950">GRAFIK 2</span>
+            <h3 class="text-sm lg:text-base font-bold text-white">Perbandingan Jumlah Tower Terpasang per Jenis Proteksi</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Akumulasi pemasangan masing-masing jenis peralatan proteksi petir.</p>
+        </div>
+        <div class="relative w-full" style="height: 310px;">
+          <canvas id="chart-prot-types"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 shadow-xl">
+        <div class="pb-3 mb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-sky-500 text-slate-950">GRAFIK 3</span>
+            <h3 class="text-sm lg:text-base font-bold text-white">Distribusi Proteksi Petir Terpasang per ULTG</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Perbandingan realisasi DGS, MRG, MGGS, IGSW, dan TLA antar ULTG.</p>
+        </div>
+        <div class="relative w-full" style="height: 310px;">
+          <canvas id="chart-prot-ultg"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- TABEL 1: REKAP PROTEKSI PETIR PER PENGHANTAR -->
+    <section class="glass-card rounded-2xl p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-emerald-500 text-slate-950">TABEL 1 • PER PENGHANTAR</span>
+            <h3 class="text-sm lg:text-base font-extrabold text-white">
+              Tabel Rekapitulasi Proteksi Petir Terpasang Per Penghantar (<span id="prot-count-induk">0</span> Penghantar)
+            </h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Klik tombol <strong>Lihat Tower</strong> pada baris penghantar untuk melihat daftar tower penghantar tersebut pada Tabel 2 di bawah.</p>
+        </div>
+        <input id="prot-search" type="text" placeholder="Cari nama penghantar atau ULTG..."
+               class="w-full sm:w-72 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500" />
+      </div>
+
+      <div id="prot-wrap-induk" class="overflow-x-auto max-h-[460px]">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase text-[11px] border-b border-slate-700 z-10">
+            <tr>
+              <th class="py-3 px-3">Rank</th>
+              <th class="py-3 px-3">Penghantar (Section)</th>
+              <th class="py-3 px-3">ULTG</th>
+              <th class="py-3 px-3 text-right">Total Tower</th>
+              <th class="py-3 px-3 text-right text-emerald-400">DGS</th>
+              <th class="py-3 px-3 text-right text-amber-400">MRG</th>
+              <th class="py-3 px-3 text-right text-sky-400">MGGS</th>
+              <th class="py-3 px-3 text-right text-purple-400">IGSW</th>
+              <th class="py-3 px-3 text-right text-pink-400">MDG</th>
+              <th class="py-3 px-3 text-right text-rose-400">TLA (L1/L2)</th>
+              <th class="py-3 px-3 text-right text-teal-300">Cleaning</th>
+              <th class="py-3 px-3 text-right text-white">Tower Terproteksi</th>
+              <th class="py-3 px-3 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="prot-tbody-induk" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+          <tfoot id="prot-tfoot-induk" class="sticky bottom-0 bg-slate-900 font-bold text-white border-t-2 border-emerald-500/50"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- TABEL 2: RINCIAN TIAP TOWER TERPASANG PROTEKSI APA SAJA -->
+    <section id="section-prot-tower" class="glass-card rounded-2xl p-5 shadow-xl border border-emerald-500/30">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-amber-500 text-slate-950">TABEL 2 • RINCIAN TIAP TOWER</span>
+            <h3 class="text-sm lg:text-base font-extrabold text-white">
+              Tabel Rincian Proteksi Petir Tiap Tower — Terpasang Apa Saja (<span id="prot-count-tower">0</span> Tower)
+            </h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Daftar lengkap setiap tower beserta ringkasan jenis proteksi yang terpasang, nomor kontrak, tanggal realisasi, dan keterangan lapangan.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btn-export-prot-tower"
+                  class="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 transition">
+            <span>📥</span><span>Export Tabel Tower (CSV)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- FILTER CEPAT STATUS TOWER & PENCARIAN TOWER -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <span class="text-slate-400 font-semibold mr-1">Status Tower:</span>
+          <button data-protstatus="ALL" class="prot-status-btn px-3 py-1.5 rounded-xl font-bold bg-emerald-500 text-slate-950 transition">
+            Semua Tower
+          </button>
+          <button data-protstatus="PROTECTED" class="prot-status-btn px-3 py-1.5 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            ✅ Sudah Terpasang Proteksi
+          </button>
+          <button data-protstatus="MULTI" class="prot-status-btn px-3 py-1.5 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            ⚡ Multi-Proteksi (&ge;2 Jenis)
+          </button>
+          <button data-protstatus="UNPROTECTED" class="prot-status-btn px-3 py-1.5 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            ⚪ Belum Terpasang Proteksi
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <input id="prot-tower-search" type="text" placeholder="Cari nomor tower (#0012), penghantar, atau kontrak..."
+                 class="w-full sm:w-80 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-500" />
+          <select id="prot-tower-limit" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-500">
+            <option value="500">Tampilkan 500 Tower</option>
+            <option value="1000">Tampilkan 1.000 Tower</option>
+            <option value="ALL">Tampilkan Semua Tower (3.191)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="prot-wrap-tower" class="overflow-x-auto max-h-[600px]">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase text-[11px] border-b border-slate-700 z-10">
+            <tr>
+              <th class="py-3 px-3">No</th>
+              <th class="py-3 px-3">Nama Tower</th>
+              <th class="py-3 px-3">Penghantar</th>
+              <th class="py-3 px-3">ULTG</th>
+              <th class="py-3 px-3 text-amber-300">Terpasang Apa Saja (Ringkasan)</th>
+              <th class="py-3 px-3 text-emerald-400">DGS</th>
+              <th class="py-3 px-3 text-amber-400">MRG</th>
+              <th class="py-3 px-3 text-sky-400">MGGS</th>
+              <th class="py-3 px-3 text-purple-400">IGSW</th>
+              <th class="py-3 px-3 text-pink-400">MDG</th>
+              <th class="py-3 px-3 text-rose-400">TLA (L1/L2)</th>
+              <th class="py-3 px-3 text-teal-300">Cleaning Insulator</th>
+              <th class="py-3 px-3">Keterangan / Kendala</th>
+            </tr>
+          </thead>
+          <tbody id="prot-tbody-tower" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    Chart.register(ChartDataLabels);
+
+    const NAMA_BULAN = [
+      "", "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+    const NAMA_BULAN_PENDEK = [
+      "", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+      "Jul", "Agu", "Sep", "Okt", "Nov", "Des"
+    ];
+
+    let rawPayload = null;
+    let allRecords = [];
+    let allGgnRecords = [];
+    let allProtRecords = [];
+
+    let activeMainView = "lds"; // "lds" | "ggn" | "prot"
+
+    // State Tab 1: LDS
+    const state = {
+      year: "ALL",
+      month: "ALL",
+      ultg: "ALL",
+      induk: "ALL",
+      metric: "total",
+      dedup: false,
+      indukLimit: "ALL",
+      indukOrient: "vertical",
+      towerMode: "top25",
+      searchQuery: ""
+    };
+
+    // State Tab 2: Gangguan Petir
+    const ggnState = {
+      year: "ALL",
+      month: "ALL",
+      ultg: "ALL",
+      induk: "ALL",
+      mode: "unique",
+      search: ""
+    };
+
+    // State Tab 3: Proteksi Petir Terpasang
+    const protState = {
+      ultg: "ALL",
+      induk: "ALL",
+      type: "ALL",
+      contract: "ALL",
+      search: "",
+      towerStatus: "ALL",
+      towerSearch: "",
+      towerLimit: "500"
+    };
+
+    // Chart instances
+    let chartInduk = null;
+    let chartMonthly = null;
+    let chartUltg = null;
+    let chartTowers = null;
+    let leafletMap = null;
+    let mapLayerGroup = null;
+
+    let chartGgnInduk = null;
+    let chartGgnTrend = null;
+    let chartGgnTowers = null;
+
+    let chartProtInduk = null;
+    let chartProtTypes = null;
+    let chartProtUltg = null;
+
+    let currentIndukList = [];
+    let currentTowerList = [];
+    let currentGgnIndukList = [];
+    let currentProtIndukList = [];
+
+    function fmtNum(n) {
+      return Number(n || 0).toLocaleString("id-ID");
+    }
+
+    function fmtDec(n, digits = 2) {
+      return Number(n || 0).toLocaleString("id-ID", {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      });
+    }
+
+    function extractTowerNumber(name) {
+      const m = String(name || "").match(/#0*(\d+)/);
+      return m ? parseInt(m[1], 10) : 999999;
+    }
+
+    window.switchMainView = function(view) {
+      activeMainView = view;
+      document.getElementById("view-lds").classList.toggle("hidden", view !== "lds");
+      document.getElementById("view-ggn").classList.toggle("hidden", view !== "ggn");
+      document.getElementById("view-prot").classList.toggle("hidden", view !== "prot");
+
+      const btnLds = document.getElementById("main-tab-lds");
+      const btnGgn = document.getElementById("main-tab-ggn");
+      const btnProt = document.getElementById("main-tab-prot");
+
+      btnLds.className = view === "lds"
+        ? "main-nav-tab active-lds px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2"
+        : "main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2";
+
+      btnGgn.className = view === "ggn"
+        ? "main-nav-tab active-ggn px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2"
+        : "main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2";
+
+      btnProt.className = view === "prot"
+        ? "main-nav-tab active-prot px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2"
+        : "main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2";
+
+      // Update Google Sheet Link
+      const sheetLink = document.getElementById("sheet-link");
+      const sheetLabel = document.getElementById("sheet-link-label");
+      if (view === "lds") {
+        sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=286301078#gid=286301078";
+        sheetLabel.textContent = "Sheet: REKAP LDS PERBULAN";
+        refreshDashboard();
+        if (leafletMap) setTimeout(() => leafletMap.invalidateSize(), 150);
+      } else if (view === "ggn") {
+        sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=1184511298#gid=1184511298";
+        sheetLabel.textContent = "Sheet: LIST GGN DAMPAK";
+        refreshGgnView();
+      } else {
+        sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=107946563#gid=107946563";
+        sheetLabel.textContent = "Sheet: ROADMAP PROTEKSI PETIR";
+        refreshProtView();
+      }
+    };
+
+    const SPREADSHEET_ID = "17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA";
+    const GID_LDS = "286301078";
+    const GID_GGN = "1184511298";
+    const GID_PROT = "107946563";
+
+    function parseCsvText(text) {
+      const rows = [];
+      let row = [];
+      let cur = "";
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const next = text[i + 1];
+        if (inQuotes) {
+          if (ch === '"' && next === '"') { cur += '"'; i++; }
+          else if (ch === '"') { inQuotes = false; }
+          else { cur += ch; }
+        } else {
+          if (ch === '"') { inQuotes = true; }
+          else if (ch === ",") { row.push(cur); cur = ""; }
+          else if (ch === "\r" && next === "\n") { row.push(cur); rows.push(row); row = []; cur = ""; i++; }
+          else if (ch === "\n" || ch === "\r") { row.push(cur); rows.push(row); row = []; cur = ""; }
+          else { cur += ch; }
+        }
+      }
+      if (cur.length > 0 || row.length > 0) { row.push(cur); rows.push(row); }
+      return rows;
+    }
+
+    function parseFloatSafe(v) {
+      if (!v) return 0;
+      const s = String(v).trim().replace(",", ".");
+      const n = parseFloat(s);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function parseYearMonthJs(s) {
+      const str = String(s || "").trim();
+      const m = str.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+      if (m) {
+        const yr = parseInt(m[1], 10);
+        const mo = parseInt(m[2], 10);
+        return { yr, mo, ym: `${yr}-${String(mo).padStart(2, "0")}` };
+      }
+      return { yr: null, mo: null, ym: "" };
+    }
+
+    async function fetchLiveFromGoogleSheetsDirect() {
+      const urlLds = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID_LDS}`;
+      const urlGgn = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID_GGN}`;
+      const urlProt = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID_PROT}`;
+
+      const [resLds, resGgn, resProt] = await Promise.all([
+        fetch(urlLds, { cache: "no-store" }),
+        fetch(urlGgn, { cache: "no-store" }),
+        fetch(urlProt, { cache: "no-store" })
+      ]);
+      if (!resLds.ok || !resGgn.ok || !resProt.ok) {
+        throw new Error("Gagal mengunduh CSV langsung dari Google Sheet.");
+      }
+      const [csvLds, csvGgn, csvProt] = await Promise.all([
+        resLds.text(),
+        resGgn.text(),
+        resProt.text()
+      ]);
+
+      // 1. Parse LDS
+      const rowsLds = parseCsvText(csvLds);
+      const ldsRecords = [];
+      const seenKeys = new Set();
+      let dupCount = 0;
+      for (let i = 1; i < rowsLds.length; i++) {
+        const r = rowsLds[i];
+        if (r.length < 11) continue;
+        const ultg = (r[1] || "").trim();
+        const { yr, mo, ym } = parseYearMonthJs(r[2]);
+        let induk = (r[4] || "").trim();
+        const name = (r[5] || "").trim();
+        if (!yr || !mo || !name) continue;
+        if (!induk) {
+          if (name.toUpperCase().includes("_DUP")) continue;
+          induk = "(TANPA INDUK)";
+        }
+        const lat = r[6] && r[6].trim() ? parseFloatSafe(r[6]) : null;
+        const lng = r[7] && r[7].trim() ? parseFloatSafe(r[7]) : null;
+        const c = Math.round(parseFloatSafe(r[8]));
+        const cn = Math.round(parseFloatSafe(r[9]));
+        const cp = Math.round(parseFloatSafe(r[10]));
+        const min_ka = parseFloatSafe(r[13]);
+        const max_ka = parseFloatSafe(r[14]);
+        const min_ka_neg = parseFloatSafe(r[17]);
+        const max_ka_pos = parseFloatSafe(r[21]);
+        const pka = Math.max(Math.abs(min_ka), Math.abs(max_ka), Math.abs(min_ka_neg), Math.abs(max_ka_pos));
+        const key = `${ym}||${induk}||${name}`;
+        const dup = seenKeys.has(key) ? 1 : 0;
+        if (dup) dupCount++; else seenKeys.add(key);
+        ldsRecords.push({ r: i + 1, u: ultg, y: yr, m: mo, ym, i: induk, n: name, lat, lng, c, cn, cp, min_ka, max_ka, pka, dup });
+      }
+
+      // 2. Parse Gangguan Petir
+      const rowsGgn = parseCsvText(csvGgn);
+      const ggnRecords = [];
+      for (let i = 1; i < rowsGgn.length; i++) {
+        const r = rowsGgn[i];
+        if (r.length < 13) continue;
+        const penyebab = (r[12] || "").trim();
+        if (!penyebab.toUpperCase().includes("PETIR")) continue;
+        const { yr, mo, ym } = parseYearMonthJs(r[2]);
+        if (!yr || !mo) continue;
+        const induk = (r[6] || "").trim();
+        ggnRecords.push({
+          r: i + 1,
+          id: (r[1] || "").trim(),
+          dt: (r[2] || "").trim(),
+          y: yr, m: mo, ym,
+          u: (r[3] || "").trim(),
+          gi: (r[4] || "").trim(),
+          bay: (r[5] || "").trim(),
+          i: induk && induk !== "-" ? induk : "(Non-Penghantar)",
+          ta: (r[7] || "-").trim(),
+          na: (r[8] || "-").trim(),
+          nt: (r[9] || "-").trim(),
+          ln: (r[10] || "-").trim(),
+          st: (r[11] || "-").trim(),
+          ind: (r[13] || "-").trim(),
+          det: (r[14] || "-").trim()
+        });
+      }
+
+      // 3. Parse Proteksi Petir Terpasang
+      const rowsProt = parseCsvText(csvProt);
+      const protRecords = [];
+      const cell = (row, idx) => (idx < row.length && row[idx] ? row[idx].trim() : "");
+      for (let i = 6; i < rowsProt.length; i++) {
+        const r = rowsProt[i];
+        if (r.length < 6) continue;
+        const ultg = cell(r, 2);
+        const induk = cell(r, 3);
+        const tower = cell(r, 4);
+        if (!induk || !tower) continue;
+        const mrg_k = cell(r, 5), mrg_t = cell(r, 6);
+        const mggs_k = cell(r, 8), mggs_t = cell(r, 9);
+        const dgs_k = cell(r, 11), dgs_t = cell(r, 12);
+        const igsw_k = cell(r, 14), igsw_t = cell(r, 15);
+        const mdg_k = cell(r, 17), mdg_t = cell(r, 18);
+        const tla1_k = cell(r, 28), tla1_ph = cell(r, 29);
+        const tla2_k = cell(r, 32), tla2_ph = cell(r, 33);
+        const cleanList = [];
+        [[36,37,"<2023"],[39,40,"2023"],[42,43,"2024"],[45,46,"2025"],[48,49,"2026"]].forEach(([ckIdx, ctIdx, lbl]) => {
+          const ck = cell(r, ckIdx), ct = cell(r, ctIdx);
+          if (ck || ct) cleanList.push(ck || ct || lbl);
+        });
+        let kendala = "";
+        if (!mrg_k && mrg_t) kendala = `MRG: ${mrg_t}`;
+        else if (!mggs_k && mggs_t) kendala = `MGGS: ${mggs_t}`;
+        const k_list = Array.from(new Set([mrg_k, mggs_k, dgs_k, igsw_k, mdg_k, tla1_k, tla2_k].filter(Boolean)));
+        protRecords.push({
+          r: i + 1, u: ultg, i: induk, n: tower,
+          mrg: mrg_k ? 1 : 0, mrg_i: mrg_k && mrg_t ? `${mrg_k} (${mrg_t})` : mrg_k,
+          mggs: mggs_k ? 1 : 0, mggs_i: mggs_k && mggs_t ? `${mggs_k} (${mggs_t})` : mggs_k,
+          dgs: dgs_k ? 1 : 0, dgs_i: dgs_k && dgs_t ? `${dgs_k} (${dgs_t})` : dgs_k,
+          igsw: igsw_k ? 1 : 0, igsw_i: igsw_k && igsw_t ? `${igsw_k} (${igsw_t})` : igsw_k,
+          mdg: mdg_k ? 1 : 0, mdg_i: mdg_k && mdg_t ? `${mdg_k} (${mdg_t})` : mdg_k,
+          tla1: tla1_k ? 1 : 0, tla2: tla2_k ? 1 : 0, tla: (tla1_k || tla2_k) ? 1 : 0,
+          tla_i: [tla1_k ? `L1:${tla1_k}(${tla1_ph})` : "", tla2_k ? `L2:${tla2_k}(${tla2_ph})` : ""].filter(Boolean).join(" / "),
+          cln: cleanList.length > 0 ? 1 : 0, cln_i: cleanList.join(", "),
+          kdl: kendala, k_list
+        });
+      }
+
+      const nowStr = new Date().toLocaleString("id-ID") + " (Live Google Sheet)";
+      return {
+        metadata: {
+          synced_at: nowStr,
+          total_records: ldsRecords.length,
+          duplicate_paste_records: dupCount
+        },
+        records: ldsRecords,
+        ggn_records: ggnRecords,
+        proteksi_records: protRecords
+      };
+    }
+
+    async function loadInitialData() {
+      // 1. Jika ada cache cepat di window.REKAP_LDS_DATA, tampilkan instan terlebih dahulu
+      if (window.REKAP_LDS_DATA) {
+        rawPayload = window.REKAP_LDS_DATA;
+        initFromPayload(rawPayload);
+      }
+      // 2. Coba ambil dari /api/data (server lokal) atau langsung Live dari Google Sheets
+      try {
+        const resp = await fetch("/api/data", { cache: "no-store" });
+        if (resp.ok) {
+          rawPayload = await resp.json();
+          initFromPayload(rawPayload);
+          return;
+        }
+      } catch (_) {}
+
+      // 3. Jika di-online-kan (GitHub Pages / Netlify) atau tanpa file data/, tarik langsung dari Google Sheets!
+      try {
+        const livePayload = await fetchLiveFromGoogleSheetsDirect();
+        rawPayload = livePayload;
+        initFromPayload(rawPayload);
+      } catch (err) {
+        if (!rawPayload) {
+          alert("Gagal memuat data dari Google Sheet maupun cache lokal: " + err.message);
+        }
+      }
+    }
+
+    function initFromPayload(payload) {
+      allRecords = payload.records || [];
+      allGgnRecords = payload.ggn_records || [];
+      allProtRecords = payload.proteksi_records || [];
+      const meta = payload.metadata || {};
+
+      document.getElementById("sync-timestamp").textContent =
+        `(Update: ${meta.synced_at || "-"})`;
+      document.getElementById("dup-count-label").textContent =
+        fmtNum(meta.duplicate_paste_records || 0);
+
+      // Update Nav Badges
+      const totalLdsCount = allRecords.reduce((a, r) => a + r.c, 0);
+      const uniqGgnIds = new Set(allGgnRecords.map(r => r.id)).size;
+      const totalProtTowers = allProtRecords.filter(r => r.mrg || r.mggs || r.dgs || r.igsw || r.mdg || r.tla).length;
+
+      document.getElementById("badge-nav-lds").textContent = `${fmtNum(totalLdsCount)} Sambaran`;
+      document.getElementById("badge-nav-ggn").textContent = `${fmtNum(uniqGgnIds)} Kejadian`;
+      document.getElementById("badge-nav-prot").textContent = `${fmtNum(totalProtTowers)} Tower Terproteksi`;
+
+      populateFilterControls();
+      populateGgnFilters();
+      populateProtFilters();
+
+      if (activeMainView === "lds") refreshDashboard();
+      else if (activeMainView === "ggn") refreshGgnView();
+      else refreshProtView();
+    }
+
+    /* ===================================================================== */
+    /* TAB 1 LOGIC: ANALISA SAMBARAN PETIR (LDS)                             */
+    /* ===================================================================== */
+    function populateFilterControls() {
+      const years = Array.from(new Set(allRecords.map(r => r.y))).sort((a, b) => a - b);
+      const monthsInYear = new Set(
+        allRecords
+          .filter(r => state.year === "ALL" || String(r.y) === String(state.year))
+          .map(r => r.m)
+      );
+      const ultgs = Array.from(new Set(allRecords.map(r => r.u).filter(Boolean))).sort();
+      const induks = Array.from(
+        new Set(
+          allRecords
+            .filter(r => state.ultg === "ALL" || r.u === state.ultg)
+            .map(r => r.i)
+            .filter(Boolean)
+        )
+      ).sort();
+
+      const selYear = document.getElementById("filter-year");
+      const prevYear = state.year;
+      selYear.innerHTML = `<option value="ALL">Semua Tahun (${years.join(", ")})</option>`;
+      years.forEach(y => {
+        const opt = document.createElement("option");
+        opt.value = String(y);
+        opt.textContent = `Tahun ${y}`;
+        selYear.appendChild(opt);
+      });
+      selYear.value = years.map(String).includes(String(prevYear)) ? String(prevYear) : "ALL";
+      state.year = selYear.value;
+
+      const selMonth = document.getElementById("filter-month");
+      const prevMonth = state.month;
+      selMonth.innerHTML = `<option value="ALL">Semua Bulan</option>`;
+      for (let m = 1; m <= 12; m++) {
+        const hasData = monthsInYear.has(m);
+        const opt = document.createElement("option");
+        opt.value = String(m);
+        opt.textContent = `${m.toString().padStart(2, "0")} - ${NAMA_BULAN[m]}${hasData ? "" : " (Kosong)"}`;
+        selMonth.appendChild(opt);
+      }
+      selMonth.value = prevMonth;
+
+      const pillsWrap = document.getElementById("month-pills-container");
+      pillsWrap.innerHTML = "";
+      const allBtn = document.createElement("button");
+      allBtn.type = "button";
+      allBtn.className = `month-chip px-3 py-1 rounded-lg text-xs border border-slate-700 bg-slate-900 text-slate-200 ${state.month === "ALL" ? "active" : ""}`;
+      allBtn.textContent = "Semua Bulan";
+      allBtn.onclick = () => {
+        state.month = "ALL";
+        document.getElementById("filter-month").value = "ALL";
+        populateFilterControls();
+        refreshDashboard();
+      };
+      pillsWrap.appendChild(allBtn);
+
+      for (let m = 1; m <= 12; m++) {
+        const hasData = monthsInYear.has(m);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `month-chip px-2.5 py-1 rounded-lg text-xs border border-slate-700 bg-slate-900 text-slate-300 ${String(state.month) === String(m) ? "active" : ""} ${hasData ? "" : "empty-month"}`;
+        btn.textContent = NAMA_BULAN_PENDEK[m];
+        btn.onclick = () => {
+          state.month = String(m);
+          document.getElementById("filter-month").value = String(m);
+          populateFilterControls();
+          refreshDashboard();
+        };
+        pillsWrap.appendChild(btn);
+      }
+
+      const selUltg = document.getElementById("filter-ultg");
+      const prevUltg = state.ultg;
+      selUltg.innerHTML = `<option value="ALL">Semua ULTG (${ultgs.length})</option>`;
+      ultgs.forEach(u => {
+        const opt = document.createElement("option");
+        opt.value = u;
+        opt.textContent = u;
+        selUltg.appendChild(opt);
+      });
+      selUltg.value = ultgs.includes(prevUltg) ? prevUltg : "ALL";
+      state.ultg = selUltg.value;
+
+      const selInduk = document.getElementById("filter-induk");
+      const prevInduk = state.induk;
+      selInduk.innerHTML = `<option value="ALL">Semua Penghantar (${induks.length})</option>`;
+      induks.forEach(ind => {
+        const opt = document.createElement("option");
+        opt.value = ind;
+        opt.textContent = ind;
+        selInduk.appendChild(opt);
+      });
+      selInduk.value = induks.includes(prevInduk) ? prevInduk : "ALL";
+      state.induk = selInduk.value;
+    }
+
+    function getFilteredRecords(ignoreMonth = false, ignoreInduk = false) {
+      return allRecords.filter(r => {
+        if (state.dedup && r.dup === 1) return false;
+        if (state.year !== "ALL" && String(r.y) !== String(state.year)) return false;
+        if (!ignoreMonth && state.month !== "ALL" && String(r.m) !== String(state.month)) return false;
+        if (state.ultg !== "ALL" && r.u !== state.ultg) return false;
+        if (!ignoreInduk && state.induk !== "ALL" && r.i !== state.induk) return false;
+        return true;
+      });
+    }
+
+    function refreshDashboard() {
+      const filtered = getFilteredRecords(false, false);
+
+      const yrText = state.year === "ALL" ? "Semua Tahun" : `Tahun ${state.year}`;
+      const moText = state.month === "ALL" ? "Semua Bulan" : `Bulan ${NAMA_BULAN[Number(state.month)]}`;
+      const ultgText = state.ultg === "ALL" ? "Semua ULTG" : state.ultg;
+      const indukText = state.induk === "ALL" ? "Semua Penghantar" : state.induk;
+      document.getElementById("active-filter-badge").textContent =
+        `${yrText} • ${moText} • ${ultgText}${state.induk !== "ALL" ? " • " + indukText : ""}`;
+
+      const indukMap = new Map();
+      const towerMap = new Map();
+      const ultgMap = new Map();
+
+      let totalCount = 0, totalNeg = 0, totalPos = 0;
+      let globalMaxAbsKa = 0, globalMinKa = 0, globalMaxKa = 0;
+
+      for (const r of filtered) {
+        totalCount += r.c;
+        totalNeg += r.cn;
+        totalPos += r.cp;
+        if (r.pka > globalMaxAbsKa) globalMaxAbsKa = r.pka;
+        if (r.min_ka < globalMinKa) globalMinKa = r.min_ka;
+        if (r.max_ka > globalMaxKa) globalMaxKa = r.max_ka;
+
+        let im = indukMap.get(r.i);
+        if (!im) {
+          im = { induk: r.i, ultg: r.u, count: 0, neg: 0, pos: 0, pka: 0, min_ka: 0, max_ka: 0, towers: new Set() };
+          indukMap.set(r.i, im);
+        }
+        im.count += r.c;
+        im.neg += r.cn;
+        im.pos += r.cp;
+        if (r.pka > im.pka) im.pka = r.pka;
+        if (r.min_ka < im.min_ka) im.min_ka = r.min_ka;
+        if (r.max_ka > im.max_ka) im.max_ka = r.max_ka;
+        im.towers.add(r.n);
+
+        const tKey = `${r.i}||${r.n}`;
+        let tm = towerMap.get(tKey);
+        if (!tm) {
+          tm = { name: r.n, induk: r.i, ultg: r.u, lat: r.lat, lng: r.lng, count: 0, neg: 0, pos: 0, pka: 0, min_ka: 0, max_ka: 0, towerNum: extractTowerNumber(r.n) };
+          towerMap.set(tKey, tm);
+        }
+        tm.count += r.c;
+        tm.neg += r.cn;
+        tm.pos += r.cp;
+        if (r.pka > tm.pka) tm.pka = r.pka;
+        if (r.min_ka < tm.min_ka) tm.min_ka = r.min_ka;
+        if (r.max_ka > tm.max_ka) tm.max_ka = r.max_ka;
+        if (tm.lat === null && r.lat !== null) tm.lat = r.lat;
+        if (tm.lng === null && r.lng !== null) tm.lng = r.lng;
+
+        const uKey = r.u || "(Tanpa ULTG)";
+        ultgMap.set(uKey, (ultgMap.get(uKey) || 0) + r.c);
+      }
+
+      currentIndukList = Array.from(indukMap.values()).map(item => ({
+        ...item,
+        towerCount: item.towers.size,
+        pctPos: item.count > 0 ? (item.pos / item.count) * 100 : 0,
+        avgPerTower: item.towers.size > 0 ? item.count / item.towers.size : 0
+      }));
+
+      const sortMetricKey = state.metric === "neg" ? "neg" : state.metric === "pos" ? "pos" : state.metric === "pka" ? "pka" : "count";
+      currentIndukList.sort((a, b) => b[sortMetricKey] - a[sortMetricKey]);
+      currentTowerList = Array.from(towerMap.values()).sort((a, b) => b.count - a.count);
+
+      document.getElementById("kpi-total-count").textContent = fmtNum(totalCount);
+      const negPct = totalCount > 0 ? ((totalNeg / totalCount) * 100).toFixed(1) : "0.0";
+      const posPct = totalCount > 0 ? ((totalPos / totalCount) * 100).toFixed(1) : "0.0";
+      document.getElementById("kpi-polarity-sub").textContent =
+        `Neg (-): ${fmtNum(totalNeg)} (${negPct}%) • Pos (+): ${fmtNum(totalPos)} (${posPct}%)`;
+
+      if (currentIndukList.length > 0) {
+        const topI = currentIndukList[0];
+        document.getElementById("kpi-top-induk-val").textContent = `${fmtNum(topI.count)} Sambaran`;
+        document.getElementById("kpi-top-induk-name").textContent = `${topI.induk} (${topI.ultg})`;
+      } else {
+        document.getElementById("kpi-top-induk-val").textContent = "0 Sambaran";
+        document.getElementById("kpi-top-induk-name").textContent = "-";
+      }
+
+      if (currentTowerList.length > 0) {
+        const topT = currentTowerList[0];
+        document.getElementById("kpi-top-tower-val").textContent = `${fmtNum(topT.count)} Sambaran`;
+        document.getElementById("kpi-top-tower-name").textContent = topT.name;
+      } else {
+        document.getElementById("kpi-top-tower-val").textContent = "0 Sambaran";
+        document.getElementById("kpi-top-tower-name").textContent = "-";
+      }
+
+      document.getElementById("kpi-max-ka").textContent = `${fmtDec(globalMaxAbsKa, 0)} kA`;
+      document.getElementById("kpi-ka-sub").textContent =
+        `Min (-): ${fmtDec(globalMinKa, 0)} kA • Max (+): ${fmtDec(globalMaxKa, 0)} kA`;
+
+      document.getElementById("kpi-asset-count").textContent = `${fmtNum(currentIndukList.length)} Penghantar`;
+      document.getElementById("kpi-asset-sub").textContent =
+        `${fmtNum(currentTowerList.length)} Tower • ${fmtNum(filtered.length)} Baris Sheet`;
+
+      renderIndukChart(currentIndukList);
+      renderMonthlyChart();
+      renderUltgChart(ultgMap);
+      renderTowerChart(currentTowerList);
+      renderMap(currentTowerList);
+      renderTables();
+    }
+
+    function renderIndukChart(indukList) {
+      const limit = state.indukLimit === "ALL" ? indukList.length : parseInt(state.indukLimit, 10);
+      const sliced = indukList.slice(0, limit);
+      const isHoriz = state.indukOrient === "horizontal";
+
+      const wrapper = document.getElementById("induk-chart-wrapper");
+      wrapper.style.height = isHoriz ? `${Math.max(420, sliced.length * 28 + 80)}px` : "480px";
+
+      const labels = sliced.map(d => d.induk.replace(/^TRS\s+/i, ""));
+      let datasets = [];
+
+      if (state.metric === "stacked") {
+        datasets = [
+          {
+            label: "Sambaran Negatif Count (-)",
+            data: sliced.map(d => d.neg),
+            backgroundColor: "rgba(56, 189, 248, 0.85)",
+            borderRadius: 4
+          },
+          {
+            label: "Sambaran Positif Count (+)",
+            data: sliced.map(d => d.pos),
+            backgroundColor: "rgba(244, 63, 94, 0.88)",
+            borderRadius: 4
+          }
+        ];
+      } else {
+        const metricKey = state.metric === "neg" ? "neg" : state.metric === "pos" ? "pos" : state.metric === "pka" ? "pka" : "count";
+        const metricLabel =
+          state.metric === "neg" ? "Sambaran Negatif Count (-)" :
+          state.metric === "pos" ? "Sambaran Positif Count (+)" :
+          state.metric === "pka" ? "Max kA Gabungan" : "Total Sambaran Petir (Count)";
+
+        const bgColors = sliced.map((d, idx) => {
+          if (state.induk !== "ALL" && d.induk === state.induk) return "rgba(251, 191, 36, 0.95)";
+          if (idx < 3) return "rgba(244, 63, 94, 0.88)";
+          if (idx < 10) return "rgba(245, 158, 11, 0.88)";
+          return "rgba(14, 165, 233, 0.82)";
+        });
+
+        datasets = [{
+          label: metricLabel,
+          data: sliced.map(d => d[metricKey]),
+          backgroundColor: bgColors,
+          borderRadius: 5,
+          maxBarThickness: isHoriz ? 22 : 38
+        }];
+      }
+
+      const ctx = document.getElementById("chart-per-induk").getContext("2d");
+      if (chartInduk) chartInduk.destroy();
+
+      chartInduk = new Chart(ctx, {
+        type: "bar",
+        data: { labels, datasets },
+        options: {
+          indexAxis: isHoriz ? "y" : "x",
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: (_, elements) => {
+            if (elements && elements.length > 0) {
+              const clickedInduk = sliced[elements[0].index]?.induk;
+              if (clickedInduk) {
+                state.induk = state.induk === clickedInduk ? "ALL" : clickedInduk;
+                document.getElementById("filter-induk").value = state.induk;
+                refreshDashboard();
+              }
+            }
+          },
+          scales: {
+            x: {
+              stacked: state.metric === "stacked",
+              grid: { color: "rgba(148, 163, 184, 0.1)" },
+              ticks: { color: "#cbd5e1", font: { size: 10, weight: "600" }, maxRotation: isHoriz ? 0 : 55, minRotation: isHoriz ? 0 : 40 }
+            },
+            y: {
+              stacked: state.metric === "stacked",
+              beginAtZero: true,
+              grace: "12%",
+              grid: { color: "rgba(148, 163, 184, 0.1)" },
+              ticks: { color: "#cbd5e1", font: { size: 11, weight: "600" } }
+            }
+          },
+          plugins: {
+            legend: { labels: { color: "#e2e8f0", font: { size: 11, weight: "600" } } },
+            datalabels: {
+              display: state.metric !== "stacked" || sliced.length <= 20,
+              color: "#f8fafc",
+              anchor: "end",
+              align: isHoriz ? "right" : "top",
+              offset: 2,
+              font: { size: 10, weight: "700" },
+              formatter: (val) => (val > 0 ? fmtNum(val) : "")
+            }
+          }
+        }
+      });
+    }
+
+    function renderMonthlyChart() {
+      const recs = getFilteredRecords(true, false);
+      const ymMap = new Map();
+      for (const r of recs) {
+        let mObj = ymMap.get(r.ym);
+        if (!mObj) {
+          mObj = { ym: r.ym, y: r.y, m: r.m, count: 0, neg: 0, pos: 0 };
+          ymMap.set(r.ym, mObj);
+        }
+        mObj.count += r.c;
+        mObj.neg += r.cn;
+        mObj.pos += r.cp;
+      }
+      const sortedYm = Array.from(ymMap.values()).sort((a, b) => a.ym.localeCompare(b.ym));
+      const labels = sortedYm.map(d => `${NAMA_BULAN_PENDEK[d.m]} ${d.y}`);
+
+      const ctx = document.getElementById("chart-monthly-trend").getContext("2d");
+      if (chartMonthly) chartMonthly.destroy();
+
+      chartMonthly = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              type: "line",
+              label: "Total Sambaran (Count)",
+              data: sortedYm.map(d => d.count),
+              borderColor: "#fbbf24",
+              borderWidth: 3,
+              pointRadius: 5,
+              pointBackgroundColor: "#fbbf24",
+              tension: 0.25
+            },
+            {
+              type: "bar",
+              label: "Count (-)",
+              data: sortedYm.map(d => d.neg),
+              backgroundColor: "rgba(56, 189, 248, 0.78)",
+              borderRadius: 5
+            },
+            {
+              type: "bar",
+              label: "Count (+)",
+              data: sortedYm.map(d => d.pos),
+              backgroundColor: "rgba(244, 63, 94, 0.82)",
+              borderRadius: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: (_, elements) => {
+            if (elements && elements.length > 0) {
+              const clicked = sortedYm[elements[0].index];
+              if (clicked) {
+                state.month = String(state.month) === String(clicked.m) ? "ALL" : String(clicked.m);
+                document.getElementById("filter-month").value = state.month;
+                populateFilterControls();
+                refreshDashboard();
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: "rgba(148, 163, 184, 0.1)" }, ticks: { color: "#e2e8f0", font: { size: 11, weight: "600" } } },
+            y: { beginAtZero: true, grace: "15%", grid: { color: "rgba(148, 163, 184, 0.1)" }, ticks: { color: "#cbd5e1", font: { size: 11 } } }
+          },
+          plugins: {
+            legend: { labels: { color: "#e2e8f0", font: { size: 11, weight: "600" } } },
+            datalabels: {
+              display: (ctx) => ctx.datasetIndex === 0,
+              color: "#fef08a",
+              anchor: "end",
+              align: "top",
+              font: { size: 10, weight: "700" },
+              formatter: (v) => fmtNum(v)
+            }
+          }
+        }
+      });
+    }
+
+    function renderUltgChart(ultgMap) {
+      const entries = Array.from(ultgMap.entries()).sort((a, b) => b[1] - a[1]);
+      const labels = entries.map(e => e[0].replace(/^ULTG\s+/i, ""));
+      const values = entries.map(e => e[1]);
+      const palette = ["#f59e0b", "#0ea5e9", "#f43f5e", "#10b981", "#a855f7", "#eab308"];
+
+      const ctx = document.getElementById("chart-per-ultg").getContext("2d");
+      if (chartUltg) chartUltg.destroy();
+
+      chartUltg = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [{ data: values, backgroundColor: palette.slice(0, values.length), borderColor: "#0f172a", borderWidth: 2 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "58%",
+          onClick: (_, elements) => {
+            if (elements && elements.length > 0) {
+              const fullUltg = entries[elements[0].index]?.[0];
+              if (fullUltg) {
+                state.ultg = state.ultg === fullUltg ? "ALL" : fullUltg;
+                document.getElementById("filter-ultg").value = state.ultg;
+                populateFilterControls();
+                refreshDashboard();
+              }
+            }
+          },
+          plugins: {
+            legend: { position: "bottom", labels: { color: "#e2e8f0", font: { size: 11, weight: "600" }, padding: 12 } },
+            datalabels: {
+              color: "#ffffff",
+              font: { size: 10, weight: "700" },
+              formatter: (val, ctx) => {
+                const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                if (!sum) return "";
+                const pct = ((val / sum) * 100).toFixed(1);
+                return pct >= 5 ? `${pct}%` : "";
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderTowerChart(towerList) {
+      let displayTowers = [];
+      const titleEl = document.getElementById("tower-chart-title");
+      const subEl = document.getElementById("tower-chart-subtitle");
+
+      if (state.towerMode === "sequence") {
+        displayTowers = [...towerList].sort((a, b) => a.towerNum - b.towerNum).slice(0, 60);
+        titleEl.textContent = state.induk !== "ALL"
+          ? `Profil Sambaran Urut Nomor Tower — ${state.induk}`
+          : "Profil Sambaran Urut Nomor Tower (60 Tower Pertama)";
+        subEl.textContent = "Menampilkan distribusi sambaran petir berdasarkan urutan nomor tower.";
+      } else {
+        displayTowers = towerList.slice(0, 25);
+        titleEl.textContent = state.induk !== "ALL"
+          ? `Top 25 Tower Paling Rawan — ${state.induk}`
+          : "Top 25 Tower Paling Rawan Sambaran Petir";
+        subEl.textContent = "Menampilkan 25 tower dengan akumulasi sambaran tertinggi sesuai filter aktif.";
+      }
+
+      const labels = displayTowers.map(t => {
+        const m = t.name.match(/#0*(\d+)/);
+        const shortInduk = t.induk.replace(/^TRS\s+\d+\s*KV\s+/i, "").slice(0, 12);
+        return m ? `${shortInduk} #${m[1]}` : t.name.slice(-15);
+      });
+
+      const ctx = document.getElementById("chart-top-towers").getContext("2d");
+      if (chartTowers) chartTowers.destroy();
+
+      chartTowers = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Total Sambaran Tower",
+            data: displayTowers.map(t => t.count),
+            backgroundColor: displayTowers.map(t =>
+              t.count > 25 ? "rgba(244, 63, 94, 0.88)" : t.count >= 10 ? "rgba(245, 158, 11, 0.88)" : "rgba(16, 185, 129, 0.85)"
+            ),
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { color: "rgba(148, 163, 184, 0.08)" }, ticks: { color: "#cbd5e1", font: { size: 9.5, weight: "600" }, maxRotation: 55, minRotation: 40 } },
+            y: { beginAtZero: true, grace: "14%", grid: { color: "rgba(148, 163, 184, 0.1)" }, ticks: { color: "#cbd5e1", font: { size: 10.5 } } }
+          },
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              display: displayTowers.length <= 30,
+              color: "#f8fafc",
+              anchor: "end",
+              align: "top",
+              font: { size: 9.5, weight: "700" },
+              formatter: (v) => (v > 0 ? fmtNum(v) : "")
+            }
+          }
+        }
+      });
+    }
+
+    function renderMap(towerList) {
+      if (!leafletMap) {
+        leafletMap = L.map("map-container").setView([-2.75, 105.6], 7);
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+          attribution: "&copy; OpenStreetMap &copy; CARTO",
+          maxZoom: 19
+        }).addTo(leafletMap);
+        mapLayerGroup = L.layerGroup().addTo(leafletMap);
+      }
+
+      mapLayerGroup.clearLayers();
+      const bounds = [];
+      const mapTowers = towerList.filter(t => t.lat !== null && t.lng !== null).slice(0, 1500);
+      for (const t of mapTowers) {
+        const color = t.count > 25 ? "#f43f5e" : t.count >= 10 ? "#f59e0b" : "#10b981";
+        const radius = Math.min(11, Math.max(4, 3 + Math.sqrt(t.count)));
+        const marker = L.circleMarker([t.lat, t.lng], {
+          radius,
+          fillColor: color,
+          color: "#0f172a",
+          weight: 1,
+          opacity: 0.9,
+          fillOpacity: 0.82
+        });
+        marker.bindPopup(
+          `<div style="font-family:Inter,sans-serif;font-size:12px;color:#0f172a;">
+            <strong>${t.name}</strong><br/>
+            <span style="color:#475569;">${t.induk} (${t.ultg})</span><hr style="margin:4px 0;"/>
+            Total Sambaran: <b>${fmtNum(t.count)}</b><br/>
+            Count (-): <b>${fmtNum(t.neg)}</b> • Count (+): <b>${fmtNum(t.pos)}</b><br/>
+            Max kA Gabungan: <b>${fmtDec(t.pka, 0)} kA</b>
+          </div>`
+        );
+        mapLayerGroup.addLayer(marker);
+        bounds.push([t.lat, t.lng]);
+      }
+      if (bounds.length > 0) {
+        leafletMap.fitBounds(bounds, { padding: [24, 24], maxZoom: 13 });
+      }
+    }
+
+    function renderTables() {
+      const q = state.searchQuery.trim().toLowerCase();
+      const filteredInduk = currentIndukList.filter(item =>
+        !q || item.induk.toLowerCase().includes(q) || item.ultg.toLowerCase().includes(q)
+      );
+      document.getElementById("count-tab-induk").textContent = fmtNum(filteredInduk.length);
+
+      document.getElementById("tbody-induk").innerHTML = filteredInduk
+        .map((item, idx) => {
+          const isSelected = state.induk === item.induk;
+          return `<tr class="hover:bg-slate-800/60 transition ${isSelected ? "bg-amber-500/15" : ""}">
+            <td class="py-2.5 px-3 font-bold text-slate-400">#${idx + 1}</td>
+            <td class="py-2.5 px-3 font-bold text-white">${item.induk}</td>
+            <td class="py-2.5 px-3 text-slate-300">${item.ultg}</td>
+            <td class="py-2.5 px-3 text-right">${fmtNum(item.towerCount)}</td>
+            <td class="py-2.5 px-3 text-right font-extrabold text-amber-400">${fmtNum(item.count)}</td>
+            <td class="py-2.5 px-3 text-right text-sky-300">${fmtNum(item.neg)}</td>
+            <td class="py-2.5 px-3 text-right text-rose-300">${fmtNum(item.pos)}</td>
+            <td class="py-2.5 px-3 text-right">${fmtDec(item.pctPos, 1)}%</td>
+            <td class="py-2.5 px-3 text-right">${fmtDec(item.avgPerTower, 2)}</td>
+            <td class="py-2.5 px-3 text-right font-semibold text-sky-300">${fmtDec(item.min_ka, 0)} kA</td>
+            <td class="py-2.5 px-3 text-right font-semibold text-rose-300">${fmtDec(item.max_ka, 0)} kA</td>
+            <td class="py-2.5 px-3 text-right font-extrabold text-amber-300">${fmtDec(item.pka, 0)} kA</td>
+            <td class="py-2.5 px-3 text-center">
+              <button onclick="selectIndukFromTable('${item.induk.replace(/'/g, "\\'")}')"
+                      class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${isSelected ? "bg-rose-500 text-white" : "bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-amber-300"} border border-slate-700 transition">
+                ${isSelected ? "Reset" : "Detail Tower"}
+              </button>
+            </td>
+          </tr>`;
+        })
+        .join("");
+
+      const sumTowers = filteredInduk.reduce((acc, x) => acc + x.towerCount, 0);
+      const sumCount = filteredInduk.reduce((acc, x) => acc + x.count, 0);
+      const sumNeg = filteredInduk.reduce((acc, x) => acc + x.neg, 0);
+      const sumPos = filteredInduk.reduce((acc, x) => acc + x.pos, 0);
+      const minKaAll = filteredInduk.reduce((acc, x) => Math.min(acc, x.min_ka), 0);
+      const maxKaAll = filteredInduk.reduce((acc, x) => Math.max(acc, x.max_ka), 0);
+      const pkaAll = filteredInduk.reduce((acc, x) => Math.max(acc, x.pka), 0);
+
+      document.getElementById("tfoot-induk").innerHTML = `
+        <tr>
+          <td colspan="3" class="py-3 px-3">GRAND TOTAL (${fmtNum(filteredInduk.length)} Penghantar)</td>
+          <td class="py-3 px-3 text-right">${fmtNum(sumTowers)}</td>
+          <td class="py-3 px-3 text-right text-amber-400">${fmtNum(sumCount)}</td>
+          <td class="py-3 px-3 text-right text-sky-400">${fmtNum(sumNeg)}</td>
+          <td class="py-3 px-3 text-right text-rose-400">${fmtNum(sumPos)}</td>
+          <td class="py-3 px-3 text-right">${sumCount > 0 ? fmtDec((sumPos / sumCount) * 100, 1) : "0,0"}%</td>
+          <td class="py-3 px-3 text-right">${sumTowers > 0 ? fmtDec(sumCount / sumTowers, 2) : "0,00"}</td>
+          <td class="py-3 px-3 text-right text-sky-300">${fmtDec(minKaAll, 0)} kA</td>
+          <td class="py-3 px-3 text-right text-rose-300">${fmtDec(maxKaAll, 0)} kA</td>
+          <td class="py-3 px-3 text-right text-amber-300">${fmtDec(pkaAll, 0)} kA</td>
+          <td></td>
+        </tr>
+      `;
+
+      const filteredTowers = currentTowerList.filter(t =>
+        !q || t.name.toLowerCase().includes(q) || t.induk.toLowerCase().includes(q) || t.ultg.toLowerCase().includes(q)
+      );
+      document.getElementById("count-tab-tower").textContent = fmtNum(filteredTowers.length);
+
+      document.getElementById("tbody-tower").innerHTML = filteredTowers
+        .slice(0, 300)
+        .map((t, idx) => `
+          <tr class="hover:bg-slate-800/60 transition">
+            <td class="py-2 px-3 font-bold text-slate-400">#${idx + 1}</td>
+            <td class="py-2 px-3 font-bold text-white">${t.name}</td>
+            <td class="py-2 px-3 text-slate-300">${t.induk}</td>
+            <td class="py-2 px-3 text-slate-400">${t.ultg}</td>
+            <td class="py-2 px-3 text-right font-extrabold text-amber-400">${fmtNum(t.count)}</td>
+            <td class="py-2 px-3 text-right text-sky-300">${fmtNum(t.neg)}</td>
+            <td class="py-2 px-3 text-right text-rose-300">${fmtNum(t.pos)}</td>
+            <td class="py-2 px-3 text-right text-sky-300">${fmtDec(t.min_ka, 0)} kA</td>
+            <td class="py-2 px-3 text-right text-rose-300">${fmtDec(t.max_ka, 0)} kA</td>
+            <td class="py-2 px-3 text-right font-extrabold text-amber-300">${fmtDec(t.pka, 0)} kA</td>
+            <td class="py-2 px-3 text-right text-slate-400">${t.lat !== null ? `${t.lat}, ${t.lng}` : "-"}</td>
+          </tr>
+        `)
+        .join("");
+    }
+
+    window.selectIndukFromTable = function(indukName) {
+      state.induk = state.induk === indukName ? "ALL" : indukName;
+      document.getElementById("filter-induk").value = state.induk;
+      refreshDashboard();
+    };
+
+    /* ===================================================================== */
+    /* TAB 2 LOGIC: GANGGUAN PETIR (SHEET: LIST GGN DAMPAK)                  */
+    /* ===================================================================== */
+    function populateGgnFilters() {
+      const years = Array.from(new Set(allGgnRecords.map(r => r.y))).sort((a, b) => a - b);
+      const monthsInYear = new Set(
+        allGgnRecords
+          .filter(r => ggnState.year === "ALL" || String(r.y) === String(ggnState.year))
+          .map(r => r.m)
+      );
+      const ultgs = Array.from(new Set(allGgnRecords.map(r => r.u).filter(Boolean))).sort();
+      const induks = Array.from(
+        new Set(
+          allGgnRecords
+            .filter(r => ggnState.ultg === "ALL" || r.u === ggnState.ultg)
+            .map(r => r.i)
+            .filter(Boolean)
+        )
+      ).sort();
+
+      const selYear = document.getElementById("ggn-year");
+      selYear.innerHTML = `<option value="ALL">Semua Tahun (${years.join("–")})</option>`;
+      years.forEach(y => {
+        const opt = document.createElement("option");
+        opt.value = String(y);
+        opt.textContent = `Tahun ${y}`;
+        selYear.appendChild(opt);
+      });
+      selYear.value = years.map(String).includes(String(ggnState.year)) ? String(ggnState.year) : "ALL";
+      ggnState.year = selYear.value;
+
+      const selMonth = document.getElementById("ggn-month");
+      selMonth.innerHTML = `<option value="ALL">Semua Bulan</option>`;
+      for (let m = 1; m <= 12; m++) {
+        const opt = document.createElement("option");
+        opt.value = String(m);
+        opt.textContent = `${m.toString().padStart(2, "0")} - ${NAMA_BULAN[m]}`;
+        selMonth.appendChild(opt);
+      }
+      selMonth.value = ggnState.month;
+
+      const pillsWrap = document.getElementById("ggn-month-pills");
+      pillsWrap.innerHTML = "";
+      const allBtn = document.createElement("button");
+      allBtn.type = "button";
+      allBtn.className = `month-chip px-3 py-1 rounded-lg text-xs border border-slate-700 bg-slate-900 text-slate-200 ${ggnState.month === "ALL" ? "active" : ""}`;
+      allBtn.textContent = "Semua Bulan";
+      allBtn.onclick = () => {
+        ggnState.month = "ALL";
+        document.getElementById("ggn-month").value = "ALL";
+        populateGgnFilters();
+        refreshGgnView();
+      };
+      pillsWrap.appendChild(allBtn);
+
+      for (let m = 1; m <= 12; m++) {
+        const hasData = monthsInYear.has(m);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `month-chip px-2.5 py-1 rounded-lg text-xs border border-slate-700 bg-slate-900 text-slate-300 ${String(ggnState.month) === String(m) ? "active" : ""} ${hasData ? "" : "empty-month"}`;
+        btn.textContent = NAMA_BULAN_PENDEK[m];
+        btn.onclick = () => {
+          ggnState.month = String(m);
+          document.getElementById("ggn-month").value = String(m);
+          populateGgnFilters();
+          refreshGgnView();
+        };
+        pillsWrap.appendChild(btn);
+      }
+
+      const selUltg = document.getElementById("ggn-ultg");
+      selUltg.innerHTML = `<option value="ALL">Semua ULTG (${ultgs.length})</option>`;
+      ultgs.forEach(u => {
+        const opt = document.createElement("option");
+        opt.value = u;
+        opt.textContent = u;
+        selUltg.appendChild(opt);
+      });
+      selUltg.value = ultgs.includes(ggnState.ultg) ? ggnState.ultg : "ALL";
+      ggnState.ultg = selUltg.value;
+
+      const selInduk = document.getElementById("ggn-induk");
+      selInduk.innerHTML = `<option value="ALL">Semua Penghantar (${induks.length})</option>`;
+      induks.forEach(ind => {
+        const opt = document.createElement("option");
+        opt.value = ind;
+        opt.textContent = ind;
+        selInduk.appendChild(opt);
+      });
+      selInduk.value = induks.includes(ggnState.induk) ? ggnState.induk : "ALL";
+      ggnState.induk = selInduk.value;
+    }
+
+    function refreshGgnView() {
+      const filtered = allGgnRecords.filter(r => {
+        if (ggnState.year !== "ALL" && String(r.y) !== String(ggnState.year)) return false;
+        if (ggnState.month !== "ALL" && String(r.m) !== String(ggnState.month)) return false;
+        if (ggnState.ultg !== "ALL" && r.u !== ggnState.ultg) return false;
+        if (ggnState.induk !== "ALL" && r.i !== ggnState.induk) return false;
+        return true;
+      });
+
+      const yrTxt = ggnState.year === "ALL" ? "Semua Tahun" : `Tahun ${ggnState.year}`;
+      const moTxt = ggnState.month === "ALL" ? "Semua Bulan" : `Bulan ${NAMA_BULAN[Number(ggnState.month)]}`;
+      document.getElementById("ggn-filter-badge").textContent = `${yrTxt} • ${moTxt}`;
+
+      const uniqIncidentMap = new Map();
+      const indukMap = new Map();
+      const towerImpactMap = new Map();
+      const ultgSet = new Set();
+
+      for (const r of filtered) {
+        ultgSet.add(r.u);
+        if (!uniqIncidentMap.has(r.id)) {
+          uniqIncidentMap.set(r.id, r);
+        }
+
+        let im = indukMap.get(r.i);
+        if (!im) {
+          im = {
+            induk: r.i,
+            ultg: r.u,
+            ids: new Set(),
+            dampakCount: 0,
+            recloseIds: new Set(),
+            tripIds: new Set(),
+            byYear: { 2021: new Set(), 2022: new Set(), 2023: new Set(), 2024: new Set(), 2025: new Set(), 2026: new Set() }
+          };
+          indukMap.set(r.i, im);
+        }
+        im.ids.add(r.id);
+        im.dampakCount += 1;
+        if (im.byYear[r.y]) im.byYear[r.y].add(r.id);
+        if (r.st.toLowerCase().includes("reclose")) im.recloseIds.add(r.id);
+        else im.tripIds.add(r.id);
+
+        if (r.na && r.na !== "-") {
+          const tKey = `${r.i}||${r.na}`;
+          let tm = towerImpactMap.get(tKey);
+          if (!tm) {
+            tm = { name: r.na, shortNo: r.nt, induk: r.i, count: 0 };
+            towerImpactMap.set(tKey, tm);
+          }
+          tm.count += 1;
+        }
+      }
+
+      const totalUniq = uniqIncidentMap.size;
+      let recloseUniq = 0, tripUniq = 0;
+      for (const inc of uniqIncidentMap.values()) {
+        if (inc.st.toLowerCase().includes("reclose")) recloseUniq++;
+        else tripUniq++;
+      }
+
+      currentGgnIndukList = Array.from(indukMap.values()).map(x => ({
+        induk: x.induk,
+        ultg: x.ultg,
+        uniqCount: x.ids.size,
+        dampakCount: x.dampakCount,
+        recloseCount: x.recloseIds.size,
+        tripCount: x.tripIds.size,
+        y2021: x.byYear[2021].size,
+        y2022: x.byYear[2022].size,
+        y2023: x.byYear[2023].size,
+        y2024: x.byYear[2024].size,
+        y2025: x.byYear[2025].size,
+        y2026: x.byYear[2026].size
+      }));
+
+      const sortKey = ggnState.mode === "dampak" ? "dampakCount" : "uniqCount";
+      currentGgnIndukList.sort((a, b) => b[sortKey] - a[sortKey]);
+
+      const sortedTowers = Array.from(towerImpactMap.values()).sort((a, b) => b.count - a.count);
+
+      // Update KPI
+      document.getElementById("ggn-kpi-unique").textContent = `${fmtNum(totalUniq)} Kejadian`;
+      document.getElementById("ggn-kpi-dampak-sub").textContent = `${fmtNum(filtered.length)} Titik Tower/Span Terdampak`;
+      const arPct = totalUniq > 0 ? ((recloseUniq / totalUniq) * 100).toFixed(1) : "0.0";
+      document.getElementById("ggn-kpi-reclose").textContent = `${arPct}%`;
+      document.getElementById("ggn-kpi-status-sub").textContent = `Reclose: ${fmtNum(recloseUniq)} • Trip: ${fmtNum(tripUniq)}`;
+
+      if (currentGgnIndukList.length > 0) {
+        const top = currentGgnIndukList[0];
+        document.getElementById("ggn-kpi-top-induk-val").textContent = `${fmtNum(top[sortKey])} ${ggnState.mode === "dampak" ? "Titik" : "Kejadian"}`;
+        document.getElementById("ggn-kpi-top-induk-name").textContent = `${top.induk} (${top.ultg})`;
+      } else {
+        document.getElementById("ggn-kpi-top-induk-val").textContent = "0";
+        document.getElementById("ggn-kpi-top-induk-name").textContent = "-";
+      }
+
+      if (sortedTowers.length > 0) {
+        const topT = sortedTowers[0];
+        document.getElementById("ggn-kpi-top-tower-val").textContent = `${fmtNum(topT.count)} Kali`;
+        document.getElementById("ggn-kpi-top-tower-name").textContent = `${topT.name}`;
+      } else {
+        document.getElementById("ggn-kpi-top-tower-val").textContent = "0 Kali";
+        document.getElementById("ggn-kpi-top-tower-name").textContent = "-";
+      }
+
+      document.getElementById("ggn-kpi-seg-count").textContent = `${fmtNum(currentGgnIndukList.length)} Penghantar`;
+      document.getElementById("ggn-kpi-ultg-sub").textContent = `Tersebar di ${fmtNum(ultgSet.size)} ULTG`;
+
+      // Chart 1 GGN: Per Penghantar
+      const ctx1 = document.getElementById("chart-ggn-induk").getContext("2d");
+      if (chartGgnInduk) chartGgnInduk.destroy();
+      chartGgnInduk = new Chart(ctx1, {
+        type: "bar",
+        data: {
+          labels: currentGgnIndukList.map(d => d.induk.replace(/^TRS\s+/i, "")),
+          datasets: [{
+            label: ggnState.mode === "dampak" ? "Titik Tower/Span Terdampak" : "Kejadian Gangguan Petir Unik",
+            data: currentGgnIndukList.map(d => d[sortKey]),
+            backgroundColor: currentGgnIndukList.map((_, i) => i < 3 ? "rgba(244, 63, 94, 0.9)" : i < 10 ? "rgba(245, 158, 11, 0.88)" : "rgba(56, 189, 248, 0.82)"),
+            borderRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: (_, el) => {
+            if (el && el.length > 0) {
+              const clicked = currentGgnIndukList[el[0].index]?.induk;
+              if (clicked) {
+                ggnState.induk = ggnState.induk === clicked ? "ALL" : clicked;
+                document.getElementById("ggn-induk").value = ggnState.induk;
+                refreshGgnView();
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#cbd5e1", font: { size: 10, weight: "600" }, maxRotation: 55, minRotation: 40 } },
+            y: { beginAtZero: true, grace: "14%", grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#cbd5e1" } }
+          },
+          plugins: {
+            legend: { labels: { color: "#e2e8f0" } },
+            datalabels: { color: "#fff", anchor: "end", align: "top", font: { size: 10, weight: "700" }, formatter: v => v > 0 ? fmtNum(v) : "" }
+          }
+        }
+      });
+
+      // Chart 2 GGN: Trend per Tahun/Bulan
+      const periodMap = new Map();
+      const useMonthly = ggnState.year !== "ALL";
+      for (const r of filtered) {
+        const key = useMonthly ? `${NAMA_BULAN_PENDEK[r.m]} ${r.y}` : String(r.y);
+        if (!periodMap.has(key)) periodMap.set(key, new Set());
+        periodMap.get(key).add(r.id);
+      }
+      const pEntries = Array.from(periodMap.entries());
+      const ctx2 = document.getElementById("chart-ggn-trend").getContext("2d");
+      if (chartGgnTrend) chartGgnTrend.destroy();
+      chartGgnTrend = new Chart(ctx2, {
+        type: "bar",
+        data: {
+          labels: pEntries.map(e => e[0]),
+          datasets: [{
+            label: "Kejadian Gangguan Petir",
+            data: pEntries.map(e => e[1].size),
+            backgroundColor: "rgba(244, 63, 94, 0.85)",
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#e2e8f0", font: { weight: "600" } } },
+            y: { beginAtZero: true, grace: "15%", grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#cbd5e1" } }
+          },
+          plugins: {
+            legend: { labels: { color: "#e2e8f0" } },
+            datalabels: { color: "#fff", anchor: "end", align: "top", font: { size: 11, weight: "700" } }
+          }
+        }
+      });
+
+      // Chart 3 GGN: Top 15 Towers
+      const top15T = sortedTowers.slice(0, 15);
+      const ctx3 = document.getElementById("chart-ggn-towers").getContext("2d");
+      if (chartGgnTowers) chartGgnTowers.destroy();
+      chartGgnTowers = new Chart(ctx3, {
+        type: "bar",
+        data: {
+          labels: top15T.map(t => `${t.induk.replace(/^TRS\s+\d+\s*KV\s+/i, "").slice(0, 11)} ${t.shortNo}`),
+          datasets: [{
+            label: "Frekuensi Terdampak",
+            data: top15T.map(t => t.count),
+            backgroundColor: "rgba(245, 158, 11, 0.88)",
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { beginAtZero: true, grace: "15%", grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#cbd5e1" } },
+            y: { grid: { color: "rgba(148,163,184,0.08)" }, ticks: { color: "#e2e8f0", font: { size: 10, weight: "600" } } }
+          },
+          plugins: {
+            legend: { display: false },
+            datalabels: { color: "#fff", anchor: "end", align: "right", font: { size: 10, weight: "700" } }
+          }
+        }
+      });
+
+      renderGgnTables(filtered);
+    }
+
+    function renderGgnTables(filteredLogs) {
+      const q = ggnState.search.trim().toLowerCase();
+      const fInduk = currentGgnIndukList.filter(x =>
+        !q || x.induk.toLowerCase().includes(q) || x.ultg.toLowerCase().includes(q)
+      );
+      document.getElementById("ggn-count-induk").textContent = fmtNum(fInduk.length);
+
+      document.getElementById("ggn-tbody-induk").innerHTML = fInduk
+        .map((x, i) => `
+          <tr class="hover:bg-slate-800/60 transition">
+            <td class="py-2.5 px-3 font-bold text-slate-400">#${i + 1}</td>
+            <td class="py-2.5 px-3 font-bold text-white">${x.induk}</td>
+            <td class="py-2.5 px-3 text-slate-300">${x.ultg}</td>
+            <td class="py-2.5 px-3 text-right">${x.y2021}</td>
+            <td class="py-2.5 px-3 text-right">${x.y2022}</td>
+            <td class="py-2.5 px-3 text-right">${x.y2023}</td>
+            <td class="py-2.5 px-3 text-right">${x.y2024}</td>
+            <td class="py-2.5 px-3 text-right">${x.y2025}</td>
+            <td class="py-2.5 px-3 text-right">${x.y2026}</td>
+            <td class="py-2.5 px-3 text-right font-extrabold text-rose-400">${fmtNum(x.uniqCount)}</td>
+            <td class="py-2.5 px-3 text-right font-bold text-amber-300">${fmtNum(x.dampakCount)}</td>
+            <td class="py-2.5 px-3 text-right text-emerald-400">${fmtNum(x.recloseCount)}</td>
+            <td class="py-2.5 px-3 text-right text-orange-400">${fmtNum(x.tripCount)}</td>
+          </tr>
+        `)
+        .join("");
+
+      const fLogs = filteredLogs.filter(r =>
+        !q ||
+        r.id.toLowerCase().includes(q) ||
+        r.i.toLowerCase().includes(q) ||
+        r.na.toLowerCase().includes(q) ||
+        r.det.toLowerCase().includes(q)
+      );
+      document.getElementById("ggn-count-log").textContent = fmtNum(fLogs.length);
+
+      document.getElementById("ggn-tbody-log").innerHTML = fLogs
+        .slice(0, 350)
+        .map(r => `
+          <tr class="hover:bg-slate-800/60 transition">
+            <td class="py-2 px-3 font-bold text-rose-300 whitespace-nowrap">${r.id}</td>
+            <td class="py-2 px-3 text-slate-300 whitespace-nowrap">${r.dt}</td>
+            <td class="py-2 px-3 text-slate-300">${r.u}</td>
+            <td class="py-2 px-3 font-semibold text-white">${r.i}</td>
+            <td class="py-2 px-3 text-slate-400">${r.ta}</td>
+            <td class="py-2 px-3 font-semibold text-amber-300">${r.na}</td>
+            <td class="py-2 px-3 text-slate-300">${r.ln}</td>
+            <td class="py-2 px-3">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.st.toLowerCase().includes("reclose") ? "bg-emerald-500/20 text-emerald-300" : "bg-rose-500/20 text-rose-300"}">${r.st}</span>
+            </td>
+            <td class="py-2 px-3 text-slate-300">${r.det}</td>
+          </tr>
+        `)
+        .join("");
+    }
+
+    /* ===================================================================== */
+    /* TAB 3 LOGIC: PROTEKSI PETIR TERPASANG (SHEET: ROADMAP PROTEKSI PETIR) */
+    /* ===================================================================== */
+    function populateProtFilters() {
+      const ultgs = Array.from(new Set(allProtRecords.map(r => r.u).filter(Boolean))).sort();
+      const induks = Array.from(
+        new Set(
+          allProtRecords
+            .filter(r => protState.ultg === "ALL" || r.u === protState.ultg)
+            .map(r => r.i)
+            .filter(Boolean)
+        )
+      ).sort();
+      const contracts = Array.from(
+        new Set(allProtRecords.flatMap(r => r.k_list || []))
+      ).sort();
+
+      const selUltg = document.getElementById("prot-ultg");
+      selUltg.innerHTML = `<option value="ALL">Semua ULTG (${ultgs.length})</option>`;
+      ultgs.forEach(u => {
+        const opt = document.createElement("option");
+        opt.value = u;
+        opt.textContent = u;
+        selUltg.appendChild(opt);
+      });
+      selUltg.value = ultgs.includes(protState.ultg) ? protState.ultg : "ALL";
+      protState.ultg = selUltg.value;
+
+      const selInduk = document.getElementById("prot-induk");
+      selInduk.innerHTML = `<option value="ALL">Semua Penghantar (${induks.length})</option>`;
+      induks.forEach(ind => {
+        const opt = document.createElement("option");
+        opt.value = ind;
+        opt.textContent = ind;
+        selInduk.appendChild(opt);
+      });
+      selInduk.value = induks.includes(protState.induk) ? protState.induk : "ALL";
+      protState.induk = selInduk.value;
+
+      const selContract = document.getElementById("prot-contract");
+      selContract.innerHTML = `<option value="ALL">Semua Kontrak / Tahun (${contracts.length})</option>`;
+      contracts.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        selContract.appendChild(opt);
+      });
+      selContract.value = contracts.includes(protState.contract) ? protState.contract : "ALL";
+      protState.contract = selContract.value;
+    }
+
+    function refreshProtView() {
+      const filtered = allProtRecords.filter(r => {
+        if (protState.ultg !== "ALL" && r.u !== protState.ultg) return false;
+        if (protState.induk !== "ALL" && r.i !== protState.induk) return false;
+        if (protState.type !== "ALL" && !r[protState.type]) return false;
+        if (protState.contract !== "ALL" && !(r.k_list || []).includes(protState.contract)) return false;
+        return true;
+      });
+
+      const uTxt = protState.ultg === "ALL" ? "Semua ULTG" : protState.ultg;
+      const iTxt = protState.induk === "ALL" ? "Semua Penghantar" : protState.induk;
+      document.getElementById("prot-filter-badge").textContent = `${uTxt} • ${iTxt}`;
+
+      let sumMrg = 0, sumMggs = 0, sumDgs = 0, sumIgsw = 0, sumMdg = 0, sumTla = 0, sumClean = 0, sumProtected = 0;
+      const indukMap = new Map();
+      const ultgMap = new Map();
+
+      for (const r of filtered) {
+        sumMrg += r.mrg;
+        sumMggs += r.mggs;
+        sumDgs += r.dgs;
+        sumIgsw += r.igsw;
+        sumMdg += r.mdg;
+        sumTla += r.tla;
+        sumClean += r.cln;
+        const isProt = (r.mrg || r.mggs || r.dgs || r.igsw || r.mdg || r.tla) ? 1 : 0;
+        sumProtected += isProt;
+
+        let im = indukMap.get(r.i);
+        if (!im) {
+          im = { induk: r.i, ultg: r.u, towers: 0, mrg: 0, mggs: 0, dgs: 0, igsw: 0, mdg: 0, tla: 0, cln: 0, protectedTowers: 0 };
+          indukMap.set(r.i, im);
+        }
+        im.towers += 1;
+        im.mrg += r.mrg;
+        im.mggs += r.mggs;
+        im.dgs += r.dgs;
+        im.igsw += r.igsw;
+        im.mdg += r.mdg;
+        im.tla += r.tla;
+        im.cln += r.cln;
+        im.protectedTowers += isProt;
+
+        let um = ultgMap.get(r.u);
+        if (!um) {
+          um = { ultg: r.u, mrg: 0, mggs: 0, dgs: 0, igsw: 0, tla: 0 };
+          ultgMap.set(r.u, um);
+        }
+        um.mrg += r.mrg;
+        um.mggs += r.mggs;
+        um.dgs += r.dgs;
+        um.igsw += r.igsw;
+        um.tla += r.tla;
+      }
+
+      currentProtIndukList = Array.from(indukMap.values()).sort((a, b) => {
+        if (protState.type !== "ALL") return b[protState.type] - a[protState.type];
+        return (b.dgs + b.mrg + b.mggs + b.igsw + b.tla + b.mdg) - (a.dgs + a.mrg + a.mggs + a.igsw + a.tla + a.mdg);
+      });
+
+      // Update KPI
+      document.getElementById("prot-kpi-towers").textContent = fmtNum(filtered.length);
+      document.getElementById("prot-kpi-protected-sub").textContent = `${fmtNum(sumProtected)} Tower Terpasang Proteksi`;
+      document.getElementById("prot-kpi-dgs").textContent = fmtNum(sumDgs);
+      document.getElementById("prot-kpi-mrg").textContent = fmtNum(sumMrg);
+      document.getElementById("prot-kpi-mggs").textContent = fmtNum(sumMggs);
+      document.getElementById("prot-kpi-igsw").textContent = fmtNum(sumIgsw);
+      document.getElementById("prot-kpi-tla").textContent = `${fmtNum(sumTla)} TLA / ${fmtNum(sumMdg)} MDG`;
+      document.getElementById("prot-kpi-clean-sub").textContent = `Cleaning Insulator: ${fmtNum(sumClean)} Tower`;
+
+      // Chart 1 Prot: Per Penghantar
+      const ctx1 = document.getElementById("chart-prot-induk").getContext("2d");
+      if (chartProtInduk) chartProtInduk.destroy();
+      chartProtInduk = new Chart(ctx1, {
+        type: "bar",
+        data: {
+          labels: currentProtIndukList.map(d => d.induk.replace(/^TRS\s+/i, "")),
+          datasets: [
+            { label: "DGS", data: currentProtIndukList.map(d => d.dgs), backgroundColor: "#10b981", borderRadius: 3 },
+            { label: "MRG", data: currentProtIndukList.map(d => d.mrg), backgroundColor: "#f59e0b", borderRadius: 3 },
+            { label: "MGGS", data: currentProtIndukList.map(d => d.mggs), backgroundColor: "#0ea5e9", borderRadius: 3 },
+            { label: "IGSW", data: currentProtIndukList.map(d => d.igsw), backgroundColor: "#a855f7", borderRadius: 3 },
+            { label: "TLA", data: currentProtIndukList.map(d => d.tla), backgroundColor: "#f43f5e", borderRadius: 3 },
+            { label: "MDG", data: currentProtIndukList.map(d => d.mdg), backgroundColor: "#ec4899", borderRadius: 3 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: (_, el) => {
+            if (el && el.length > 0) {
+              const clicked = currentProtIndukList[el[0].index]?.induk;
+              if (clicked) {
+                protState.induk = protState.induk === clicked ? "ALL" : clicked;
+                document.getElementById("prot-induk").value = protState.induk;
+                refreshProtView();
+              }
+            }
+          },
+          scales: {
+            x: { stacked: true, grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#cbd5e1", font: { size: 10, weight: "600" }, maxRotation: 55, minRotation: 40 } },
+            y: { stacked: true, beginAtZero: true, grace: "12%", grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#cbd5e1" } }
+          },
+          plugins: {
+            legend: { labels: { color: "#e2e8f0", font: { size: 11, weight: "600" } } },
+            datalabels: { display: false }
+          }
+        }
+      });
+
+      // Chart 2 Prot: Summary Types
+      const ctx2 = document.getElementById("chart-prot-types").getContext("2d");
+      if (chartProtTypes) chartProtTypes.destroy();
+      chartProtTypes = new Chart(ctx2, {
+        type: "bar",
+        data: {
+          labels: ["DGS", "Cleaning Insulator", "MRG", "MGGS", "IGSW", "TLA (L1/L2)", "MDG"],
+          datasets: [{
+            label: "Jumlah Tower Terpasang",
+            data: [sumDgs, sumClean, sumMrg, sumMggs, sumIgsw, sumTla, sumMdg],
+            backgroundColor: ["#10b981", "#14b8a6", "#f59e0b", "#0ea5e9", "#a855f7", "#f43f5e", "#ec4899"],
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#e2e8f0", font: { weight: "600" } } },
+            y: { beginAtZero: true, grace: "15%", grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#cbd5e1" } }
+          },
+          plugins: {
+            legend: { display: false },
+            datalabels: { color: "#fff", anchor: "end", align: "top", font: { size: 11, weight: "700" }, formatter: v => fmtNum(v) }
+          }
+        }
+      });
+
+      // Chart 3 Prot: Per ULTG
+      const uList = Array.from(ultgMap.values());
+      const ctx3 = document.getElementById("chart-prot-ultg").getContext("2d");
+      if (chartProtUltg) chartProtUltg.destroy();
+      chartProtUltg = new Chart(ctx3, {
+        type: "bar",
+        data: {
+          labels: uList.map(u => u.ultg.replace(/^ULTG\s+/i, "")),
+          datasets: [
+            { label: "DGS", data: uList.map(u => u.dgs), backgroundColor: "#10b981" },
+            { label: "MRG", data: uList.map(u => u.mrg), backgroundColor: "#f59e0b" },
+            { label: "MGGS", data: uList.map(u => u.mggs), backgroundColor: "#0ea5e9" },
+            { label: "IGSW", data: uList.map(u => u.igsw), backgroundColor: "#a855f7" },
+            { label: "TLA", data: uList.map(u => u.tla), backgroundColor: "#f43f5e" }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#e2e8f0", font: { size: 10.5, weight: "600" } } },
+            y: { beginAtZero: true, grace: "14%", grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#cbd5e1" } }
+          },
+          plugins: {
+            legend: { labels: { color: "#e2e8f0", font: { size: 11 } } },
+            datalabels: { display: false }
+          }
+        }
+      });
+
+      renderProtTables(filtered);
+    }
+
+    let currentProtTowerFiltered = [];
+
+    function getTowerInstalledBadges(r) {
+      const pills = [];
+      if (r.dgs) pills.push(`<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-500/25 text-emerald-300 border border-emerald-500/40">DGS</span>`);
+      if (r.mrg) pills.push(`<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-500/25 text-amber-300 border border-amber-500/40">MRG</span>`);
+      if (r.mggs) pills.push(`<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-500/25 text-sky-300 border border-sky-500/40">MGGS</span>`);
+      if (r.igsw) pills.push(`<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-purple-500/25 text-purple-300 border border-purple-500/40">IGSW</span>`);
+      if (r.mdg) pills.push(`<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-pink-500/25 text-pink-300 border border-pink-500/40">MDG</span>`);
+      if (r.tla1) pills.push(`<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-rose-500/25 text-rose-300 border border-rose-500/40">TLA-L1</span>`);
+      if (r.tla2) pills.push(`<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-rose-500/25 text-rose-300 border border-rose-500/40">TLA-L2</span>`);
+      if (r.cln) pills.push(`<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-teal-500/25 text-teal-300 border border-teal-500/40">CLEANING</span>`);
+      if (pills.length === 0) {
+        return `<span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-800 text-slate-500">Belum Terpasang</span>`;
+      }
+      return `<div class="flex flex-wrap gap-1">${pills.join("")}</div>`;
+    }
+
+    function getTowerInstalledTextList(r) {
+      const items = [];
+      if (r.dgs) items.push("DGS");
+      if (r.mrg) items.push("MRG");
+      if (r.mggs) items.push("MGGS");
+      if (r.igsw) items.push("IGSW");
+      if (r.mdg) items.push("MDG");
+      if (r.tla1) items.push("TLA-L1");
+      if (r.tla2) items.push("TLA-L2");
+      if (r.cln) items.push("CLEANING");
+      return items.length > 0 ? items.join(" + ") : "Belum Terpasang";
+    }
+
+    window.selectProtIndukFromTable = function(indukName) {
+      protState.induk = protState.induk === indukName ? "ALL" : indukName;
+      document.getElementById("prot-induk").value = protState.induk;
+      refreshProtView();
+      if (protState.induk !== "ALL") {
+        document.getElementById("section-prot-tower").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+
+    function renderProtTables(filteredTowers) {
+      const q = protState.search.trim().toLowerCase();
+      const fInduk = currentProtIndukList.filter(x =>
+        !q || x.induk.toLowerCase().includes(q) || x.ultg.toLowerCase().includes(q)
+      );
+      document.getElementById("prot-count-induk").textContent = fmtNum(fInduk.length);
+
+      document.getElementById("prot-tbody-induk").innerHTML = fInduk
+        .map((x, i) => {
+          const pct = x.towers > 0 ? ((x.protectedTowers / x.towers) * 100).toFixed(1) : "0.0";
+          const isSelected = protState.induk === x.induk;
+          return `<tr class="hover:bg-slate-800/60 transition ${isSelected ? "bg-emerald-500/15" : ""}">
+            <td class="py-2.5 px-3 font-bold text-slate-400">#${i + 1}</td>
+            <td class="py-2.5 px-3 font-bold text-white">${x.induk}</td>
+            <td class="py-2.5 px-3 text-slate-300">${x.ultg}</td>
+            <td class="py-2.5 px-3 text-right">${fmtNum(x.towers)}</td>
+            <td class="py-2.5 px-3 text-right font-bold text-emerald-400">${fmtNum(x.dgs)}</td>
+            <td class="py-2.5 px-3 text-right font-bold text-amber-400">${fmtNum(x.mrg)}</td>
+            <td class="py-2.5 px-3 text-right font-bold text-sky-400">${fmtNum(x.mggs)}</td>
+            <td class="py-2.5 px-3 text-right font-bold text-purple-400">${fmtNum(x.igsw)}</td>
+            <td class="py-2.5 px-3 text-right font-bold text-pink-400">${fmtNum(x.mdg)}</td>
+            <td class="py-2.5 px-3 text-right font-bold text-rose-400">${fmtNum(x.tla)}</td>
+            <td class="py-2.5 px-3 text-right text-teal-300">${fmtNum(x.cln)}</td>
+            <td class="py-2.5 px-3 text-right font-extrabold text-white">${fmtNum(x.protectedTowers)} (${pct}%)</td>
+            <td class="py-2.5 px-3 text-center">
+              <button onclick="selectProtIndukFromTable('${x.induk.replace(/'/g, "\\'")}')"
+                      class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${isSelected ? "bg-rose-500 text-white" : "bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-emerald-300"} border border-slate-700 transition">
+                ${isSelected ? "Reset" : "Lihat Tower"}
+              </button>
+            </td>
+          </tr>`;
+        })
+        .join("");
+
+      const totT = fInduk.reduce((a, x) => a + x.towers, 0);
+      const totDgs = fInduk.reduce((a, x) => a + x.dgs, 0);
+      const totMrg = fInduk.reduce((a, x) => a + x.mrg, 0);
+      const totMggs = fInduk.reduce((a, x) => a + x.mggs, 0);
+      const totIgsw = fInduk.reduce((a, x) => a + x.igsw, 0);
+      const totMdg = fInduk.reduce((a, x) => a + x.mdg, 0);
+      const totTla = fInduk.reduce((a, x) => a + x.tla, 0);
+      const totCln = fInduk.reduce((a, x) => a + x.cln, 0);
+      const totP = fInduk.reduce((a, x) => a + x.protectedTowers, 0);
+
+      document.getElementById("prot-tfoot-induk").innerHTML = `
+        <tr>
+          <td colspan="3" class="py-3 px-3">GRAND TOTAL (${fmtNum(fInduk.length)} Penghantar)</td>
+          <td class="py-3 px-3 text-right">${fmtNum(totT)}</td>
+          <td class="py-3 px-3 text-right text-emerald-400">${fmtNum(totDgs)}</td>
+          <td class="py-3 px-3 text-right text-amber-400">${fmtNum(totMrg)}</td>
+          <td class="py-3 px-3 text-right text-sky-400">${fmtNum(totMggs)}</td>
+          <td class="py-3 px-3 text-right text-purple-400">${fmtNum(totIgsw)}</td>
+          <td class="py-3 px-3 text-right text-pink-400">${fmtNum(totMdg)}</td>
+          <td class="py-3 px-3 text-right text-rose-400">${fmtNum(totTla)}</td>
+          <td class="py-3 px-3 text-right text-teal-300">${fmtNum(totCln)}</td>
+          <td class="py-3 px-3 text-right">${fmtNum(totP)}</td>
+          <td></td>
+        </tr>
+      `;
+
+      const tq = (protState.towerSearch || protState.search || "").trim().toLowerCase();
+      currentProtTowerFiltered = filteredTowers.filter(r => {
+        const countTypes = r.dgs + r.mrg + r.mggs + r.igsw + r.mdg + r.tla;
+        if (protState.towerStatus === "PROTECTED" && countTypes === 0 && !r.cln) return false;
+        if (protState.towerStatus === "MULTI" && countTypes < 2) return false;
+        if (protState.towerStatus === "UNPROTECTED" && (countTypes > 0 || r.cln > 0)) return false;
+
+        if (!tq) return true;
+        const summaryStr = getTowerInstalledTextList(r).toLowerCase();
+        return (
+          r.n.toLowerCase().includes(tq) ||
+          r.i.toLowerCase().includes(tq) ||
+          r.u.toLowerCase().includes(tq) ||
+          summaryStr.includes(tq) ||
+          (r.kdl && r.kdl.toLowerCase().includes(tq)) ||
+          (r.k_list || []).some(k => k.toLowerCase().includes(tq))
+        );
+      });
+
+      document.getElementById("prot-count-tower").textContent = fmtNum(currentProtTowerFiltered.length);
+
+      const badge = (txt, cls) => txt ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold ${cls}">${txt}</span>` : `<span class="text-slate-600">-</span>`;
+      const maxRows = protState.towerLimit === "ALL" ? currentProtTowerFiltered.length : parseInt(protState.towerLimit, 10);
+
+      document.getElementById("prot-tbody-tower").innerHTML = currentProtTowerFiltered
+        .slice(0, maxRows)
+        .map((r, i) => `
+          <tr class="hover:bg-slate-800/60 transition">
+            <td class="py-2 px-3 text-slate-400 font-semibold">#${i + 1}</td>
+            <td class="py-2 px-3 font-bold text-white whitespace-nowrap">${r.n}</td>
+            <td class="py-2 px-3 text-slate-300">${r.i}</td>
+            <td class="py-2 px-3 text-slate-400">${r.u}</td>
+            <td class="py-2 px-3">${getTowerInstalledBadges(r)}</td>
+            <td class="py-2 px-3">${badge(r.dgs_i, "bg-emerald-500/20 text-emerald-300")}</td>
+            <td class="py-2 px-3">${badge(r.mrg_i, "bg-amber-500/20 text-amber-300")}</td>
+            <td class="py-2 px-3">${badge(r.mggs_i, "bg-sky-500/20 text-sky-300")}</td>
+            <td class="py-2 px-3">${badge(r.igsw_i, "bg-purple-500/20 text-purple-300")}</td>
+            <td class="py-2 px-3">${badge(r.mdg_i, "bg-pink-500/20 text-pink-300")}</td>
+            <td class="py-2 px-3">${badge(r.tla_i, "bg-rose-500/20 text-rose-300")}</td>
+            <td class="py-2 px-3">${badge(r.cln_i, "bg-teal-500/20 text-teal-300")}</td>
+            <td class="py-2 px-3 text-orange-300">${r.kdl || "-"}</td>
+          </tr>
+        `)
+        .join("");
+    }
+
+    function exportProtTowersToCsv() {
+      const lines = [
+        ["No", "Nama Tower", "Penghantar", "ULTG", "Terpasang Apa Saja (Ringkasan)", "DGS", "MRG", "MGGS", "IGSW", "MDG", "TLA (L1/L2)", "Cleaning Insulator", "Keterangan / Kendala"].join(";")
+      ];
+      currentProtTowerFiltered.forEach((r, idx) => {
+        lines.push([
+          idx + 1,
+          `"${r.n}"`,
+          `"${r.i}"`,
+          `"${r.u}"`,
+          `"${getTowerInstalledTextList(r)}"`,
+          `"${r.dgs_i || "-"}"`,
+          `"${r.mrg_i || "-"}"`,
+          `"${r.mggs_i || "-"}"`,
+          `"${r.igsw_i || "-"}"`,
+          `"${r.mdg_i || "-"}"`,
+          `"${r.tla_i || "-"}"`,
+          `"${r.cln_i || "-"}"`,
+          `"${r.kdl || "-"}"`
+        ].join(";"));
+      });
+      const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `RINCIAN_PROTEKSI_PETIR_TIAP_TOWER.csv`;
+      a.click();
+    }
+
+    function exportCurrentToCsv() {
+      let lines = [];
+      let filename = "REKAP_DASHBOARD.csv";
+
+      if (activeMainView === "lds") {
+        const yrText = state.year === "ALL" ? "SEMUA_TAHUN" : state.year;
+        const moText = state.month === "ALL" ? "SEMUA_BULAN" : NAMA_BULAN[Number(state.month)].toUpperCase();
+        filename = `REKAP_SAMBARAN_PETIR_PENGHANTAR_${yrText}_${moText}.csv`;
+        lines.push(["Rank", "Penghantar (Induk)", "ULTG", "Jumlah Tower", "Total Sambaran (Count)", "Count (-)", "Count (+)", "% Positif", "Rata-rata per Tower", "Min kA (-)", "Max kA (+)", "Max kA Gabungan"].join(";"));
+        currentIndukList.forEach((item, idx) => {
+          lines.push([idx + 1, `"${item.induk}"`, `"${item.ultg}"`, item.towerCount, item.count, item.neg, item.pos, item.pctPos.toFixed(2), item.avgPerTower.toFixed(2), item.min_ka, item.max_ka, item.pka].join(";"));
+        });
+      } else if (activeMainView === "ggn") {
+        filename = `REKAP_GANGGUAN_PETIR_PENGHANTAR.csv`;
+        lines.push(["Rank", "Penghantar", "ULTG", "2021", "2022", "2023", "2024", "2025", "2026", "Total Kejadian Unik", "Titik Tower/Span", "Reclose", "Trip"].join(";"));
+        currentGgnIndukList.forEach((x, idx) => {
+          lines.push([idx + 1, `"${x.induk}"`, `"${x.ultg}"`, x.y2021, x.y2022, x.y2023, x.y2024, x.y2025, x.y2026, x.uniqCount, x.dampakCount, x.recloseCount, x.tripCount].join(";"));
+        });
+      } else {
+        filename = `REKAP_PROTEKSI_PETIR_TERPASANG.csv`;
+        lines.push(["Rank", "Penghantar", "ULTG", "Total Tower", "DGS", "MRG", "MGGS", "IGSW", "MDG", "TLA", "Cleaning Insulator", "Tower Terproteksi"].join(";"));
+        currentProtIndukList.forEach((x, idx) => {
+          lines.push([idx + 1, `"${x.induk}"`, `"${x.ultg}"`, x.towers, x.dgs, x.mrg, x.mggs, x.igsw, x.mdg, x.tla, x.cln, x.protectedTowers].join(";"));
+        });
+      }
+
+      const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    // Event Listeners Tab 1 (LDS)
+    document.getElementById("filter-year").addEventListener("change", (e) => { state.year = e.target.value; populateFilterControls(); refreshDashboard(); });
+    document.getElementById("filter-month").addEventListener("change", (e) => { state.month = e.target.value; populateFilterControls(); refreshDashboard(); });
+    document.getElementById("filter-ultg").addEventListener("change", (e) => { state.ultg = e.target.value; state.induk = "ALL"; populateFilterControls(); refreshDashboard(); });
+    document.getElementById("filter-induk").addEventListener("change", (e) => { state.induk = e.target.value; refreshDashboard(); });
+    document.getElementById("filter-metric").addEventListener("change", (e) => { state.metric = e.target.value; refreshDashboard(); });
+    document.getElementById("chk-dedup").addEventListener("change", (e) => { state.dedup = e.target.checked; refreshDashboard(); });
+    document.getElementById("btn-reset-filter").addEventListener("click", () => {
+      state.year = "ALL"; state.month = "ALL"; state.ultg = "ALL"; state.induk = "ALL"; state.metric = "total"; state.dedup = false;
+      document.getElementById("chk-dedup").checked = false;
+      document.getElementById("filter-metric").value = "total";
+      populateFilterControls(); refreshDashboard();
+    });
+
+    document.querySelectorAll(".limit-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.indukLimit = btn.dataset.limit;
+        document.querySelectorAll(".limit-btn").forEach(b => b.className = "limit-btn px-2.5 py-1 rounded-lg font-semibold text-slate-300 hover:text-white");
+        btn.className = "limit-btn px-2.5 py-1 rounded-lg font-semibold bg-amber-500 text-slate-950";
+        renderIndukChart(currentIndukList);
+      });
+    });
+
+    document.querySelectorAll(".orient-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.indukOrient = btn.dataset.orient;
+        document.querySelectorAll(".orient-btn").forEach(b => b.className = "orient-btn px-2.5 py-1 rounded-lg font-semibold text-slate-300 hover:text-white");
+        btn.className = "orient-btn px-2.5 py-1 rounded-lg font-semibold bg-sky-500 text-slate-950";
+        renderIndukChart(currentIndukList);
+      });
+    });
+
+    document.querySelectorAll(".towermode-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.towerMode = btn.dataset.towermode;
+        document.querySelectorAll(".towermode-btn").forEach(b => b.className = "towermode-btn px-2.5 py-1 rounded-lg font-semibold text-slate-300 hover:text-white");
+        btn.className = "towermode-btn px-2.5 py-1 rounded-lg font-semibold bg-rose-500 text-white";
+        renderTowerChart(currentTowerList);
+      });
+    });
+
+    document.getElementById("tab-btn-induk").addEventListener("click", () => {
+      document.getElementById("table-wrap-induk").classList.remove("hidden");
+      document.getElementById("table-wrap-tower").classList.add("hidden");
+      document.getElementById("tab-btn-induk").className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition";
+      document.getElementById("tab-btn-tower").className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+    });
+    document.getElementById("tab-btn-tower").addEventListener("click", () => {
+      document.getElementById("table-wrap-tower").classList.remove("hidden");
+      document.getElementById("table-wrap-induk").classList.add("hidden");
+      document.getElementById("tab-btn-tower").className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition";
+      document.getElementById("tab-btn-induk").className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+    });
+    document.getElementById("table-search").addEventListener("input", (e) => { state.searchQuery = e.target.value; renderTables(); });
+
+    // Event Listeners Tab 2 (Gangguan Petir)
+    document.getElementById("ggn-year").addEventListener("change", (e) => { ggnState.year = e.target.value; populateGgnFilters(); refreshGgnView(); });
+    document.getElementById("ggn-month").addEventListener("change", (e) => { ggnState.month = e.target.value; populateGgnFilters(); refreshGgnView(); });
+    document.getElementById("ggn-ultg").addEventListener("change", (e) => { ggnState.ultg = e.target.value; ggnState.induk = "ALL"; populateGgnFilters(); refreshGgnView(); });
+    document.getElementById("ggn-induk").addEventListener("change", (e) => { ggnState.induk = e.target.value; refreshGgnView(); });
+    document.getElementById("ggn-mode").addEventListener("change", (e) => { ggnState.mode = e.target.value; refreshGgnView(); });
+    document.getElementById("btn-reset-ggn").addEventListener("click", () => {
+      ggnState.year = "ALL"; ggnState.month = "ALL"; ggnState.ultg = "ALL"; ggnState.induk = "ALL"; ggnState.mode = "unique";
+      document.getElementById("ggn-mode").value = "unique";
+      populateGgnFilters(); refreshGgnView();
+    });
+    document.getElementById("ggn-tab-btn-induk").addEventListener("click", () => {
+      document.getElementById("ggn-wrap-induk").classList.remove("hidden");
+      document.getElementById("ggn-wrap-log").classList.add("hidden");
+      document.getElementById("ggn-tab-btn-induk").className = "px-4 py-2 rounded-xl text-xs font-bold bg-rose-500 text-white transition";
+      document.getElementById("ggn-tab-btn-log").className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+    });
+    document.getElementById("ggn-tab-btn-log").addEventListener("click", () => {
+      document.getElementById("ggn-wrap-log").classList.remove("hidden");
+      document.getElementById("ggn-wrap-induk").classList.add("hidden");
+      document.getElementById("ggn-tab-btn-log").className = "px-4 py-2 rounded-xl text-xs font-bold bg-rose-500 text-white transition";
+      document.getElementById("ggn-tab-btn-induk").className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+    });
+    document.getElementById("ggn-search").addEventListener("input", (e) => { ggnState.search = e.target.value; refreshGgnView(); });
+
+    // Event Listeners Tab 3 (Proteksi Petir Terpasang)
+    document.getElementById("prot-ultg").addEventListener("change", (e) => { protState.ultg = e.target.value; protState.induk = "ALL"; populateProtFilters(); refreshProtView(); });
+    document.getElementById("prot-induk").addEventListener("change", (e) => { protState.induk = e.target.value; refreshProtView(); });
+    document.getElementById("prot-type").addEventListener("change", (e) => { protState.type = e.target.value; refreshProtView(); });
+    document.getElementById("prot-contract").addEventListener("change", (e) => { protState.contract = e.target.value; refreshProtView(); });
+    document.getElementById("btn-reset-prot").addEventListener("click", () => {
+      protState.ultg = "ALL"; protState.induk = "ALL"; protState.type = "ALL"; protState.contract = "ALL";
+      protState.search = ""; protState.towerSearch = ""; protState.towerStatus = "ALL";
+      document.getElementById("prot-type").value = "ALL";
+      document.getElementById("prot-search").value = "";
+      document.getElementById("prot-tower-search").value = "";
+      populateProtFilters(); refreshProtView();
+    });
+    document.getElementById("prot-search").addEventListener("input", (e) => { protState.search = e.target.value; refreshProtView(); });
+    document.getElementById("prot-tower-search").addEventListener("input", (e) => { protState.towerSearch = e.target.value; refreshProtView(); });
+    document.getElementById("prot-tower-limit").addEventListener("change", (e) => { protState.towerLimit = e.target.value; refreshProtView(); });
+    document.getElementById("btn-export-prot-tower").addEventListener("click", exportProtTowersToCsv);
+    document.querySelectorAll(".prot-status-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        protState.towerStatus = btn.dataset.protstatus;
+        document.querySelectorAll(".prot-status-btn").forEach(b => {
+          b.className = "prot-status-btn px-3 py-1.5 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+        });
+        btn.className = "prot-status-btn px-3 py-1.5 rounded-xl font-bold bg-emerald-500 text-slate-950 transition";
+        refreshProtView();
+      });
+    });
+
+    // Global Buttons
+    document.getElementById("btn-export-csv").addEventListener("click", exportCurrentToCsv);
+
+    document.getElementById("btn-sync").addEventListener("click", async () => {
+      const btn = document.getElementById("btn-sync");
+      const txt = document.getElementById("sync-text");
+      const icon = document.getElementById("sync-icon");
+      btn.disabled = true;
+      icon.textContent = "⏳";
+      txt.textContent = "Menyinkronkan 3 Sheet...";
+
+      try {
+        let syncedViaServer = false;
+        try {
+          const res = await fetch("/api/sync", { method: "POST" });
+          if (res.ok) {
+            const json = await res.json();
+            if (json.ok) {
+              const dataRes = await fetch("/api/data", { cache: "no-store" });
+              rawPayload = await dataRes.json();
+              initFromPayload(rawPayload);
+              syncedViaServer = true;
+            }
+          }
+        } catch (_) {}
+
+        if (!syncedViaServer) {
+          // Tarik langsung dari Google Spreadsheet via Browser (berfungsi 100% di GitHub Pages / Netlify / file lokal)
+          rawPayload = await fetchLiveFromGoogleSheetsDirect();
+          initFromPayload(rawPayload);
+        }
+        icon.textContent = "✅";
+        txt.textContent = "3 Sheet Tersinkron Live!";
+      } catch (err) {
+        alert("Gagal menyinkronkan data dari Google Sheet.\nPastikan koneksi internet aktif.\n\nDetail: " + err.message);
+        icon.textContent = "🔄";
+        txt.textContent = "Sinkronisasi 3 Sheet";
+      } finally {
+        setTimeout(() => {
+          btn.disabled = false;
+          icon.textContent = "🔄";
+          txt.textContent = "Sinkronisasi 3 Sheet";
+        }, 2200);
+      }
+    });
+
+    window.addEventListener("DOMContentLoaded", loadInitialData);
+  </script>
+</body>
+</html>
