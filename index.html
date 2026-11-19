@@ -1305,6 +1305,16 @@
       return Number(n || 0).toLocaleString("id-ID");
     }
 
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
     function fmtDec(n, digits = 2) {
       return Number(n || 0).toLocaleString("id-ID", {
         minimumFractionDigits: digits,
@@ -1542,16 +1552,6 @@
         });
       }
 
-      const nowStr = new Date().toLocaleString("id-ID") + " (Live Google Sheet)";
-      return {
-        metadata: {
-          synced_at: nowStr,
-          total_records: ldsRecords.length,
-          duplicate_paste_records: dupCount
-        },
-        records: ldsRecords,
-        ggn_records: ggnRecords,
-
       // 4. Parse Nilai Pentanahan & R Soil
       const rowsTanah = parseCsvText(csvTanah);
       const tanahRecords = [];
@@ -1620,6 +1620,13 @@
         }
       }
 
+      const nowStr = new Date().toLocaleString("id-ID") + " (Live Google Sheet)";
+      return {
+        metadata: {
+          synced_at: nowStr,
+          total_records: ldsRecords.length,
+          duplicate_paste_records: dupCount
+        },
         records: ldsRecords,
         ggn_records: ggnRecords,
         proteksi_records: protRecords,
@@ -3775,7 +3782,9 @@
     const AUTH_SESSION_KEY = "lds_dashboard_auth_v1";
 
     async function verifyCredentials(username, password) {
-      const combined = `${String(username || "").trim()}:${String(password || "")}`;
+      const u = String(username || "").trim().toUpperCase();
+      const p = String(password || "").trim();
+      const combined = `${u}:${p}`;
       if (window.crypto && window.crypto.subtle) {
         const buf = new TextEncoder().encode(combined);
         const hashBuf = await window.crypto.subtle.digest("SHA-256", buf);
