@@ -1622,6 +1622,7 @@
           const ctVal = ctRaw && ctRaw !== "-" && ctRaw !== "#N/A" ? parseFloatSafe(ctRaw) : null;
           const ctRRaw = cell(r, c_ct_r);
           const ctRVal = ctRRaw && ctRRaw !== "-" && ctRRaw !== "#N/A" ? parseFloatSafe(ctRRaw) : null;
+          const ctSt = cell(r, c_ct_st);
           const reRaw = cell(r, c_re);
           const reVal = reRaw && reRaw !== "-" && reRaw !== "#N/A" && reRaw !== "0" ? parseFloatSafe(reRaw) : null;
           const peRaw = cell(r, c_pe);
@@ -1656,7 +1657,7 @@
             ns: nsVal,
             ns_kat: cell(r, c_kat),
             ns_st: nsSt,
-            ct_st: cell(r, c_ct_st),
+            ct_st: ctSt,
             ct: ctVal,
             ct_r: ctRVal,
             ct_eval: ctEval,
