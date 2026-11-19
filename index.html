@@ -1044,11 +1044,10 @@
         <div>
           <label class="block font-semibold text-slate-400 mb-1">Evaluasi Hasil CT Ring</label>
           <select id="tanah-ct-eval" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-            <option value="ALL">Semua Kondisi CT Ring</option>
-            <option value="BAIK_TURUN">✅ CT Ring Baik (R Turun Efektif)</option>
-            <option value="BAIK_ALL">CT Ring BAIK (≤ 5 Ω)</option>
-            <option value="BURUK">⚠️ CT Ring ANOMALI / BURUK (&gt; 10 Ω)</option>
-            <option value="HAS_CT">Seluruh Terpasang CT Ring</option>
+            <option value="ALL">Semua Kondisi CT Ring (Kolom L)</option>
+            <option value="BAIK">✅ CT Ring BAIK</option>
+            <option value="BURUK">⚠️ CT Ring BURUK</option>
+            <option value="HAS_CT">Sudah Pasang CT Ring (BAIK + BURUK)</option>
             <option value="BELUM">Belum Pasang CT Ring</option>
           </select>
         </div>
@@ -1629,18 +1628,15 @@
           let peVal = peRaw && peRaw !== "-" && peRaw !== "#N/A" && peRaw !== "0" ? parseFloatSafe(peRaw) : null;
           if (peVal !== null) peVal = Math.round(peVal * 100) / 100;
 
-          const hasCt = (ctVal !== null) || (ctRVal !== null) || (ctSt === "BAIK" || ctSt === "BURUK");
           let ctEval = "BELUM PASANG";
-          if (hasCt) {
-            if (ctSt === "BAIK" || (ctVal !== null && ctVal <= 5.0) || (ctRVal !== null && ctRVal <= 5.0)) {
-              if (nsVal !== null && ((ctVal !== null && ctVal < nsVal) || (ctRVal !== null && ctRVal < nsVal))) {
-                ctEval = "BAIK (R TURUN)";
-              } else {
-                ctEval = "BAIK (≤ 5 Ω)";
-              }
-            } else {
-              ctEval = "ANOMALI / BURUK";
-            }
+          if (ctSt === "BAIK") {
+            ctEval = "BAIK";
+          } else if (ctSt === "BURUK") {
+            ctEval = "BURUK";
+          } else if (ctVal !== null || ctRVal !== null) {
+            ctEval = (ctVal <= 5.0 || (ctRVal !== null && ctRVal <= 5.0)) ? "BAIK" : "BURUK";
+          } else {
+            ctEval = "BELUM PASANG";
           }
 
           const rSoilRaw = cell(r, c_r_soil);
@@ -3321,12 +3317,11 @@
           if (tanahState.nsKat === "GT10" && !(v > 10.0)) return false;
         }
 
-        // Filter Evaluasi CT Ring
+        // Filter Evaluasi CT Ring (Murni Kolom L)
         if (tanahState.ctEval !== "ALL") {
-          const ev = r.ct_eval || "BELUM PASANG";
-          if (tanahState.ctEval === "BAIK_TURUN" && ev !== "BAIK (R TURUN)") return false;
-          if (tanahState.ctEval === "BAIK_ALL" && !ev.includes("BAIK")) return false;
-          if (tanahState.ctEval === "BURUK" && ev !== "ANOMALI / BURUK") return false;
+          const ev = r.ct_eval || (r.ct_st === "BAIK" ? "BAIK" : (r.ct_st === "BURUK" ? "BURUK" : "BELUM PASANG"));
+          if (tanahState.ctEval === "BAIK" && ev !== "BAIK") return false;
+          if (tanahState.ctEval === "BURUK" && ev !== "BURUK") return false;
           if (tanahState.ctEval === "HAS_CT" && ev === "BELUM PASANG") return false;
           if (tanahState.ctEval === "BELUM" && ev !== "BELUM PASANG") return false;
         }
@@ -3385,13 +3380,12 @@
       document.getElementById("tanah-kpi-ns-buruk").textContent = fmtNum(burukCount);
       document.getElementById("tanah-kpi-ns-buruk-pct").textContent = `${pctBuruk}% perlu penanganan`;
 
-      // Evaluasi CT Ring KPI
-      const ctAda = filtered.filter(r => (r.ct_eval || "BELUM PASANG") !== "BELUM PASANG").length;
-      const ctTurun = filtered.filter(r => r.ct_eval === "BAIK (R TURUN)").length;
-      const ctBaikAll = filtered.filter(r => (r.ct_eval || "").includes("BAIK")).length;
-      const ctBuruk = filtered.filter(r => r.ct_eval === "ANOMALI / BURUK").length;
+      // Evaluasi CT Ring KPI (Murni Kolom L)
+      const ctBaik = filtered.filter(r => (r.ct_eval === "BAIK" || r.ct_st === "BAIK")).length;
+      const ctBuruk = filtered.filter(r => (r.ct_eval === "BURUK" || r.ct_st === "BURUK")).length;
+      const ctAda = ctBaik + ctBuruk;
       document.getElementById("tanah-kpi-ct-ada").textContent = `${fmtNum(ctAda)} Tower`;
-      document.getElementById("tanah-kpi-ct-detail").textContent = `Baik: ${fmtNum(ctBaikAll)} (R Turun: ${fmtNum(ctTurun)}) | Buruk: ${fmtNum(ctBuruk)}`;
+      document.getElementById("tanah-kpi-ct-detail").textContent = `Baik: ${fmtNum(ctBaik)} | Buruk: ${fmtNum(ctBuruk)}`;
 
       // R Soil Pengukuran Pe KPI
       const peItems = filtered.filter(r => r.pe !== null && r.pe > 0);
@@ -3464,23 +3458,21 @@
         }
       });
 
-      // 2. Donut Chart Evaluasi CT Ring
-      const ctTurun = filtered.filter(r => r.ct_eval === "BAIK (R TURUN)").length;
-      const ctBaikStandard = filtered.filter(r => r.ct_eval === "BAIK (≤ 5 Ω)").length;
-      const ctBuruk = filtered.filter(r => r.ct_eval === "ANOMALI / BURUK").length;
-      const ctNone = filtered.filter(r => (r.ct_eval || "BELUM PASANG") === "BELUM PASANG").length;
+      // 2. Donut Chart Evaluasi CT Ring (Murni Kolom L)
+      const ctBaik = filtered.filter(r => (r.ct_eval === "BAIK" || r.ct_st === "BAIK")).length;
+      const ctBuruk = filtered.filter(r => (r.ct_eval === "BURUK" || r.ct_st === "BURUK")).length;
+      const ctNone = filtered.filter(r => (r.ct_eval || "BELUM PASANG") === "BELUM PASANG" && !r.ct_st).length;
 
       const ctxCt = chartEl2.getContext("2d");
       if (chartTanahCt) chartTanahCt.destroy();
       chartTanahCt = new Chart(ctxCt, {
         type: "doughnut",
         data: {
-          labels: ["CT Baik (R Turun)", "CT Baik (≤ 5 Ω)", "CT Anomali / Buruk", "Belum Pasang CT Ring"],
+          labels: ["CT Ring BAIK", "CT Ring BURUK", "Belum Pasang CT Ring"],
           datasets: [{
-            data: [ctTurun, ctBaikStandard, ctBuruk, ctNone],
+            data: [ctBaik, ctBuruk, ctNone],
             backgroundColor: [
               "rgba(16, 185, 129, 0.9)",
-              "rgba(14, 165, 233, 0.9)",
               "rgba(244, 63, 94, 0.9)",
               "rgba(71, 85, 105, 0.6)"
             ],
@@ -3507,7 +3499,7 @@
         }
       });
       document.getElementById("tanah-ct-summary-note").textContent =
-        `CT Ring Terpasang: ${fmtNum(ctTurun + ctBaikStandard + ctBuruk)} tower (Efektif Turun: ${fmtNum(ctTurun)}, Anomali: ${fmtNum(ctBuruk)})`;
+        `Total Terpasang CT Ring: ${fmtNum(ctBaik + ctBuruk)} tower (Baik: ${fmtNum(ctBaik)}, Buruk: ${fmtNum(ctBuruk)})`;
 
       // 3. Bar Chart Komparasi R Soil Pengukuran vs Acuan FAO
       const peBuckets = { "< 300 Ω·m": 0, "300 - 500 Ω·m": 0, "500 - 1000 Ω·m": 0, "> 1000 Ω·m": 0 };
@@ -3613,15 +3605,13 @@
         // CT Ring Paralel
         const ctRValText = r.ct_r !== null ? `<span class="font-bold text-cyan-300">${Number(r.ct_r).toFixed(2)} Ω</span>` : '<span class="text-slate-500">-</span>';
 
-        // Badge Evaluasi CT Ring
+        // Badge Evaluasi CT Ring (Murni Kolom L)
         let ctEvalBadge = '<span class="text-slate-500">-</span>';
-        const ev = r.ct_eval || "BELUM PASANG";
-        if (ev === "BAIK (R TURUN)") {
-          ctEvalBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">✅ BAIK (R TURUN)</span>';
-        } else if (ev.includes("BAIK")) {
-          ctEvalBadge = '<span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[10px] font-bold">BAIK (≤ 5 Ω)</span>';
-        } else if (ev === "ANOMALI / BURUK") {
-          ctEvalBadge = '<span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">⚠️ ANOMALI / BURUK</span>';
+        const ev = r.ct_eval || (r.ct_st === "BAIK" ? "BAIK" : (r.ct_st === "BURUK" ? "BURUK" : "BELUM PASANG"));
+        if (ev === "BAIK") {
+          ctEvalBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">✅ BAIK</span>';
+        } else if (ev === "BURUK") {
+          ctEvalBadge = '<span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">⚠️ BURUK</span>';
         } else if (ev === "BELUM PASANG") {
           ctEvalBadge = '<span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px]">BELUM PASANG</span>';
         }
