@@ -74,6 +74,58 @@
 </head>
 <body class="min-h-screen pb-12">
 
+  <!-- LAYAR LOGIN -->
+  <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div class="glass-card rounded-3xl shadow-2xl w-full max-w-md p-8 border border-amber-500/30">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 text-slate-950 text-3xl font-extrabold shadow-lg shadow-amber-500/25 mb-3">
+          ⚡
+        </div>
+        <h1 class="text-xl font-extrabold text-white tracking-tight">
+          DASHBOARD ANALISA PETIR LDS
+        </h1>
+        <p class="text-xs text-slate-400 mt-1">
+          PT PLN (Persero) UPT Palembang &amp; UPK Bangka Belitung
+        </p>
+        <span class="inline-block mt-2.5 px-3 py-0.5 text-[11px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          AKSES TERBATAS • SILAKAN LOGIN
+        </span>
+      </div>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">Username</label>
+          <input id="login-username" type="text" autocomplete="username" placeholder="Masukkan username"
+                 class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-500" required />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">Password</label>
+          <div class="relative">
+            <input id="login-password" type="password" autocomplete="current-password" placeholder="Masukkan password"
+                   class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-500 pr-16" required />
+            <button type="button" id="btn-toggle-pass"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 hover:text-amber-300">
+              Lihat
+            </button>
+          </div>
+        </div>
+        <div id="login-error" class="hidden text-xs text-rose-300 bg-rose-500/15 border border-rose-500/30 rounded-xl p-3 font-medium">
+          Username atau password salah!
+        </div>
+        <button type="submit"
+                class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-sm shadow-lg shadow-amber-500/25 transition">
+          🔓 MASUK DASHBOARD
+        </button>
+      </form>
+      <p class="text-[11px] text-slate-500 text-center mt-6">
+        Analisa Sambaran Petir LDS • Gangguan Petir • Proteksi Terpasang
+      </p>
+    </div>
+  </div>
+
+  <!-- APP SHELL (TERBUKA SETELAH LOGIN) -->
+  <div id="app-shell" class="hidden">
+
   <!-- TOP NAVBAR & 3 MENU TAB UTAMA -->
   <header class="sticky top-0 z-40 bg-slate-900/95 border-b border-slate-800 backdrop-blur-md">
     <div class="max-w-[1600px] mx-auto px-4 lg:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
@@ -109,6 +161,10 @@
         <button id="btn-sync"
                 class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 flex items-center gap-1.5 shadow-lg shadow-amber-500/25 transition">
           <span id="sync-icon">🔄</span><span id="sync-text">Sinkronisasi 3 Sheet</span>
+        </button>
+        <button id="btn-logout" title="Keluar dari Dashboard"
+                class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 flex items-center gap-1.5 transition">
+          <span>🚪</span><span>Keluar</span>
         </button>
       </div>
     </div>
@@ -2861,7 +2917,78 @@
       }
     });
 
-    window.addEventListener("DOMContentLoaded", loadInitialData);
+    const AUTH_SHA256 = "01fd8876ffcf17cad2e372828005dd4f4568ff2c89365fc002abd2bff4908a96";
+    const AUTH_FNV1A = "61fbb9be";
+    const AUTH_SESSION_KEY = "lds_dashboard_auth_v1";
+
+    async function verifyCredentials(username, password) {
+      const combined = `${String(username || "").trim()}:${String(password || "")}`;
+      if (window.crypto && window.crypto.subtle) {
+        const buf = new TextEncoder().encode(combined);
+        const hashBuf = await window.crypto.subtle.digest("SHA-256", buf);
+        const hex = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, "0")).join("");
+        return hex === AUTH_SHA256;
+      }
+      // Fallback untuk file:// jika crypto.subtle tidak tersedia
+      let h = 0x811c9dc5;
+      const bytes = new TextEncoder().encode(combined);
+      for (const b of bytes) {
+        h ^= b;
+        h = Math.imul(h, 0x01000193) >>> 0;
+      }
+      return h.toString(16).padStart(8, "0") === AUTH_FNV1A;
+    }
+
+    function unlockDashboard() {
+      document.getElementById("login-screen").classList.add("hidden");
+      document.getElementById("app-shell").classList.remove("hidden");
+      loadInitialData();
+    }
+
+    document.getElementById("btn-toggle-pass").addEventListener("click", () => {
+      const inp = document.getElementById("login-password");
+      const btn = document.getElementById("btn-toggle-pass");
+      if (inp.type === "password") {
+        inp.type = "text";
+        btn.textContent = "Sembunyi";
+      } else {
+        inp.type = "password";
+        btn.textContent = "Lihat";
+      }
+    });
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const u = document.getElementById("login-username").value;
+      const p = document.getElementById("login-password").value;
+      const errEl = document.getElementById("login-error");
+      const ok = await verifyCredentials(u, p);
+      if (ok) {
+        errEl.classList.add("hidden");
+        sessionStorage.setItem(AUTH_SESSION_KEY, AUTH_SHA256);
+        unlockDashboard();
+      } else {
+        errEl.classList.remove("hidden");
+        document.getElementById("login-password").value = "";
+        document.getElementById("login-password").focus();
+      }
+    });
+
+    document.getElementById("btn-logout").addEventListener("click", () => {
+      sessionStorage.removeItem(AUTH_SESSION_KEY);
+      document.getElementById("app-shell").classList.add("hidden");
+      document.getElementById("login-screen").classList.remove("hidden");
+      document.getElementById("login-username").value = "";
+      document.getElementById("login-password").value = "";
+      document.getElementById("login-error").classList.add("hidden");
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      if (sessionStorage.getItem(AUTH_SESSION_KEY) === AUTH_SHA256) {
+        unlockDashboard();
+      }
+    });
   </script>
+  </div><!-- END #app-shell -->
 </body>
 </html>
