@@ -1044,11 +1044,9 @@
         <div>
           <label class="block font-semibold text-slate-400 mb-1">Evaluasi Hasil CT Ring</label>
           <select id="tanah-ct-eval" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-            <option value="ALL">Semua Kondisi CT Ring (Kolom L)</option>
-            <option value="BAIK">✅ CT Ring BAIK</option>
-            <option value="BURUK">⚠️ CT Ring BURUK</option>
-            <option value="HAS_CT">Sudah Pasang CT Ring (BAIK + BURUK)</option>
-            <option value="BELUM">Belum Pasang CT Ring</option>
+            <option value="ALL">Semua Hasil Pengukuran CT Ring</option>
+            <option value="BAIK">✅ BAIK</option>
+            <option value="BURUK">⚠️ BURUK</option>
           </select>
         </div>
 
@@ -1120,37 +1118,7 @@
       </div>
     </section>
 
-    <!-- VISUALISASI GRAFIK -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-      <!-- Grafik 1: Stacked Bar Distribusi Nilai NS per ULTG -->
-      <div class="glass-card rounded-2xl p-4 lg:p-5 lg:col-span-2 shadow-xl">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div>
-            <h3 class="text-sm font-bold text-slate-200">Distribusi Kategori Nilai Pentanahan NS per ULTG</h3>
-            <p class="text-xs text-slate-400">Proporsi tower: &lt;3 Ω (Emerald), 3-5 Ω (Sky), 5-10 Ω (Amber), &gt;10 Ω (Rose)</p>
-          </div>
-        </div>
-        <div class="h-72 mt-3">
-          <canvas id="chart-tanah-ns-ultg"></canvas>
-        </div>
-      </div>
-
-      <!-- Grafik 2: Donut Chart Evaluasi CT Ring -->
-      <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl flex flex-col justify-between">
-        <div class="pb-3 border-b border-slate-800">
-          <h3 class="text-sm font-bold text-slate-200">Evaluasi Hasil Pentanahan CT Ring</h3>
-          <p class="text-xs text-slate-400">Efektivitas Penurunan R vs Anomali</p>
-        </div>
-        <div class="h-64 my-auto flex items-center justify-center">
-          <canvas id="chart-tanah-ct"></canvas>
-        </div>
-        <div id="tanah-ct-summary-note" class="text-center text-[11px] text-slate-400 pt-2 border-t border-slate-800/80">
-          Total Terpasang CT Ring: 0 tower
-        </div>
-      </div>
-    </section>
-
-    <!-- Grafik 3: Komparasi R Soil Pengukuran (Pe) vs R Soil Peta FAO -->
+    <!-- VISUALISASI GRAFIK: PERSEBARAN R SOIL PENGUKURAN -->
     <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
       <div class="flex items-center justify-between pb-3 border-b border-slate-800">
         <div>
@@ -1158,7 +1126,7 @@
           <p class="text-xs text-slate-400">Perbandingan data resistivitas terukur di lapangan (Pe) terhadap klasifikasi spasial FAO</p>
         </div>
       </div>
-      <div class="h-64 mt-3">
+      <div class="h-72 mt-3">
         <canvas id="chart-tanah-rsoil"></canvas>
       </div>
     </section>
@@ -1628,7 +1596,7 @@
           let peVal = peRaw && peRaw !== "-" && peRaw !== "#N/A" && peRaw !== "0" ? parseFloatSafe(peRaw) : null;
           if (peVal !== null) peVal = Math.round(peVal * 100) / 100;
 
-          let ctEval = "BELUM PASANG";
+          let ctEval = "";
           if (ctSt === "BAIK") {
             ctEval = "BAIK";
           } else if (ctSt === "BURUK") {
@@ -1636,7 +1604,7 @@
           } else if (ctVal !== null || ctRVal !== null) {
             ctEval = (ctVal <= 5.0 || (ctRVal !== null && ctRVal <= 5.0)) ? "BAIK" : "BURUK";
           } else {
-            ctEval = "BELUM PASANG";
+            ctEval = "";
           }
 
           const rSoilRaw = cell(r, c_r_soil);
@@ -3317,13 +3285,11 @@
           if (tanahState.nsKat === "GT10" && !(v > 10.0)) return false;
         }
 
-        // Filter Evaluasi CT Ring (Murni Kolom L)
+        // Filter Evaluasi CT Ring (Hanya BAIK / BURUK)
         if (tanahState.ctEval !== "ALL") {
-          const ev = r.ct_eval || (r.ct_st === "BAIK" ? "BAIK" : (r.ct_st === "BURUK" ? "BURUK" : "BELUM PASANG"));
+          const ev = r.ct_eval || r.ct_st || "";
           if (tanahState.ctEval === "BAIK" && ev !== "BAIK") return false;
           if (tanahState.ctEval === "BURUK" && ev !== "BURUK") return false;
-          if (tanahState.ctEval === "HAS_CT" && ev === "BELUM PASANG") return false;
-          if (tanahState.ctEval === "BELUM" && ev !== "BELUM PASANG") return false;
         }
 
         // Filter R Soil Pengukuran (Pe)
@@ -3407,101 +3373,10 @@
     }
 
     function renderTanahCharts(filtered) {
-      const chartEl1 = document.getElementById("chart-tanah-ns-ultg");
-      const chartEl2 = document.getElementById("chart-tanah-ct");
       const chartEl3 = document.getElementById("chart-tanah-rsoil");
-      if (!chartEl1 || !chartEl2 || !chartEl3) return;
+      if (!chartEl3) return;
 
-      // 1. Stacked Bar Chart Kategori NS per ULTG
-      const ultgs = Array.from(new Set(allTanahRecords.map(r => r.u).filter(Boolean))).sort();
-      const lt3 = [];
-      const threeTo5 = [];
-      const fiveTo10 = [];
-      const gt10 = [];
-
-      ultgs.forEach(u => {
-        const list = filtered.filter(r => r.u === u);
-        lt3.push(list.filter(r => r.ns !== null && r.ns < 3.0).length);
-        threeTo5.push(list.filter(r => r.ns !== null && r.ns >= 3.0 && r.ns <= 5.0).length);
-        fiveTo10.push(list.filter(r => r.ns !== null && r.ns > 5.0 && r.ns <= 10.0).length);
-        gt10.push(list.filter(r => r.ns !== null && r.ns > 10.0).length);
-      });
-
-      const ctxNs = chartEl1.getContext("2d");
-      if (chartTanahNsUltg) chartTanahNsUltg.destroy();
-      chartTanahNsUltg = new Chart(ctxNs, {
-        type: "bar",
-        data: {
-          labels: ultgs.map(u => u.replace("ULTG ", "")),
-          datasets: [
-            { label: "< 3 Ω (Sangat Baik)", data: lt3, backgroundColor: "rgba(16, 185, 129, 0.85)" },
-            { label: "3 – 5 Ω (Baik)", data: threeTo5, backgroundColor: "rgba(14, 165, 233, 0.85)" },
-            { label: "5 – 10 Ω (Waspada)", data: fiveTo10, backgroundColor: "rgba(245, 158, 11, 0.85)" },
-            { label: "> 10 Ω (Buruk / Anomali)", data: gt10, backgroundColor: "rgba(244, 63, 94, 0.85)" }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: "top", labels: { color: "#cbd5e1", boxWidth: 12, font: { size: 11 } } },
-            datalabels: {
-              color: "#ffffff",
-              font: { weight: "bold", size: 10 },
-              formatter: (val) => (val > 0 ? val : "")
-            }
-          },
-          scales: {
-            x: { stacked: true, ticks: { color: "#94a3b8", font: { size: 11, weight: "bold" } }, grid: { display: false } },
-            y: { stacked: true, ticks: { color: "#94a3b8" }, grid: { color: "rgba(51, 65, 85, 0.4)" } }
-          }
-        }
-      });
-
-      // 2. Donut Chart Evaluasi CT Ring (Murni Kolom L)
-      const ctBaik = filtered.filter(r => (r.ct_eval === "BAIK" || r.ct_st === "BAIK")).length;
-      const ctBuruk = filtered.filter(r => (r.ct_eval === "BURUK" || r.ct_st === "BURUK")).length;
-      const ctNone = filtered.filter(r => (r.ct_eval || "BELUM PASANG") === "BELUM PASANG" && !r.ct_st).length;
-
-      const ctxCt = chartEl2.getContext("2d");
-      if (chartTanahCt) chartTanahCt.destroy();
-      chartTanahCt = new Chart(ctxCt, {
-        type: "doughnut",
-        data: {
-          labels: ["CT Ring BAIK", "CT Ring BURUK", "Belum Pasang CT Ring"],
-          datasets: [{
-            data: [ctBaik, ctBuruk, ctNone],
-            backgroundColor: [
-              "rgba(16, 185, 129, 0.9)",
-              "rgba(244, 63, 94, 0.9)",
-              "rgba(71, 85, 105, 0.6)"
-            ],
-            borderColor: "#0f172a",
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: "bottom", labels: { color: "#cbd5e1", boxWidth: 10, font: { size: 10 } } },
-            datalabels: {
-              color: "#ffffff",
-              font: { weight: "bold", size: 11 },
-              formatter: (val, ctx) => {
-                const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                if (val <= 0 || total <= 0) return "";
-                return `${Math.round((val / total) * 100)}%`;
-              }
-            }
-          },
-          cutout: "60%"
-        }
-      });
-      document.getElementById("tanah-ct-summary-note").textContent =
-        `Total Terpasang CT Ring: ${fmtNum(ctBaik + ctBuruk)} tower (Baik: ${fmtNum(ctBaik)}, Buruk: ${fmtNum(ctBuruk)})`;
-
-      // 3. Bar Chart Komparasi R Soil Pengukuran vs Acuan FAO
+      // Bar Chart Komparasi R Soil Pengukuran vs Acuan FAO
       const peBuckets = { "< 300 Ω·m": 0, "300 - 500 Ω·m": 0, "500 - 1000 Ω·m": 0, "> 1000 Ω·m": 0 };
       filtered.forEach(r => {
         if (r.pe !== null && r.pe > 0) {
@@ -3605,15 +3480,13 @@
         // CT Ring Paralel
         const ctRValText = r.ct_r !== null ? `<span class="font-bold text-cyan-300">${Number(r.ct_r).toFixed(2)} Ω</span>` : '<span class="text-slate-500">-</span>';
 
-        // Badge Evaluasi CT Ring (Murni Kolom L)
+        // Badge Evaluasi CT Ring (Hanya BAIK / BURUK)
         let ctEvalBadge = '<span class="text-slate-500">-</span>';
-        const ev = r.ct_eval || (r.ct_st === "BAIK" ? "BAIK" : (r.ct_st === "BURUK" ? "BURUK" : "BELUM PASANG"));
+        const ev = r.ct_eval || r.ct_st || "";
         if (ev === "BAIK") {
           ctEvalBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">✅ BAIK</span>';
         } else if (ev === "BURUK") {
           ctEvalBadge = '<span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">⚠️ BURUK</span>';
-        } else if (ev === "BELUM PASANG") {
-          ctEvalBadge = '<span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px]">BELUM PASANG</span>';
         }
 
         // R Soil Pengukuran (Pe)
