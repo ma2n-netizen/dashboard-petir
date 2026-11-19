@@ -43,6 +43,12 @@
       border-color: #34d399;
       box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
     }
+    .main-nav-tab.active-tanah {
+      background: linear-gradient(135deg, #06b6d4, #0284c7);
+      color: #0f172a;
+      border-color: #38bdf8;
+      box-shadow: 0 4px 18px rgba(6, 182, 212, 0.35);
+    }
     .month-chip {
       transition: all 0.15s ease;
     }
@@ -160,7 +166,7 @@
         </button>
         <button id="btn-sync"
                 class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 flex items-center gap-1.5 shadow-lg shadow-amber-500/25 transition">
-          <span id="sync-icon">🔄</span><span id="sync-text">Sinkronisasi 3 Sheet</span>
+          <span id="sync-icon">🔄</span><span id="sync-text">Sinkronisasi 4 Sheet</span>
         </button>
         <button id="btn-logout" title="Keluar dari Dashboard"
                 class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 flex items-center gap-1.5 transition">
@@ -191,6 +197,13 @@
           <span>🛡️</span>
           <span>3. Proteksi Petir Terpasang</span>
           <span id="badge-nav-prot" class="px-2 py-0.5 text-[11px] rounded-full bg-emerald-500/20 text-emerald-300 font-bold">0</span>
+        </button>
+
+        <button id="main-tab-tanah" onclick="switchMainView('tanah')"
+                class="main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2">
+          <span>🌱</span>
+          <span>4. Pentanahan (NS, CT Ring &amp; R Soil)</span>
+          <span id="badge-nav-tanah" class="px-2 py-0.5 text-[11px] rounded-full bg-cyan-500/20 text-cyan-300 font-bold">0</span>
         </button>
       </div>
     </div>
@@ -958,6 +971,242 @@
     </section>
   </main>
 
+  <!-- ========================================================================= -->
+  <!-- VIEW 4: PENTANAHAN TOWER (NILAI NS, CT RING & R SOIL)                      -->
+  <!-- ========================================================================= -->
+  <main id="view-tanah" class="hidden max-w-[1600px] mx-auto px-4 lg:px-6 pt-5 space-y-5">
+
+    <!-- PANEL FILTER UTAMA PENTANAHAN -->
+    <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3.5 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="text-cyan-400 text-base">🌱</span>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">Filter Evaluasi Pentanahan Tower (Nilai NS, CT Ring &amp; R Soil)</h2>
+          <span id="tanah-filter-badge" class="ml-2 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            Semua ULTG • Semua Segmen
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-reset-tanah" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+            Reset Filter
+          </button>
+          <button id="btn-export-tanah-csv" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center gap-1.5 shadow-md">
+            <span>⬇️</span>
+            <span>Download CSV Pentanahan</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+        <!-- Filter ULTG -->
+        <div>
+          <label class="block font-semibold text-slate-400 mb-1">ULTG</label>
+          <select id="tanah-ultg" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <option value="ALL">Semua ULTG</option>
+          </select>
+        </div>
+
+        <!-- Filter Segmen / Penghantar -->
+        <div>
+          <label class="block font-semibold text-slate-400 mb-1">Penghantar (Segmen)</label>
+          <select id="tanah-induk" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <option value="ALL">Semua Penghantar</option>
+          </select>
+        </div>
+
+        <!-- Filter Kondisi NS -->
+        <div>
+          <label class="block font-semibold text-slate-400 mb-1">Kondisi Pentanahan NS</label>
+          <select id="tanah-ns-st" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <option value="ALL">Semua Status NS</option>
+            <option value="BAIK">BAIK (≤ 5 Ω)</option>
+            <option value="BURUK">BURUK (&gt; 10 Ω / anomali)</option>
+            <option value="BELUM ASESMEN">BELUM ASESMEN</option>
+          </select>
+        </div>
+
+        <!-- Filter Rentang Nilai NS -->
+        <div>
+          <label class="block font-semibold text-slate-400 mb-1">Rentang Nilai NS (Ω)</label>
+          <select id="tanah-ns-kat" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <option value="ALL">Semua Rentang</option>
+            <option value="LT3">&lt; 3 Ω (Sangat Baik)</option>
+            <option value="3TO5">3 – 5 Ω (Baik)</option>
+            <option value="5TO10">5 – 10 Ω (Waspada)</option>
+            <option value="GT10">&gt; 10 Ω (Anomali / Perlu Penanganan)</option>
+          </select>
+        </div>
+
+        <!-- Filter Status CT Ring -->
+        <div>
+          <label class="block font-semibold text-slate-400 mb-1">Status CT Ring</label>
+          <select id="tanah-ct-st" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <option value="ALL">Semua Kondisi</option>
+            <option value="HAS_CT">Sudah Pasang CT Ring</option>
+            <option value="BAIK">CT Ring BAIK</option>
+            <option value="BURUK">CT Ring BURUK / Perlu Cek</option>
+            <option value="NO_CT">Belum Pasang CT Ring</option>
+          </select>
+        </div>
+
+        <!-- Filter Tahanan Jenis R Soil -->
+        <div>
+          <label class="block font-semibold text-slate-400 mb-1">Tahanan Jenis Tanah (R Soil)</label>
+          <select id="tanah-rsoil" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <option value="ALL">Semua Nilai R Soil</option>
+            <option value="150">150 Ω·m (Geluh / Lempung)</option>
+            <option value="200">200 Ω·m</option>
+            <option value="250">250 Ω·m</option>
+            <option value="500">500 Ω·m</option>
+            <option value="1000">1000 Ω·m (Pasir Kuarsa / Podzol)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- RINGKASAN METRIK / KPI CARDS -->
+    <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      <!-- KPI 1 -->
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-cyan-400">
+        <div class="text-[11px] font-semibold uppercase text-slate-400">Total Tower Terdata</div>
+        <div id="tanah-kpi-total" class="text-2xl font-black text-cyan-300 mt-1">0</div>
+        <div class="text-[11px] text-slate-400 mt-0.5">Seluruh Unit Transmisi</div>
+      </div>
+      <!-- KPI 2 -->
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-emerald-400">
+        <div class="text-[11px] font-semibold uppercase text-slate-400">Pentanahan NS Baik</div>
+        <div id="tanah-kpi-ns-baik" class="text-2xl font-black text-emerald-400 mt-1">0</div>
+        <div id="tanah-kpi-ns-baik-pct" class="text-[11px] text-emerald-300 mt-0.5">0% dari total</div>
+      </div>
+      <!-- KPI 3 -->
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-rose-500">
+        <div class="text-[11px] font-semibold uppercase text-slate-400">Pentanahan NS Buruk (&gt;10 Ω)</div>
+        <div id="tanah-kpi-ns-buruk" class="text-2xl font-black text-rose-400 mt-1">0</div>
+        <div id="tanah-kpi-ns-buruk-pct" class="text-[11px] text-rose-300 mt-0.5">0% dari total</div>
+      </div>
+      <!-- KPI 4 -->
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-sky-400">
+        <div class="text-[11px] font-semibold uppercase text-slate-400">CT Ring Terpasang / Ukur</div>
+        <div id="tanah-kpi-ct-ada" class="text-2xl font-black text-sky-400 mt-1">0</div>
+        <div id="tanah-kpi-ct-detail" class="text-[11px] text-sky-300 mt-0.5">Baik: 0 | Buruk: 0</div>
+      </div>
+      <!-- KPI 5 -->
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-amber-400">
+        <div class="text-[11px] font-semibold uppercase text-slate-400">Rata-rata R Soil (Ω·m)</div>
+        <div id="tanah-kpi-rsoil-avg" class="text-2xl font-black text-amber-400 mt-1">0 Ω·m</div>
+        <div id="tanah-kpi-rsoil-desc" class="text-[11px] text-amber-300 mt-0.5">Rentang: 150 – 1000 Ω·m</div>
+      </div>
+    </section>
+
+    <!-- VISUALISASI GRAFIK -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <!-- Grafik 1: Stacked Bar Distribusi Nilai NS per ULTG -->
+      <div class="glass-card rounded-2xl p-4 lg:p-5 lg:col-span-2 shadow-xl">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="text-sm font-bold text-slate-200">Distribusi Kategori Nilai Pentanahan NS per ULTG</h3>
+            <p class="text-xs text-slate-400">Proporsi tower: &lt;3 Ω (Emerald), 3-5 Ω (Sky), 5-10 Ω (Amber), &gt;10 Ω (Rose)</p>
+          </div>
+        </div>
+        <div class="h-72 mt-3">
+          <canvas id="chart-tanah-ns-ultg"></canvas>
+        </div>
+      </div>
+
+      <!-- Grafik 2: Donut Chart Status CT Ring -->
+      <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl flex flex-col justify-between">
+        <div class="pb-3 border-b border-slate-800">
+          <h3 class="text-sm font-bold text-slate-200">Status Pengukuran CT Ring</h3>
+          <p class="text-xs text-slate-400">Kondisi Baik vs Buruk vs Belum Terpasang</p>
+        </div>
+        <div class="h-64 my-auto flex items-center justify-center">
+          <canvas id="chart-tanah-ct"></canvas>
+        </div>
+        <div id="tanah-ct-summary-note" class="text-center text-[11px] text-slate-400 pt-2 border-t border-slate-800/80">
+          Total Terpasang CT Ring: 0 tower
+        </div>
+      </div>
+    </section>
+
+    <!-- Grafik 3: Distribusi Tahanan Jenis Tanah & FAO -->
+    <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <h3 class="text-sm font-bold text-slate-200">Persebaran Tower Berdasarkan Tahanan Jenis Tanah FAO (R Soil)</h3>
+          <p class="text-xs text-slate-400">Nilai resistivitas tanah acuan spasial DSMW / FAO Soil Map</p>
+        </div>
+      </div>
+      <div class="h-60 mt-3">
+        <canvas id="chart-tanah-rsoil"></canvas>
+      </div>
+    </section>
+
+    <!-- TABEL DATA LENGKAP PENTANAHAN TOWER -->
+    <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="text-cyan-400 text-base">📋</span>
+          <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Tabel Data Pengukuran Pentanahan &amp; Tahanan Jenis Tanah</h3>
+          <span id="tanah-count-badge" class="px-2 py-0.5 text-xs font-bold rounded-full bg-cyan-500/20 text-cyan-300">0 baris</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="relative">
+            <input type="text" id="tanah-search" placeholder="Cari Tower / Segmen / Jenis Tanah..."
+                   class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 pl-8 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 w-56 lg:w-72" />
+            <span class="absolute left-2.5 top-2 text-slate-500 text-xs">🔍</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>Tampilkan:</span>
+            <select id="tanah-limit" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+              <option value="25">25</option>
+              <option value="50" selected>50</option>
+              <option value="100">100</option>
+              <option value="250">250</option>
+              <option value="ALL">Semua</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-800 max-h-[580px]">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+          <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase tracking-wider font-bold border-b border-slate-800 shadow-sm z-10">
+            <tr>
+              <th class="py-3 px-3">No</th>
+              <th class="py-3 px-3">ULTG</th>
+              <th class="py-3 px-3">Penghantar (Segmen)</th>
+              <th class="py-3 px-3">Nama Tower</th>
+              <th class="py-3 px-3">Posisi</th>
+              <th class="py-3 px-3 text-cyan-300">Nilai NS (Ω)</th>
+              <th class="py-3 px-3 text-cyan-300">Kondisi NS</th>
+              <th class="py-3 px-3 text-sky-400">CT Ring (Ω)</th>
+              <th class="py-3 px-3 text-sky-400">Kondisi CT Ring</th>
+              <th class="py-3 px-3 text-amber-300">R Soil (Ω·m)</th>
+              <th class="py-3 px-3 text-amber-300">Jenis Tanah (FAO)</th>
+              <th class="py-3 px-3">Tgl Ukur</th>
+            </tr>
+          </thead>
+          <tbody id="tanah-tbody" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-3 mt-3 border-t border-slate-800 text-xs text-slate-400">
+        <div id="tanah-pagination-info">Menampilkan 0 – 0 dari 0 baris</div>
+        <div class="flex items-center gap-2">
+          <button id="tanah-btn-prev" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
+            ◀ Sebelumnya
+          </button>
+          <span id="tanah-page-label" class="px-2 font-bold text-slate-200">Hal 1 dari 1</span>
+          <button id="tanah-btn-next" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
+            Selanjutnya ▶
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
   <script>
     Chart.register(ChartDataLabels);
 
@@ -974,6 +1223,24 @@
     let allRecords = [];
     let allGgnRecords = [];
     let allProtRecords = [];
+    let allTanahRecords = [];
+
+    let chartTanahNsUltg = null;
+    let chartTanahCt = null;
+    let chartTanahRsoil = null;
+
+    // State Tab 4: Pentanahan (NS, CT Ring & R Soil)
+    const tanahState = {
+      ultg: "ALL",
+      induk: "ALL",
+      nsSt: "ALL",
+      nsKat: "ALL",
+      ctSt: "ALL",
+      rSoil: "ALL",
+      search: "",
+      limit: 50,
+      page: 1
+    };
 
     let activeMainView = "lds"; // "lds" | "ggn" | "prot"
 
@@ -1055,10 +1322,12 @@
       document.getElementById("view-lds").classList.toggle("hidden", view !== "lds");
       document.getElementById("view-ggn").classList.toggle("hidden", view !== "ggn");
       document.getElementById("view-prot").classList.toggle("hidden", view !== "prot");
+      document.getElementById("view-tanah").classList.toggle("hidden", view !== "tanah");
 
       const btnLds = document.getElementById("main-tab-lds");
       const btnGgn = document.getElementById("main-tab-ggn");
       const btnProt = document.getElementById("main-tab-prot");
+      const btnTanah = document.getElementById("main-tab-tanah");
 
       btnLds.className = view === "lds"
         ? "main-nav-tab active-lds px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2"
@@ -1070,6 +1339,10 @@
 
       btnProt.className = view === "prot"
         ? "main-nav-tab active-prot px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2"
+        : "main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2";
+
+      btnTanah.className = view === "tanah"
+        ? "main-nav-tab active-tanah px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2"
         : "main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2";
 
       // Update Google Sheet Link
@@ -1084,10 +1357,14 @@
         sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=1184511298#gid=1184511298";
         sheetLabel.textContent = "Sheet: LIST GGN DAMPAK";
         refreshGgnView();
-      } else {
+      } else if (view === "prot") {
         sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=107946563#gid=107946563";
         sheetLabel.textContent = "Sheet: ROADMAP PROTEKSI PETIR";
         refreshProtView();
+      } else {
+        sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=2110094299#gid=2110094299";
+        sheetLabel.textContent = "Sheet: NILAI PENTANAHAN";
+        refreshTanahView();
       }
     };
 
@@ -1095,6 +1372,7 @@
     const GID_LDS = "286301078";
     const GID_GGN = "1184511298";
     const GID_PROT = "107946563";
+    const GID_PENTANAHAN = "2110094299";
 
     function parseCsvText(text) {
       const rows = [];
@@ -1142,19 +1420,22 @@
       const urlLds = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID_LDS}`;
       const urlGgn = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID_GGN}`;
       const urlProt = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID_PROT}`;
+      const urlTanah = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID_PENTANAHAN}`;
 
-      const [resLds, resGgn, resProt] = await Promise.all([
+      const [resLds, resGgn, resProt, resTanah] = await Promise.all([
         fetch(urlLds, { cache: "no-store" }),
         fetch(urlGgn, { cache: "no-store" }),
-        fetch(urlProt, { cache: "no-store" })
+        fetch(urlProt, { cache: "no-store" }),
+        fetch(urlTanah, { cache: "no-store" })
       ]);
-      if (!resLds.ok || !resGgn.ok || !resProt.ok) {
+      if (!resLds.ok || !resGgn.ok || !resProt.ok || !resTanah.ok) {
         throw new Error("Gagal mengunduh CSV langsung dari Google Sheet.");
       }
-      const [csvLds, csvGgn, csvProt] = await Promise.all([
+      const [csvLds, csvGgn, csvProt, csvTanah] = await Promise.all([
         resLds.text(),
         resGgn.text(),
-        resProt.text()
+        resProt.text(),
+        resTanah.text()
       ]);
 
       // 1. Parse LDS
@@ -1270,7 +1551,79 @@
         },
         records: ldsRecords,
         ggn_records: ggnRecords,
-        proteksi_records: protRecords
+
+      // 4. Parse Nilai Pentanahan & R Soil
+      const rowsTanah = parseCsvText(csvTanah);
+      const tanahRecords = [];
+      if (rowsTanah.length > 1) {
+        const headerT = rowsTanah[0].map(c => String(c || "").trim().toUpperCase());
+        const colIdx = (name, fallback) => {
+          const idx = headerT.indexOf(name);
+          return idx !== -1 ? idx : fallback;
+        };
+        const c_no = colIdx("NO", 0);
+        const c_u = colIdx("ULTG", 1);
+        const c_i = colIdx("SEGMEN", 2);
+        const c_n = colIdx("TOWER", 3);
+        const c_pos = colIdx("NO URUT PENTANAHAN", 4);
+        const c_ns = colIdx("MAX PENTANAHAN NS", 5);
+        const c_kat = colIdx("PENGUKURAN PENTANAHAN", 6);
+        const c_ns_st = colIdx("KONDISI NS", 7);
+        const c_teg = colIdx("TEGANGAN", 9);
+        const c_ct_r = colIdx("NILAI R PARAREL ", colIdx("NILAI R PARAREL", 10));
+        const c_ct_st = colIdx("KONDISI DARI CT RING", 11);
+        const c_ct = colIdx("NILAI MAX CT RING", 12);
+        const c_fao = colIdx("FAOSOIL", 15);
+        const c_tanah = colIdx("JENIS TANAH (UMUM)", 16);
+        const c_r_soil = colIdx("RESISTIVITAS Ρ (Ω·M)", 17);
+        const c_tgl = colIdx("TANGGAL", 18);
+        const c_th = colIdx("TAHUN", 19);
+
+        for (let i = 1; i < rowsTanah.length; i++) {
+          const r = rowsTanah[i];
+          if (!r || r.length < 4) continue;
+          const tower = cell(r, c_n);
+          if (!tower) continue;
+          const nsRaw = cell(r, c_ns);
+          const nsVal = nsRaw && nsRaw !== "-" && nsRaw !== "#N/A" ? parseFloatSafe(nsRaw) : null;
+          let nsSt = cell(r, c_ns_st);
+          if (!nsSt || nsSt === "#N/A") {
+            nsSt = nsVal !== null ? (nsVal <= 5.0 ? "BAIK" : "BURUK") : "BELUM ASESMEN";
+          }
+          const ctRaw = cell(r, c_ct);
+          const ctVal = ctRaw && ctRaw !== "-" && ctRaw !== "#N/A" ? parseFloatSafe(ctRaw) : null;
+          const ctRRaw = cell(r, c_ct_r);
+          const ctRVal = ctRRaw && ctRRaw !== "-" && ctRRaw !== "#N/A" ? parseFloatSafe(ctRRaw) : null;
+          const rSoilRaw = cell(r, c_r_soil);
+          const rSoilVal = rSoilRaw && rSoilRaw !== "-" && rSoilRaw !== "#N/A" ? parseFloatSafe(rSoilRaw) : null;
+
+          tanahRecords.push({
+            r: i + 1,
+            no: cell(r, c_no) || String(tanahRecords.length + 1),
+            u: cell(r, c_u),
+            i: cell(r, c_i),
+            n: tower,
+            pos: cell(r, c_pos),
+            teg: cell(r, c_teg),
+            ns: nsVal,
+            ns_kat: cell(r, c_kat),
+            ns_st: nsSt,
+            ct_st: cell(r, c_ct_st),
+            ct: ctVal,
+            ct_r: ctRVal,
+            fao: cell(r, c_fao),
+            tanah: cell(r, c_tanah),
+            r_soil: rSoilVal,
+            tgl: cell(r, c_tgl),
+            th: cell(r, c_th)
+          });
+        }
+      }
+
+        records: ldsRecords,
+        ggn_records: ggnRecords,
+        proteksi_records: protRecords,
+        pentanahan_records: tanahRecords
       };
     }
 
@@ -1306,6 +1659,7 @@
       allRecords = payload.records || [];
       allGgnRecords = payload.ggn_records || [];
       allProtRecords = payload.proteksi_records || [];
+      allTanahRecords = payload.pentanahan_records || [];
       const meta = payload.metadata || {};
 
       document.getElementById("sync-timestamp").textContent =
@@ -1321,14 +1675,17 @@
       document.getElementById("badge-nav-lds").textContent = `${fmtNum(totalLdsCount)} Sambaran`;
       document.getElementById("badge-nav-ggn").textContent = `${fmtNum(uniqGgnIds)} Kejadian`;
       document.getElementById("badge-nav-prot").textContent = `${fmtNum(totalProtTowers)} Tower Terproteksi`;
+      document.getElementById("badge-nav-tanah").textContent = `${fmtNum(allTanahRecords.length)} Tower`;
 
       populateFilterControls();
       populateGgnFilters();
       populateProtFilters();
+      populateTanahFilters();
 
       if (activeMainView === "lds") refreshDashboard();
       else if (activeMainView === "ggn") refreshGgnView();
-      else refreshProtView();
+      else if (activeMainView === "prot") refreshProtView();
+      else refreshTanahView();
     }
 
     /* ===================================================================== */
@@ -2843,6 +3200,425 @@
     });
     document.getElementById("ggn-search").addEventListener("input", (e) => { ggnState.search = e.target.value; refreshGgnView(); });
 
+    /* ===================================================================== */
+    /* TAB 4 LOGIC: PENTANAHAN TOWER (NILAI NS, CT RING & R SOIL)             */
+    /* ===================================================================== */
+
+    function populateTanahFilters() {
+      const selUltg = document.getElementById("tanah-ultg");
+      const selInduk = document.getElementById("tanah-induk");
+      const selRsoil = document.getElementById("tanah-rsoil");
+      if (!selUltg || !selInduk || !selRsoil) return;
+
+      const prevUltg = tanahState.ultg;
+      const prevInduk = tanahState.induk;
+      const prevRsoil = tanahState.rSoil;
+
+      // ULTG
+      const ultgs = Array.from(new Set(allTanahRecords.map(r => r.u).filter(Boolean))).sort();
+      selUltg.innerHTML = `<option value="ALL">Semua ULTG (${ultgs.length})</option>` +
+        ultgs.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join("");
+      if (ultgs.includes(prevUltg)) selUltg.value = prevUltg;
+      else { selUltg.value = "ALL"; tanahState.ultg = "ALL"; }
+
+      // Segmen / Penghantar
+      const induks = Array.from(new Set(
+        allTanahRecords
+          .filter(r => tanahState.ultg === "ALL" || r.u === tanahState.ultg)
+          .map(r => r.i)
+          .filter(Boolean)
+      )).sort();
+      selInduk.innerHTML = `<option value="ALL">Semua Penghantar (${induks.length})</option>` +
+        induks.map(i => `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`).join("");
+      if (induks.includes(prevInduk)) selInduk.value = prevInduk;
+      else { selInduk.value = "ALL"; tanahState.induk = "ALL"; }
+
+      // R Soil
+      const rSoils = Array.from(new Set(allTanahRecords.map(r => r.r_soil).filter(v => v !== null))).sort((a,b) => a - b);
+      selRsoil.innerHTML = `<option value="ALL">Semua Nilai R Soil (${rSoils.length})</option>` +
+        rSoils.map(r => `<option value="${r}">${r} Ω·m</option>`).join("");
+      if (prevRsoil && rSoils.includes(parseFloat(prevRsoil))) selRsoil.value = prevRsoil;
+      else { selRsoil.value = "ALL"; tanahState.rSoil = "ALL"; }
+    }
+
+    function getFilteredTanahRecords() {
+      const q = (tanahState.search || "").toLowerCase().trim();
+      return allTanahRecords.filter(r => {
+        if (tanahState.ultg !== "ALL" && r.u !== tanahState.ultg) return false;
+        if (tanahState.induk !== "ALL" && r.i !== tanahState.induk) return false;
+        if (tanahState.nsSt !== "ALL" && r.ns_st !== tanahState.nsSt) return false;
+
+        // Filter rentang NS
+        if (tanahState.nsKat !== "ALL") {
+          const v = r.ns;
+          if (v === null) return false;
+          if (tanahState.nsKat === "LT3" && !(v < 3.0)) return false;
+          if (tanahState.nsKat === "3TO5" && !(v >= 3.0 && v <= 5.0)) return false;
+          if (tanahState.nsKat === "5TO10" && !(v > 5.0 && v <= 10.0)) return false;
+          if (tanahState.nsKat === "GT10" && !(v > 10.0)) return false;
+        }
+
+        // Filter CT Ring
+        if (tanahState.ctSt !== "ALL") {
+          if (tanahState.ctSt === "HAS_CT" && !(r.ct !== null || r.ct_st)) return false;
+          if (tanahState.ctSt === "BAIK" && r.ct_st !== "BAIK") return false;
+          if (tanahState.ctSt === "BURUK" && r.ct_st !== "BURUK") return false;
+          if (tanahState.ctSt === "NO_CT" && (r.ct !== null || r.ct_st)) return false;
+        }
+
+        // Filter R Soil
+        if (tanahState.rSoil !== "ALL") {
+          if (r.r_soil === null || Math.round(r.r_soil) !== Math.round(parseFloat(tanahState.rSoil))) return false;
+        }
+
+        // Search text
+        if (q) {
+          const tName = (r.n || "").toLowerCase();
+          const tInduk = (r.i || "").toLowerCase();
+          const tTanah = (r.tanah || "").toLowerCase();
+          const tFao = (r.fao || "").toLowerCase();
+          if (!tName.includes(q) && !tInduk.includes(q) && !tTanah.includes(q) && !tFao.includes(q)) return false;
+        }
+
+        return true;
+      });
+    }
+
+    function refreshTanahView() {
+      const filtered = getFilteredTanahRecords();
+
+      // Update badge label filter
+      const badge = document.getElementById("tanah-filter-badge");
+      if (badge) {
+        const uText = tanahState.ultg === "ALL" ? "Semua ULTG" : tanahState.ultg;
+        const iText = tanahState.induk === "ALL" ? "Semua Segmen" : tanahState.induk;
+        badge.textContent = `${uText} • ${iText}`;
+      }
+
+      // Update KPIs
+      const total = filtered.length;
+      document.getElementById("tanah-kpi-total").textContent = fmtNum(total);
+
+      const baikCount = filtered.filter(r => r.ns_st === "BAIK").length;
+      const burukCount = filtered.filter(r => r.ns_st === "BURUK").length;
+      const pctBaik = total > 0 ? ((baikCount / total) * 100).toFixed(1) : "0";
+      const pctBuruk = total > 0 ? ((burukCount / total) * 100).toFixed(1) : "0";
+
+      document.getElementById("tanah-kpi-ns-baik").textContent = fmtNum(baikCount);
+      document.getElementById("tanah-kpi-ns-baik-pct").textContent = `${pctBaik}% dari ${fmtNum(total)} tower`;
+
+      document.getElementById("tanah-kpi-ns-buruk").textContent = fmtNum(burukCount);
+      document.getElementById("tanah-kpi-ns-buruk-pct").textContent = `${pctBuruk}% perlu penanganan`;
+
+      const ctAda = filtered.filter(r => r.ct !== null || r.ct_st).length;
+      const ctBaik = filtered.filter(r => r.ct_st === "BAIK").length;
+      const ctBuruk = filtered.filter(r => r.ct_st === "BURUK").length;
+      document.getElementById("tanah-kpi-ct-ada").textContent = fmtNum(ctAda);
+      document.getElementById("tanah-kpi-ct-detail").textContent = `Baik: ${fmtNum(ctBaik)} | Buruk: ${fmtNum(ctBuruk)}`;
+
+      const rSoils = filtered.map(r => r.r_soil).filter(v => v !== null && v > 0);
+      const avgRSoil = rSoils.length > 0 ? Math.round(rSoils.reduce((a, b) => a + b, 0) / rSoils.length) : 0;
+      document.getElementById("tanah-kpi-rsoil-avg").textContent = `${avgRSoil} Ω·m`;
+      document.getElementById("tanah-kpi-rsoil-desc").textContent = `Dari ${fmtNum(rSoils.length)} titik terverifikasi`;
+
+      document.getElementById("tanah-count-badge").textContent = `${fmtNum(total)} baris`;
+
+      // Render Charts
+      renderTanahCharts(filtered);
+
+      // Render Table
+      renderTanahTable(filtered);
+    }
+
+    function renderTanahCharts(filtered) {
+      const chartEl1 = document.getElementById("chart-tanah-ns-ultg");
+      const chartEl2 = document.getElementById("chart-tanah-ct");
+      const chartEl3 = document.getElementById("chart-tanah-rsoil");
+      if (!chartEl1 || !chartEl2 || !chartEl3) return;
+
+      // 1. Stacked Bar Chart Kategori NS per ULTG
+      const ultgs = Array.from(new Set(allTanahRecords.map(r => r.u).filter(Boolean))).sort();
+      const lt3 = [];
+      const threeTo5 = [];
+      const fiveTo10 = [];
+      const gt10 = [];
+
+      ultgs.forEach(u => {
+        const list = filtered.filter(r => r.u === u);
+        lt3.push(list.filter(r => r.ns !== null && r.ns < 3.0).length);
+        threeTo5.push(list.filter(r => r.ns !== null && r.ns >= 3.0 && r.ns <= 5.0).length);
+        fiveTo10.push(list.filter(r => r.ns !== null && r.ns > 5.0 && r.ns <= 10.0).length);
+        gt10.push(list.filter(r => r.ns !== null && r.ns > 10.0).length);
+      });
+
+      const ctxNs = chartEl1.getContext("2d");
+      if (chartTanahNsUltg) chartTanahNsUltg.destroy();
+      chartTanahNsUltg = new Chart(ctxNs, {
+        type: "bar",
+        data: {
+          labels: ultgs.map(u => u.replace("ULTG ", "")),
+          datasets: [
+            { label: "< 3 Ω (Sangat Baik)", data: lt3, backgroundColor: "rgba(16, 185, 129, 0.85)" },
+            { label: "3 – 5 Ω (Baik)", data: threeTo5, backgroundColor: "rgba(14, 165, 233, 0.85)" },
+            { label: "5 – 10 Ω (Waspada)", data: fiveTo10, backgroundColor: "rgba(245, 158, 11, 0.85)" },
+            { label: "> 10 Ω (Buruk / Anomali)", data: gt10, backgroundColor: "rgba(244, 63, 94, 0.85)" }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "top", labels: { color: "#cbd5e1", boxWidth: 12, font: { size: 11 } } },
+            datalabels: {
+              color: "#ffffff",
+              font: { weight: "bold", size: 10 },
+              formatter: (val) => (val > 0 ? val : "")
+            }
+          },
+          scales: {
+            x: { stacked: true, ticks: { color: "#94a3b8", font: { size: 11, weight: "bold" } }, grid: { display: false } },
+            y: { stacked: true, ticks: { color: "#94a3b8" }, grid: { color: "rgba(51, 65, 85, 0.4)" } }
+          }
+        }
+      });
+
+      // 2. Donut Chart Status CT Ring
+      const ctBaik = filtered.filter(r => r.ct_st === "BAIK").length;
+      const ctBuruk = filtered.filter(r => r.ct_st === "BURUK").length;
+      const ctNone = filtered.filter(r => r.ct === null && !r.ct_st).length;
+
+      const ctxCt = chartEl2.getContext("2d");
+      if (chartTanahCt) chartTanahCt.destroy();
+      chartTanahCt = new Chart(ctxCt, {
+        type: "doughnut",
+        data: {
+          labels: ["CT Ring Baik", "CT Ring Buruk", "Belum Pasang CT Ring"],
+          datasets: [{
+            data: [ctBaik, ctBuruk, ctNone],
+            backgroundColor: [
+              "rgba(16, 185, 129, 0.85)",
+              "rgba(244, 63, 94, 0.85)",
+              "rgba(71, 85, 105, 0.6)"
+            ],
+            borderColor: "#0f172a",
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "bottom", labels: { color: "#cbd5e1", boxWidth: 12, font: { size: 11 } } },
+            datalabels: {
+              color: "#ffffff",
+              font: { weight: "bold", size: 11 },
+              formatter: (val, ctx) => {
+                const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                if (val <= 0 || total <= 0) return "";
+                return `${Math.round((val / total) * 100)}%`;
+              }
+            }
+          },
+          cutout: "60%"
+        }
+      });
+      document.getElementById("tanah-ct-summary-note").textContent =
+        `Total Terpasang CT Ring: ${fmtNum(ctBaik + ctBuruk)} tower (Baik: ${fmtNum(ctBaik)}, Buruk: ${fmtNum(ctBuruk)})`;
+
+      // 3. Bar Chart Tahanan Jenis R Soil
+      const rSoilMap = {};
+      filtered.forEach(r => {
+        if (r.r_soil !== null) {
+          const key = `${Math.round(r.r_soil)} Ω·m`;
+          rSoilMap[key] = (rSoilMap[key] || 0) + 1;
+        }
+      });
+      const rLabels = Object.keys(rSoilMap).sort((a,b) => parseInt(a) - parseInt(b));
+      const rData = rLabels.map(k => rSoilMap[k]);
+
+      const ctxRsoil = chartEl3.getContext("2d");
+      if (chartTanahRsoil) chartTanahRsoil.destroy();
+      chartTanahRsoil = new Chart(ctxRsoil, {
+        type: "bar",
+        data: {
+          labels: rLabels,
+          datasets: [{
+            label: "Jumlah Tower",
+            data: rData,
+            backgroundColor: [
+              "rgba(6, 182, 212, 0.85)",
+              "rgba(14, 165, 233, 0.85)",
+              "rgba(59, 130, 246, 0.85)",
+              "rgba(245, 158, 11, 0.85)",
+              "rgba(244, 63, 94, 0.85)"
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              anchor: "end",
+              align: "top",
+              color: "#38bdf8",
+              font: { weight: "bold", size: 11 },
+              formatter: (val) => (val > 0 ? `${fmtNum(val)} twr` : "")
+            }
+          },
+          scales: {
+            x: { ticks: { color: "#cbd5e1", font: { weight: "bold" } }, grid: { display: false } },
+            y: { ticks: { color: "#94a3b8" }, grid: { color: "rgba(51, 65, 85, 0.4)" } }
+          }
+        }
+      });
+    }
+
+    function renderTanahTable(filtered) {
+      const tbody = document.getElementById("tanah-tbody");
+      if (!tbody) return;
+      const total = filtered.length;
+      const limitVal = tanahState.limit;
+      const limit = limitVal === "ALL" ? total : parseInt(limitVal, 10);
+
+      const maxPage = Math.max(1, Math.ceil(total / (limit || 1)));
+      if (tanahState.page > maxPage) tanahState.page = maxPage;
+      if (tanahState.page < 1) tanahState.page = 1;
+
+      const startIdx = limitVal === "ALL" ? 0 : (tanahState.page - 1) * limit;
+      const endIdx = limitVal === "ALL" ? total : Math.min(startIdx + limit, total);
+      const pageItems = filtered.slice(startIdx, endIdx);
+
+      // Pagination info & buttons
+      document.getElementById("tanah-pagination-info").textContent =
+        total > 0
+          ? `Menampilkan ${fmtNum(startIdx + 1)} – ${fmtNum(endIdx)} dari ${fmtNum(total)} baris`
+          : "Menampilkan 0 baris";
+      document.getElementById("tanah-page-label").textContent = `Hal ${tanahState.page} dari ${maxPage}`;
+      document.getElementById("tanah-btn-prev").disabled = tanahState.page <= 1;
+      document.getElementById("tanah-btn-next").disabled = tanahState.page >= maxPage;
+
+      if (pageItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12" class="py-8 text-center text-slate-400">Tidak ada data pentanahan yang sesuai filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = pageItems.map((r, idx) => {
+        // Badge Nilai NS
+        let nsBadge = '<span class="text-slate-500">-</span>';
+        if (r.ns !== null) {
+          const val = r.ns;
+          let color = "bg-rose-500/20 text-rose-300 border-rose-500/30";
+          if (val < 3.0) color = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+          else if (val <= 5.0) color = "bg-sky-500/20 text-sky-300 border-sky-500/30";
+          else if (val <= 10.0) color = "bg-amber-500/20 text-amber-300 border-amber-500/30";
+          nsBadge = `<span class="px-2 py-0.5 rounded-full border text-[11px] font-bold ${color}">${val} Ω</span>`;
+        }
+
+        // Badge Status NS
+        let stNsBadge = '<span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px]">BELUM</span>';
+        if (r.ns_st === "BAIK") {
+          stNsBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">BAIK</span>';
+        } else if (r.ns_st === "BURUK") {
+          stNsBadge = '<span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">BURUK</span>';
+        }
+
+        // CT Ring Nilai & Status
+        const ctValText = r.ct !== null ? `<span class="font-bold text-sky-300">${r.ct} Ω</span>` : '<span class="text-slate-500">-</span>';
+        let ctStBadge = '<span class="text-slate-500">-</span>';
+        if (r.ct_st === "BAIK") {
+          ctStBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">BAIK</span>';
+        } else if (r.ct_st === "BURUK") {
+          ctStBadge = '<span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">BURUK</span>';
+        }
+
+        // R Soil
+        const rSoilText = r.r_soil !== null
+          ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">${r.r_soil} Ω·m</span>`
+          : '<span class="text-slate-500">-</span>';
+
+        // Jenis Tanah FAO
+        const tanahDesc = r.tanah
+          ? `<div class="font-medium text-slate-200">${escapeHtml(r.tanah)}</div><div class="text-[10px] text-slate-400 font-mono">${escapeHtml(r.fao || "-")}</div>`
+          : '<span class="text-slate-500">-</span>';
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-2.5 px-3 text-slate-400 font-mono">${startIdx + idx + 1}</td>
+            <td class="py-2.5 px-3 font-semibold text-slate-300">${escapeHtml(r.u || "-")}</td>
+            <td class="py-2.5 px-3 font-bold text-slate-100">${escapeHtml(r.i || "-")}</td>
+            <td class="py-2.5 px-3 font-mono font-bold text-cyan-300">${escapeHtml(r.n || "-")}</td>
+            <td class="py-2.5 px-3 text-slate-400">${escapeHtml(r.pos || "-")}</td>
+            <td class="py-2.5 px-3">${nsBadge}</td>
+            <td class="py-2.5 px-3">${stNsBadge}</td>
+            <td class="py-2.5 px-3">${ctValText}</td>
+            <td class="py-2.5 px-3">${ctStBadge}</td>
+            <td class="py-2.5 px-3">${rSoilText}</td>
+            <td class="py-2.5 px-3">${tanahDesc}</td>
+            <td class="py-2.5 px-3 text-slate-400 text-[11px]">${escapeHtml(r.tgl ? r.tgl.split(" ")[0] : (r.th || "-"))}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function exportTanahCsv() {
+      const filtered = getFilteredTanahRecords();
+      if (!filtered.length) {
+        alert("Tidak ada data untuk diekspor.");
+        return;
+      }
+      const headers = [
+        "No",
+        "ULTG",
+        "Penghantar (Segmen)",
+        "Nama Tower",
+        "Posisi",
+        "Tegangan",
+        "Nilai Pentanahan NS (Ohm)",
+        "Kategori Pengukuran NS",
+        "Kondisi NS",
+        "Nilai CT Ring (Ohm)",
+        "Kondisi CT Ring",
+        "Nilai R Paralel CT Ring",
+        "Tahanan Jenis Tanah R Soil (Ohm.m)",
+        "Kode FAOSOIL",
+        "Jenis Tanah (FAO)",
+        "Tanggal Ukur",
+        "Tahun"
+      ];
+      const rows = filtered.map((r, idx) => [
+        idx + 1,
+        `"${(r.u || "").replace(/"/g, '""')}"`,
+        `"${(r.i || "").replace(/"/g, '""')}"`,
+        `"${(r.n || "").replace(/"/g, '""')}"`,
+        `"${(r.pos || "").replace(/"/g, '""')}"`,
+        `"${(r.teg || "").replace(/"/g, '""')}"`,
+        r.ns !== null ? r.ns : "",
+        `"${(r.ns_kat || "").replace(/"/g, '""')}"`,
+        `"${(r.ns_st || "").replace(/"/g, '""')}"`,
+        r.ct !== null ? r.ct : "",
+        `"${(r.ct_st || "").replace(/"/g, '""')}"`,
+        r.ct_r !== null ? r.ct_r : "",
+        r.r_soil !== null ? r.r_soil : "",
+        `"${(r.fao || "").replace(/"/g, '""')}"`,
+        `"${(r.tanah || "").replace(/"/g, '""')}"`,
+        `"${(r.tgl || "").replace(/"/g, '""')}"`,
+        `"${(r.th || "").replace(/"/g, '""')}"`
+      ]);
+
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\r\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Data_Pentanahan_Tower_UPT_PLM_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
     // Event Listeners Tab 3 (Proteksi Petir Terpasang)
     document.getElementById("prot-ultg").addEventListener("change", (e) => { protState.ultg = e.target.value; protState.induk = "ALL"; populateProtFilters(); refreshProtView(); });
     document.getElementById("prot-induk").addEventListener("change", (e) => { protState.induk = e.target.value; refreshProtView(); });
@@ -2871,6 +3647,83 @@
       });
     });
 
+    // Event Listeners Tab 4 (Pentanahan Tower: NS, CT Ring & R Soil)
+    document.getElementById("tanah-ultg").addEventListener("change", (e) => {
+      tanahState.ultg = e.target.value;
+      tanahState.induk = "ALL";
+      tanahState.page = 1;
+      populateTanahFilters();
+      refreshTanahView();
+    });
+    document.getElementById("tanah-induk").addEventListener("change", (e) => {
+      tanahState.induk = e.target.value;
+      tanahState.page = 1;
+      refreshTanahView();
+    });
+    document.getElementById("tanah-ns-st").addEventListener("change", (e) => {
+      tanahState.nsSt = e.target.value;
+      tanahState.page = 1;
+      refreshTanahView();
+    });
+    document.getElementById("tanah-ns-kat").addEventListener("change", (e) => {
+      tanahState.nsKat = e.target.value;
+      tanahState.page = 1;
+      refreshTanahView();
+    });
+    document.getElementById("tanah-ct-st").addEventListener("change", (e) => {
+      tanahState.ctSt = e.target.value;
+      tanahState.page = 1;
+      refreshTanahView();
+    });
+    document.getElementById("tanah-rsoil").addEventListener("change", (e) => {
+      tanahState.rSoil = e.target.value;
+      tanahState.page = 1;
+      refreshTanahView();
+    });
+    document.getElementById("btn-reset-tanah").addEventListener("click", () => {
+      tanahState.ultg = "ALL";
+      tanahState.induk = "ALL";
+      tanahState.nsSt = "ALL";
+      tanahState.nsKat = "ALL";
+      tanahState.ctSt = "ALL";
+      tanahState.rSoil = "ALL";
+      tanahState.search = "";
+      tanahState.page = 1;
+      document.getElementById("tanah-ns-st").value = "ALL";
+      document.getElementById("tanah-ns-kat").value = "ALL";
+      document.getElementById("tanah-ct-st").value = "ALL";
+      document.getElementById("tanah-rsoil").value = "ALL";
+      document.getElementById("tanah-search").value = "";
+      populateTanahFilters();
+      refreshTanahView();
+    });
+    document.getElementById("tanah-search").addEventListener("input", (e) => {
+      tanahState.search = e.target.value;
+      tanahState.page = 1;
+      refreshTanahView();
+    });
+    document.getElementById("tanah-limit").addEventListener("change", (e) => {
+      tanahState.limit = e.target.value;
+      tanahState.page = 1;
+      refreshTanahView();
+    });
+    document.getElementById("tanah-btn-prev").addEventListener("click", () => {
+      if (tanahState.page > 1) {
+        tanahState.page--;
+        renderTanahTable(getFilteredTanahRecords());
+      }
+    });
+    document.getElementById("tanah-btn-next").addEventListener("click", () => {
+      const filtered = getFilteredTanahRecords();
+      const limit = tanahState.limit === "ALL" ? filtered.length : parseInt(tanahState.limit, 10);
+      const maxPage = Math.max(1, Math.ceil(filtered.length / (limit || 1)));
+      if (tanahState.page < maxPage) {
+        tanahState.page++;
+        renderTanahTable(filtered);
+      }
+    });
+    document.getElementById("btn-export-tanah-csv").addEventListener("click", exportTanahCsv);
+
     // Global Buttons
     document.getElementById("btn-export-csv").addEventListener("click", exportCurrentToCsv);
 
@@ -2880,7 +3733,7 @@
       const icon = document.getElementById("sync-icon");
       btn.disabled = true;
       icon.textContent = "⏳";
-      txt.textContent = "Menyinkronkan 3 Sheet...";
+      txt.textContent = "Menyinkronkan 4 Sheet...";
 
       try {
         let syncedViaServer = false;
@@ -2903,16 +3756,16 @@
           initFromPayload(rawPayload);
         }
         icon.textContent = "✅";
-        txt.textContent = "3 Sheet Tersinkron Live!";
+        txt.textContent = "4 Sheet Tersinkron Live!";
       } catch (err) {
         alert("Gagal menyinkronkan data dari Google Sheet.\nPastikan koneksi internet aktif.\n\nDetail: " + err.message);
         icon.textContent = "🔄";
-        txt.textContent = "Sinkronisasi 3 Sheet";
+        txt.textContent = "Sinkronisasi 4 Sheet";
       } finally {
         setTimeout(() => {
           btn.disabled = false;
           icon.textContent = "🔄";
-          txt.textContent = "Sinkronisasi 3 Sheet";
+          txt.textContent = "Sinkronisasi 4 Sheet";
         }, 2200);
       }
     });
