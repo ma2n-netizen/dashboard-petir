@@ -2558,10 +2558,29 @@
     function renderMap(towerList) {
       if (!leafletMap) {
         leafletMap = L.map("map-container").setView([-2.75, 105.6], 7);
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-          attribution: "&copy; OpenStreetMap &copy; CARTO",
+        const esriTopo = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+          attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ",
           maxZoom: 19
-        }).addTo(leafletMap);
+        });
+        const esriSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+          attribution: "Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics",
+          maxZoom: 19
+        });
+        const esriStreet = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+          attribution: "Tiles &copy; Esri",
+          maxZoom: 19
+        });
+        const osmStd = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "&copy; OpenStreetMap contributors",
+          maxZoom: 19
+        });
+        esriTopo.addTo(leafletMap);
+        L.control.layers({
+          "🗺️ Topografi (Esri)": esriTopo,
+          "🛰️ Satelit (Esri)": esriSat,
+          "🛣️ Peta Jalan (Esri)": esriStreet,
+          "🌍 OpenStreetMap": osmStd
+        }, null, { position: "topright" }).addTo(leafletMap);
         mapLayerGroup = L.layerGroup().addTo(leafletMap);
       }
 
