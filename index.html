@@ -103,9 +103,19 @@
       border-bottom: 3px solid #ffd100 !important;
       box-shadow: 0 4px 20px rgba(0, 82, 155, 0.18);
     }
-    body.theme-pln header > div:last-child {
-      background: rgba(255, 255, 255, 0.96) !important;
-      border-top: 1px solid rgba(0, 82, 155, 0.15) !important;
+    body.theme-pln #tab-menu-popover,
+    body.theme-pln #floating-tab-popover {
+      background-color: #ffffff !important;
+      border-color: #93c5fd !important;
+      box-shadow: 0 18px 40px rgba(0, 82, 155, 0.22) !important;
+    }
+    body.theme-pln #tab-menu-popover .text-slate-400,
+    body.theme-pln #floating-tab-popover .text-slate-400 {
+      color: #00529b !important;
+    }
+    body.theme-pln #floating-tab-popover button {
+      background-color: #f1f5f9;
+      color: #1e293b;
     }
     body.theme-pln header p.text-slate-400 {
       color: #e0f2fe !important;
@@ -390,8 +400,8 @@
   <!-- APP SHELL (TERBUKA SETELAH LOGIN) -->
   <div id="app-shell" class="hidden">
 
-  <!-- TOP NAVBAR & 3 MENU TAB UTAMA -->
-  <header class="sticky top-0 z-40 bg-slate-900/95 border-b border-slate-800 backdrop-blur-md">
+  <!-- TOP NAVBAR (TIDAK FREEZE, MENU TAB KLIK MUNCUL) -->
+  <header class="relative z-40 bg-slate-900/95 border-b border-slate-800">
     <div class="max-w-[1600px] mx-auto px-4 lg:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-3.5">
         <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-slate-950 text-2xl font-extrabold shadow-lg shadow-amber-500/20">
@@ -403,7 +413,7 @@
               DASHBOARD ANALISA &amp; PROTEKSI PETIR TRANSMISI
             </h1>
             <span class="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              3 MODUL TERINTEGRASI
+              4 MODUL TERINTEGRASI
             </span>
           </div>
           <p class="text-xs text-slate-400 mt-0.5">
@@ -413,6 +423,44 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2.5">
+        <!-- DROPDOWN MENU TAB 1-4 (KLIK MUNCUL) -->
+        <div class="relative" id="tab-menu-container">
+          <button id="btn-tab-menu-toggle" type="button"
+                  class="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-lg flex items-center gap-2 transition">
+            <span>☰</span>
+            <span id="active-tab-menu-label">1. Analisa Sambaran Petir (LDS)</span>
+            <span class="text-[10px] opacity-80">▼</span>
+          </button>
+
+          <div id="tab-menu-popover"
+               class="hidden absolute right-0 sm:left-0 sm:right-auto mt-2 w-80 p-2 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl z-50 space-y-1.5">
+            <div class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Pilih Modul Dashboard</div>
+            <button id="main-tab-lds" onclick="switchMainView('lds')"
+                    class="main-nav-tab active-lds w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 flex items-center justify-between gap-2 text-left">
+              <span class="flex items-center gap-2"><span>⚡</span><span>1. Analisa Sambaran Petir (LDS)</span></span>
+              <span id="badge-nav-lds" class="px-2 py-0.5 text-[11px] rounded-full bg-slate-950/30 font-bold">0</span>
+            </button>
+
+            <button id="main-tab-ggn" onclick="switchMainView('ggn')"
+                    class="main-nav-tab w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center justify-between gap-2 text-left">
+              <span class="flex items-center gap-2"><span>🌩️</span><span>2. Gangguan Petir</span></span>
+              <span id="badge-nav-ggn" class="px-2 py-0.5 text-[11px] rounded-full bg-rose-500/20 text-rose-300 font-bold">0</span>
+            </button>
+
+            <button id="main-tab-prot" onclick="switchMainView('prot')"
+                    class="main-nav-tab w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center justify-between gap-2 text-left">
+              <span class="flex items-center gap-2"><span>🛡️</span><span>3. Proteksi Petir Terpasang</span></span>
+              <span id="badge-nav-prot" class="px-2 py-0.5 text-[11px] rounded-full bg-emerald-500/20 text-emerald-300 font-bold">0</span>
+            </button>
+
+            <button id="main-tab-tanah" onclick="switchMainView('tanah')"
+                    class="main-nav-tab w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center justify-between gap-2 text-left">
+              <span class="flex items-center gap-2"><span>🌱</span><span>4. Pentanahan (NS, CT Ring &amp; R Soil)</span></span>
+              <span id="badge-nav-tanah" class="px-2 py-0.5 text-[11px] rounded-full bg-cyan-500/20 text-cyan-300 font-bold">0</span>
+            </button>
+          </div>
+        </div>
+
         <a id="sheet-link" href="https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=286301078#gid=286301078"
            target="_blank" rel="noopener"
            class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition">
@@ -436,40 +484,23 @@
         </button>
       </div>
     </div>
-
-    <!-- BARIS 3 TAB MENU UTAMA -->
-    <div class="bg-slate-950/70 border-t border-slate-800/80">
-      <div class="max-w-[1600px] mx-auto px-4 lg:px-6 py-2.5 flex flex-wrap items-center gap-2.5">
-        <button id="main-tab-lds" onclick="switchMainView('lds')"
-                class="main-nav-tab active-lds px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2">
-          <span>⚡</span>
-          <span>1. Analisa Sambaran Petir (LDS)</span>
-          <span id="badge-nav-lds" class="px-2 py-0.5 text-[11px] rounded-full bg-slate-950/30 font-bold">0</span>
-        </button>
-
-        <button id="main-tab-ggn" onclick="switchMainView('ggn')"
-                class="main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2">
-          <span>🌩️</span>
-          <span>2. Gangguan Petir</span>
-          <span id="badge-nav-ggn" class="px-2 py-0.5 text-[11px] rounded-full bg-rose-500/20 text-rose-300 font-bold">0</span>
-        </button>
-
-        <button id="main-tab-prot" onclick="switchMainView('prot')"
-                class="main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2">
-          <span>🛡️</span>
-          <span>3. Proteksi Petir Terpasang</span>
-          <span id="badge-nav-prot" class="px-2 py-0.5 text-[11px] rounded-full bg-emerald-500/20 text-emerald-300 font-bold">0</span>
-        </button>
-
-        <button id="main-tab-tanah" onclick="switchMainView('tanah')"
-                class="main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2">
-          <span>🌱</span>
-          <span>4. Pentanahan (NS, CT Ring &amp; R Soil)</span>
-          <span id="badge-nav-tanah" class="px-2 py-0.5 text-[11px] rounded-full bg-cyan-500/20 text-cyan-300 font-bold">0</span>
-        </button>
-      </div>
-    </div>
   </header>
+
+  <!-- TOMBOL MENU CEPAT MELAYANG (MUNCUL SAAT SCROLL BAWAH, TIDAK MEMAKAN TEMPAT GRAFIK) -->
+  <div id="floating-tab-wrap" class="hidden fixed bottom-5 right-5 z-50">
+    <div id="floating-tab-popover"
+         class="hidden mb-2 w-80 p-2 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl space-y-1.5">
+      <div class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Pindah Modul Cepat</div>
+      <button onclick="switchMainView('lds')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-slate-200 transition">⚡ 1. Analisa Sambaran Petir (LDS)</button>
+      <button onclick="switchMainView('ggn')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-rose-500 hover:text-white text-slate-200 transition">🌩️ 2. Gangguan Petir</button>
+      <button onclick="switchMainView('prot')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 transition">🛡️ 3. Proteksi Petir Terpasang</button>
+      <button onclick="switchMainView('tanah')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-cyan-500 hover:text-slate-950 text-slate-200 transition">🌱 4. Pentanahan (NS, CT Ring &amp; R Soil)</button>
+    </div>
+    <button id="btn-floating-tab-toggle" type="button"
+            class="ml-auto px-4 py-2.5 rounded-full text-xs font-extrabold bg-[#00529b] hover:bg-[#0066b2] text-white border-2 border-[#ffd100] shadow-xl flex items-center gap-2 transition">
+      <span>☰</span><span>Menu Tab</span>
+    </button>
+  </div>
 
   <!-- ========================================================================= -->
   <!-- VIEW 1: ANALISA SAMBARAN PETIR (REKAP LDS PERBULAN)                       -->
@@ -1625,21 +1656,32 @@
       const btnProt = document.getElementById("main-tab-prot");
       const btnTanah = document.getElementById("main-tab-tanah");
 
+      const baseInactive = "main-nav-tab w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center justify-between gap-2 text-left";
       btnLds.className = view === "lds"
-        ? "main-nav-tab active-lds px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2"
-        : "main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2";
-
+        ? "main-nav-tab active-lds w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 flex items-center justify-between gap-2 text-left"
+        : baseInactive;
       btnGgn.className = view === "ggn"
-        ? "main-nav-tab active-ggn px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2"
-        : "main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2";
-
+        ? "main-nav-tab active-ggn w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 flex items-center justify-between gap-2 text-left"
+        : baseInactive;
       btnProt.className = view === "prot"
-        ? "main-nav-tab active-prot px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2"
-        : "main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2";
-
+        ? "main-nav-tab active-prot w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 flex items-center justify-between gap-2 text-left"
+        : baseInactive;
       btnTanah.className = view === "tanah"
-        ? "main-nav-tab active-tanah px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 flex items-center gap-2"
-        : "main-nav-tab px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center gap-2";
+        ? "main-nav-tab active-tanah w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 flex items-center justify-between gap-2 text-left"
+        : baseInactive;
+
+      const labelMap = {
+        lds: "1. Analisa Sambaran Petir (LDS)",
+        ggn: "2. Gangguan Petir",
+        prot: "3. Proteksi Petir Terpasang",
+        tanah: "4. Pentanahan (NS, CT Ring & R Soil)"
+      };
+      const activeLabelEl = document.getElementById("active-tab-menu-label");
+      if (activeLabelEl && labelMap[view]) activeLabelEl.textContent = labelMap[view];
+      const topPop = document.getElementById("tab-menu-popover");
+      const floatPop = document.getElementById("floating-tab-popover");
+      if (topPop) topPop.classList.add("hidden");
+      if (floatPop) floatPop.classList.add("hidden");
 
       // Update Google Sheet Link
       const sheetLink = document.getElementById("sheet-link");
@@ -4433,7 +4475,41 @@
       });
     }
 
+    function initTabMenuPopovers() {
+      const btnTop = document.getElementById("btn-tab-menu-toggle");
+      const popTop = document.getElementById("tab-menu-popover");
+      const btnFloat = document.getElementById("btn-floating-tab-toggle");
+      const popFloat = document.getElementById("floating-tab-popover");
+      const floatWrap = document.getElementById("floating-tab-wrap");
+
+      if (btnTop && popTop) {
+        btnTop.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (popFloat) popFloat.classList.add("hidden");
+          popTop.classList.toggle("hidden");
+        });
+      }
+      if (btnFloat && popFloat) {
+        btnFloat.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (popTop) popTop.classList.add("hidden");
+          popFloat.classList.toggle("hidden");
+        });
+      }
+      document.addEventListener("click", (e) => {
+        if (popTop && !e.target.closest("#tab-menu-container")) popTop.classList.add("hidden");
+        if (popFloat && !e.target.closest("#floating-tab-wrap")) popFloat.classList.add("hidden");
+      });
+      window.addEventListener("scroll", () => {
+        if (!floatWrap) return;
+        const show = window.scrollY > 140;
+        floatWrap.classList.toggle("hidden", !show);
+        if (!show && popFloat) popFloat.classList.add("hidden");
+      }, { passive: true });
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
+      initTabMenuPopovers();
       initSearchableSelects();
       let savedTheme = "pln";
       try { savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "pln"; } catch (_) {}
