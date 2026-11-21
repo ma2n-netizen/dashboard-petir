@@ -76,9 +76,133 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #475569;
     }
+
+    /* ===================================================================== */
+    /* TEMA PLN CERAH (BIRU PLN #00529B • TOSCA #00A5B5 • KUNING #FFD100)    */
+    /* ===================================================================== */
+    body.theme-pln {
+      background: linear-gradient(180deg, #e8f2fc 0%, #f4f8fc 40%, #eef4f9 100%);
+      color: #0f172a;
+    }
+    body.theme-pln #login-screen {
+      background: linear-gradient(135deg, #003e78 0%, #00529b 50%, #008ca8 100%) !important;
+    }
+    body.theme-pln #login-screen .glass-card {
+      background: rgba(255, 255, 255, 0.97) !important;
+      border: 2px solid #ffd100 !important;
+      box-shadow: 0 24px 48px rgba(0, 38, 77, 0.28);
+    }
+    body.theme-pln #login-screen h1 {
+      color: #00529b !important;
+    }
+    body.theme-pln #login-screen label {
+      color: #334155 !important;
+    }
+    body.theme-pln header {
+      background: linear-gradient(90deg, #004785 0%, #005ca9 58%, #008ca8 100%) !important;
+      border-bottom: 3px solid #ffd100 !important;
+      box-shadow: 0 4px 20px rgba(0, 82, 155, 0.18);
+    }
+    body.theme-pln header > div:last-child {
+      background: rgba(255, 255, 255, 0.96) !important;
+      border-top: 1px solid rgba(0, 82, 155, 0.15) !important;
+    }
+    body.theme-pln header p.text-slate-400 {
+      color: #e0f2fe !important;
+    }
+    body.theme-pln .main-nav-tab:not(.active-lds):not(.active-ggn):not(.active-prot):not(.active-tanah) {
+      background-color: #f1f5f9 !important;
+      color: #1e293b !important;
+      border-color: #cbd5e1 !important;
+    }
+    body.theme-pln .main-nav-tab:not(.active-lds):not(.active-ggn):not(.active-prot):not(.active-tanah):hover {
+      background-color: #e0f2fe !important;
+      border-color: #0077b6 !important;
+      color: #00529b !important;
+    }
+    body.theme-pln .glass-card {
+      background: rgba(255, 255, 255, 0.96) !important;
+      border: 1px solid rgba(0, 82, 155, 0.14) !important;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+      backdrop-filter: none;
+    }
+    body.theme-pln select,
+    body.theme-pln input[type="text"],
+    body.theme-pln input[type="password"],
+    body.theme-pln input[type="search"] {
+      background-color: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    body.theme-pln select option {
+      background-color: #ffffff;
+      color: #0f172a;
+    }
+    body.theme-pln main .text-white,
+    body.theme-pln main .text-slate-100,
+    body.theme-pln main .text-slate-200 {
+      color: #0f172a !important;
+    }
+    body.theme-pln main .text-slate-300 {
+      color: #334155 !important;
+    }
+    body.theme-pln main .text-slate-400,
+    body.theme-pln main .text-slate-500 {
+      color: #475569 !important;
+    }
+    body.theme-pln main .border-slate-800,
+    body.theme-pln main .border-slate-800\/80,
+    body.theme-pln main .border-slate-700,
+    body.theme-pln main .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]) {
+      border-color: #e2e8f0 !important;
+    }
+    body.theme-pln main .bg-slate-900,
+    body.theme-pln main .bg-slate-900\/80,
+    body.theme-pln main .bg-slate-950\/50,
+    body.theme-pln main .bg-slate-800 {
+      background-color: #f1f5f9 !important;
+    }
+    body.theme-pln table thead,
+    body.theme-pln table thead tr {
+      background-color: #e8f1fb !important;
+      color: #00529b !important;
+    }
+    body.theme-pln table tbody tr:hover {
+      background-color: #f0f7ff !important;
+    }
+    body.theme-pln .month-chip:not(.active) {
+      background-color: #f1f5f9 !important;
+      color: #334155 !important;
+      border-color: #cbd5e1 !important;
+    }
+    body.theme-pln main .text-amber-300,
+    body.theme-pln main .text-amber-400 { color: #b45309 !important; }
+    body.theme-pln main .text-emerald-300,
+    body.theme-pln main .text-emerald-400 { color: #047857 !important; }
+    body.theme-pln main .text-rose-300,
+    body.theme-pln main .text-rose-400 { color: #be123c !important; }
+    body.theme-pln main .text-cyan-300,
+    body.theme-pln main .text-cyan-400 { color: #0369a1 !important; }
+    body.theme-pln main .text-sky-300,
+    body.theme-pln main .text-sky-400 { color: #00529b !important; }
+    body.theme-pln main .text-purple-200,
+    body.theme-pln main .text-purple-300,
+    body.theme-pln main .text-purple-400 { color: #6d28d9 !important; }
+    body.theme-pln main button.bg-emerald-600,
+    body.theme-pln main button.bg-sky-600,
+    body.theme-pln main button.bg-amber-600,
+    body.theme-pln main button.bg-cyan-600 {
+      color: #ffffff !important;
+    }
+    body.theme-pln::-webkit-scrollbar-track {
+      background: #e2e8f0;
+    }
+    body.theme-pln::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+    }
   </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="theme-pln min-h-screen pb-12">
 
   <!-- LAYAR LOGIN -->
   <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
@@ -167,6 +291,10 @@
         <button id="btn-sync"
                 class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 flex items-center gap-1.5 shadow-lg shadow-amber-500/25 transition">
           <span id="sync-icon">🔄</span><span id="sync-text">Sinkronisasi 4 Sheet</span>
+        </button>
+        <button id="btn-theme-toggle" title="Ganti Tema Cerah PLN / Gelap"
+                class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white/15 hover:bg-white/25 text-white border border-white/25 flex items-center gap-1.5 transition">
+          <span id="theme-icon">🌙</span><span id="theme-label">Mode Gelap</span>
         </button>
         <button id="btn-logout" title="Keluar dari Dashboard"
                 class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 flex items-center gap-1.5 transition">
@@ -3934,7 +4062,72 @@
       document.getElementById("login-error").classList.add("hidden");
     });
 
+    // =========================================================================
+    // THEME SWITCHER: TEMA PLN CERAH vs DARK MODE (+ CHART.JS COLOR SYNC)
+    // =========================================================================
+    const THEME_STORAGE_KEY = "lds_dashboard_theme_v1";
+
+    if (typeof Chart !== "undefined") {
+      Chart.register({
+        id: "plnThemeChartSync",
+        beforeUpdate(chart) {
+          const isPln = document.body.classList.contains("theme-pln");
+          const legendColor = isPln ? "#1e293b" : "#cbd5e1";
+          const tickColor = isPln ? "#334155" : "#94a3b8";
+          const gridColor = isPln ? "rgba(148, 163, 184, 0.28)" : "rgba(51, 65, 85, 0.4)";
+
+          const opts = chart.options || {};
+          if (opts.plugins && opts.plugins.legend && opts.plugins.legend.labels) {
+            opts.plugins.legend.labels.color = legendColor;
+          }
+          if (opts.plugins && opts.plugins.datalabels) {
+            const dl = opts.plugins.datalabels;
+            if (dl.anchor === "end") {
+              dl.color = isPln ? "#00529b" : "#38bdf8";
+            }
+          }
+          if (opts.scales) {
+            Object.values(opts.scales).forEach((sc) => {
+              if (!sc) return;
+              if (sc.ticks) sc.ticks.color = tickColor;
+              if (sc.grid && sc.grid.display !== false) sc.grid.color = gridColor;
+            });
+          }
+        }
+      });
+    }
+
+    function applyDashboardTheme(mode) {
+      const isPln = mode === "pln";
+      document.body.classList.toggle("theme-pln", isPln);
+      const iconEl = document.getElementById("theme-icon");
+      const labelEl = document.getElementById("theme-label");
+      if (iconEl && labelEl) {
+        iconEl.textContent = isPln ? "🌙" : "☀️";
+        labelEl.textContent = isPln ? "Mode Gelap" : "Tema PLN";
+      }
+      try { localStorage.setItem(THEME_STORAGE_KEY, mode); } catch (_) {}
+
+      // Refresh active chart instances so Chart.js picks up the updated theme colors
+      if (typeof Chart !== "undefined" && Chart.instances) {
+        Object.values(Chart.instances).forEach((ch) => {
+          if (ch && typeof ch.update === "function") ch.update();
+        });
+      }
+    }
+
+    const btnThemeToggle = document.getElementById("btn-theme-toggle");
+    if (btnThemeToggle) {
+      btnThemeToggle.addEventListener("click", () => {
+        const nextMode = document.body.classList.contains("theme-pln") ? "dark" : "pln";
+        applyDashboardTheme(nextMode);
+      });
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
+      let savedTheme = "pln";
+      try { savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "pln"; } catch (_) {}
+      applyDashboardTheme(savedTheme);
       if (sessionStorage.getItem(AUTH_SESSION_KEY) === AUTH_SHA256) {
         unlockDashboard();
       }
