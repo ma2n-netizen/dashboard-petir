@@ -4553,6 +4553,11 @@
       return m ? m[0] : String(fullName || "").trim();
     }
 
+    function extractNumericTowerNo(fullName) {
+      const m = String(fullName || "").match(/#(\d+)/);
+      return m ? parseInt(m[1], 10) : null;
+    }
+
     function getTowerDetailSummaryForWa(r) {
       const parts = [];
       const fmtItem = (label, info) => {
@@ -4617,51 +4622,79 @@
         return lines.join("\n");
       }
 
+      const fromRaw = document.getElementById("wa-tower-from")?.value?.trim();
+      const toRaw = document.getElementById("wa-tower-to")?.value?.trim();
+      const fromNum = fromRaw ? parseInt(fromRaw, 10) : null;
+      const toNum = toRaw ? parseInt(toRaw, 10) : null;
+      const hasRange = (fromNum !== null && !isNaN(fromNum)) || (toNum !== null && !isNaN(toNum));
+
+      const detailList = hasRange
+        ? list.filter(r => {
+            const num = extractNumericTowerNo(r.n);
+            if (num === null) return false;
+            if (fromNum !== null && !isNaN(fromNum) && num < fromNum) return false;
+            if (toNum !== null && !isNaN(toNum) && num > toNum) return false;
+            return true;
+          })
+        : list;
+
+      const rangeDesc = hasRange
+        ? ` (Tower ${fromNum !== null && !isNaN(fromNum) ? "#" + fromNum : "Awal"} s.d. ${toNum !== null && !isNaN(toNum) ? "#" + toNum : "Akhir"} • ${fmtNum(detailList.length)} twr)`
+        : "";
+
       if (mode === "grouped") {
-        lines.push("*📑 RINGKASAN KELOMPOK TOWER:*");
-        // Kelompokkan per Penghantar lalu gabungkan tower berurutan dengan proteksi sama
-        const bySeg = new Map();
-        for (const r of list) {
-          const seg = r.i || "-";
-          if (!bySeg.has(seg)) bySeg.set(seg, []);
-          bySeg.get(seg).push(r);
-        }
-        for (const [seg, rows] of bySeg.entries()) {
-          lines.push(`\n*⚡ ${seg}* (${fmtNum(rows.length)} twr)`);
-          let grpStart = null, grpEnd = null, grpSig = null, grpCount = 0;
-          const flushGrp = () => {
-            if (!grpStart) return;
-            const rangeTxt = grpStart === grpEnd ? `*${grpStart}*` : `*${grpStart} s.d. ${grpEnd}* (${grpCount} twr)`;
-            lines.push(`• ${rangeTxt}: ${grpSig}`);
-          };
-          for (const r of rows) {
-            const sig = getTowerInstalledTextList(r) + (r.kdl ? ` — _Ket: ${r.kdl}_` : "");
-            const no = extractShortTowerNo(r.n);
-            if (sig === grpSig) {
-              grpEnd = no;
-              grpCount++;
-            } else {
-              flushGrp();
-              grpStart = no;
-              grpEnd = no;
-              grpSig = sig;
-              grpCount = 1;
-            }
+        lines.push(`*📑 RINGKASAN KELOMPOK TOWER${rangeDesc}:*`);
+        if (detailList.length === 0) {
+          lines.push("_Tidak ada tower pada rentang nomor tersebut._");
+        } else {
+          // Kelompokkan per Penghantar lalu gabungkan tower berurutan dengan proteksi sama
+          const bySeg = new Map();
+          for (const r of detailList) {
+            const seg = r.i || "-";
+            if (!bySeg.has(seg)) bySeg.set(seg, []);
+            bySeg.get(seg).push(r);
           }
-          flushGrp();
+          for (const [seg, rows] of bySeg.entries()) {
+            lines.push(`\n*⚡ ${seg}* (${fmtNum(rows.length)} twr)`);
+            let grpStart = null, grpEnd = null, grpSig = null, grpCount = 0;
+            const flushGrp = () => {
+              if (!grpStart) return;
+              const rangeTxt = grpStart === grpEnd ? `*${grpStart}*` : `*${grpStart} s.d. ${grpEnd}* (${grpCount} twr)`;
+              lines.push(`• ${rangeTxt}: ${grpSig}`);
+            };
+            for (const r of rows) {
+              const sig = getTowerInstalledTextList(r) + (r.kdl ? ` — _Ket: ${r.kdl}_` : "");
+              const no = extractShortTowerNo(r.n);
+              if (sig === grpSig) {
+                grpEnd = no;
+                grpCount++;
+              } else {
+                flushGrp();
+                grpStart = no;
+                grpEnd = no;
+                grpSig = sig;
+                grpCount = 1;
+              }
+            }
+            flushGrp();
+          }
         }
       } else {
-        lines.push("*📌 RINCIAN PER TOWER:*");
-        let lastSeg = "";
-        for (const r of list) {
-          if (r.i !== lastSeg) {
-            lastSeg = r.i;
-            lines.push(`\n*⚡ ${lastSeg}*`);
+        lines.push(`*📌 RINCIAN PER TOWER${rangeDesc}:*`);
+        if (detailList.length === 0) {
+          lines.push("_Tidak ada tower pada rentang nomor tersebut._");
+        } else {
+          let lastSeg = "";
+          for (const r of detailList) {
+            if (r.i !== lastSeg) {
+              lastSeg = r.i;
+              lines.push(`\n*⚡ ${lastSeg}*`);
+            }
+            const no = extractShortTowerNo(r.n);
+            const det = getTowerDetailSummaryForWa(r);
+            const ket = r.kdl ? ` | _Ket: ${r.kdl}_` : "";
+            lines.push(`• *${no}*: ${det}${ket}`);
           }
-          const no = extractShortTowerNo(r.n);
-          const det = getTowerDetailSummaryForWa(r);
-          const ket = r.kdl ? ` | _Ket: ${r.kdl}_` : "";
-          lines.push(`• *${no}*: ${det}${ket}`);
         }
       }
 
@@ -4728,6 +4761,30 @@
           refreshProtWaPreview();
         });
       }
+      const inpFrom = document.getElementById("wa-tower-from");
+      const inpTo = document.getElementById("wa-tower-to");
+      const btnRange10 = document.getElementById("btn-wa-range-10");
+      const btnRangeReset = document.getElementById("btn-wa-range-reset");
+      if (inpFrom) inpFrom.addEventListener("input", refreshProtWaPreview);
+      if (inpTo) inpTo.addEventListener("input", refreshProtWaPreview);
+      if (btnRange10 && inpFrom && inpTo) {
+        btnRange10.addEventListener("click", () => {
+          const nums = (currentProtTowerFiltered || []).map(r => extractNumericTowerNo(r.n)).filter(n => n !== null);
+          const first = nums.length > 0 ? nums[0] : 1;
+          const tenth = nums.length >= 10 ? nums[9] : (nums.length > 0 ? nums[nums.length - 1] : 10);
+          inpFrom.value = String(first);
+          inpTo.value = String(tenth);
+          waProtMode = "detail";
+          refreshProtWaPreview();
+        });
+      }
+      if (btnRangeReset && inpFrom && inpTo) {
+        btnRangeReset.addEventListener("click", () => {
+          inpFrom.value = "";
+          inpTo.value = "";
+          refreshProtWaPreview();
+        });
+      }
       if (btnCopy && ta) {
         btnCopy.addEventListener("click", async () => {
           const text = ta.value;
@@ -4772,6 +4829,17 @@
             <button id="btn-wa-mode-detail" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700">📋 Detail Per Tower</button>
           </div>
           <span class="text-[11px] text-slate-500">Teks bisa diedit langsung sebelum disalin</span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200 text-xs">
+          <span class="font-bold text-slate-700">🎯 Pilih Rentang Tower (Resume Tetap Utuh):</span>
+          <input id="wa-tower-from" type="number" min="1" placeholder="Dari (mis. 10)"
+                 class="w-28 px-2.5 py-1 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 font-semibold focus:outline-none focus:border-[#00529b]" />
+          <span class="text-slate-500 font-semibold">s.d.</span>
+          <input id="wa-tower-to" type="number" min="1" placeholder="Sampai (mis. 20)"
+                 class="w-32 px-2.5 py-1 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 font-semibold focus:outline-none focus:border-[#00529b]" />
+          <button id="btn-wa-range-10" type="button" class="px-2.5 py-1 rounded-lg bg-sky-100 hover:bg-sky-200 text-[#00529b] font-bold transition">10 Pertama</button>
+          <button id="btn-wa-range-reset" type="button" class="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold transition">Reset (Semua)</button>
         </div>
 
         <textarea id="wa-prot-preview" rows="14"
