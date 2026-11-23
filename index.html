@@ -1203,6 +1203,10 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <button id="btn-wa-prot-tower" type="button"
+                  class="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#16a34a] hover:bg-[#15803d] text-white flex items-center gap-1.5 shadow-sm transition">
+            <span>💬</span><span>Format Chat WA</span>
+          </button>
           <button id="btn-export-prot-tower"
                   class="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 transition">
             <span>📥</span><span>Export Tabel Tower (CSV)</span>
@@ -4530,6 +4534,7 @@
     window.addEventListener("DOMContentLoaded", () => {
       initTabMenuPopovers();
       initSearchableSelects();
+      initProtWaModal();
       let savedTheme = "pln";
       try { savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "pln"; } catch (_) {}
       applyDashboardTheme(savedTheme);
@@ -4537,7 +4542,254 @@
         unlockDashboard();
       }
     });
+
+    // =========================================================================
+    // FORMAT CHAT WHATSAPP PROTEKSI PETIR TOWER (COPY PASTE GRUP WA)
+    // =========================================================================
+    let waProtMode = "grouped"; // "grouped" | "detail"
+
+    function extractShortTowerNo(fullName) {
+      const m = String(fullName || "").match(/#\d+[A-Za-z0-9-]*/);
+      return m ? m[0] : String(fullName || "").trim();
+    }
+
+    function getTowerDetailSummaryForWa(r) {
+      const parts = [];
+      const fmtItem = (label, info) => {
+        if (!info) return label;
+        const cleanInfo = String(info).replace(/\s+/g, " ").trim();
+        return `${label} (${cleanInfo})`;
+      };
+      if (r.dgs) parts.push(fmtItem("DGS", r.dgs_i));
+      if (r.mrg) parts.push(fmtItem("MRG", r.mrg_i));
+      if (r.mggs) parts.push(fmtItem("MGGS", r.mggs_i));
+      if (r.igsw) parts.push(fmtItem("IGSW", r.igsw_i));
+      if (r.mdg) parts.push(fmtItem("MDG", r.mdg_i));
+      if (r.tla1) parts.push(fmtItem("TLA-L1", r.tla_i));
+      if (r.tla2) parts.push(fmtItem("TLA-L2", r.tla_i));
+      if (r.cln) parts.push(fmtItem("CLEANING", r.cln_i));
+      if (parts.length === 0) return "Belum Terpasang";
+      return parts.join(" + ");
+    }
+
+    function buildProtWaText(mode = "grouped") {
+      const list = currentProtTowerFiltered || [];
+      const uTxt = protState.ultg === "ALL" ? "Semua ULTG" : protState.ultg;
+      const iTxt = protState.induk === "ALL" ? "Semua Penghantar" : protState.induk;
+      const stMap = {
+        ALL: "Semua Tower",
+        PROTECTED: "Sudah Terpasang Proteksi",
+        MULTI: "Multi-Proteksi (>=2 Jenis)",
+        UNPROTECTED: "Belum Terpasang Proteksi"
+      };
+      const stTxt = stMap[protState.towerStatus] || "Semua Tower";
+      const tq = (protState.towerSearch || protState.search || "").trim();
+
+      let cDgs = 0, cMrg = 0, cMggs = 0, cIgsw = 0, cMdg = 0, cTla = 0, cCln = 0, cProt = 0;
+      for (const r of list) {
+        cDgs += r.dgs || 0;
+        cMrg += r.mrg || 0;
+        cMggs += r.mggs || 0;
+        cIgsw += r.igsw || 0;
+        cMdg += r.mdg || 0;
+        cTla += r.tla || 0;
+        cCln += r.cln || 0;
+        if (r.dgs || r.mrg || r.mggs || r.igsw || r.mdg || r.tla) cProt++;
+      }
+
+      const lines = [
+        "*📋 REKAP PROTEKSI PETIR TOWER*",
+        "*PT PLN (Persero) UPT Palembang & UPK Babel*",
+        "━━━━━━━━━━━━━━━━━━━━",
+        `🏢 *ULTG:* ${uTxt}`,
+        `⚡ *Penghantar:* ${iTxt}`,
+        `📊 *Status:* ${stTxt}${tq ? ` | Cari: "${tq}"` : ""}`,
+        `📌 *Total Data:* ${fmtNum(list.length)} Tower (${fmtNum(cProt)} Terproteksi)`,
+        "",
+        "*🛡️ RINGKASAN TERPASANG:*",
+        `• DGS: *${fmtNum(cDgs)}* | MRG: *${fmtNum(cMrg)}* | MGGS: *${fmtNum(cMggs)}*`,
+        `• IGSW: *${fmtNum(cIgsw)}* | TLA: *${fmtNum(cTla)}* | MDG: *${fmtNum(cMdg)}* | Cleaning: *${fmtNum(cCln)}*`,
+        ""
+      ];
+
+      if (list.length === 0) {
+        lines.push("_Tidak ada data tower sesuai filter._");
+        return lines.join("\n");
+      }
+
+      if (mode === "grouped") {
+        lines.push("*📑 RINGKASAN KELOMPOK TOWER:*");
+        // Kelompokkan per Penghantar lalu gabungkan tower berurutan dengan proteksi sama
+        const bySeg = new Map();
+        for (const r of list) {
+          const seg = r.i || "-";
+          if (!bySeg.has(seg)) bySeg.set(seg, []);
+          bySeg.get(seg).push(r);
+        }
+        for (const [seg, rows] of bySeg.entries()) {
+          lines.push(`\n*⚡ ${seg}* (${fmtNum(rows.length)} twr)`);
+          let grpStart = null, grpEnd = null, grpSig = null, grpCount = 0;
+          const flushGrp = () => {
+            if (!grpStart) return;
+            const rangeTxt = grpStart === grpEnd ? `*${grpStart}*` : `*${grpStart} s.d. ${grpEnd}* (${grpCount} twr)`;
+            lines.push(`• ${rangeTxt}: ${grpSig}`);
+          };
+          for (const r of rows) {
+            const sig = getTowerInstalledTextList(r) + (r.kdl ? ` — _Ket: ${r.kdl}_` : "");
+            const no = extractShortTowerNo(r.n);
+            if (sig === grpSig) {
+              grpEnd = no;
+              grpCount++;
+            } else {
+              flushGrp();
+              grpStart = no;
+              grpEnd = no;
+              grpSig = sig;
+              grpCount = 1;
+            }
+          }
+          flushGrp();
+        }
+      } else {
+        lines.push("*📌 RINCIAN PER TOWER:*");
+        let lastSeg = "";
+        for (const r of list) {
+          if (r.i !== lastSeg) {
+            lastSeg = r.i;
+            lines.push(`\n*⚡ ${lastSeg}*`);
+          }
+          const no = extractShortTowerNo(r.n);
+          const det = getTowerDetailSummaryForWa(r);
+          const ket = r.kdl ? ` | _Ket: ${r.kdl}_` : "";
+          lines.push(`• *${no}*: ${det}${ket}`);
+        }
+      }
+
+      lines.push("", "_Sumber: Dashboard Analisa & Proteksi Petir Transmisi_");
+      return lines.join("\n");
+    }
+
+    function refreshProtWaPreview() {
+      const ta = document.getElementById("wa-prot-preview");
+      const meta = document.getElementById("wa-prot-meta");
+      const openBtn = document.getElementById("btn-wa-prot-open");
+      const btnGrp = document.getElementById("btn-wa-mode-grouped");
+      const btnDet = document.getElementById("btn-wa-mode-detail");
+      if (!ta) return;
+
+      const txt = buildProtWaText(waProtMode);
+      ta.value = txt;
+      if (meta) meta.textContent = `${fmtNum(currentProtTowerFiltered.length)} tower • ${fmtNum(txt.length)} karakter`;
+      if (openBtn) {
+        const waLimit = txt.slice(0, 4000);
+        openBtn.href = `https://wa.me/?text=${encodeURIComponent(waLimit)}`;
+      }
+      if (btnGrp && btnDet) {
+        btnGrp.className = waProtMode === "grouped"
+          ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-[#00529b] text-white transition"
+          : "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition";
+        btnDet.className = waProtMode === "detail"
+          ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-[#00529b] text-white transition"
+          : "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition";
+      }
+    }
+
+    function initProtWaModal() {
+      const btnOpen = document.getElementById("btn-wa-prot-tower");
+      const modal = document.getElementById("wa-prot-modal");
+      const btnClose = document.getElementById("btn-wa-prot-close");
+      const btnCopy = document.getElementById("btn-wa-prot-copy");
+      const btnGrp = document.getElementById("btn-wa-mode-grouped");
+      const btnDet = document.getElementById("btn-wa-mode-detail");
+      const ta = document.getElementById("wa-prot-preview");
+
+      if (btnOpen && modal) {
+        btnOpen.addEventListener("click", () => {
+          waProtMode = currentProtTowerFiltered.length > 40 ? "grouped" : "detail";
+          refreshProtWaPreview();
+          modal.classList.remove("hidden");
+        });
+      }
+      if (btnClose && modal) {
+        btnClose.addEventListener("click", () => modal.classList.add("hidden"));
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) modal.classList.add("hidden");
+        });
+      }
+      if (btnGrp) {
+        btnGrp.addEventListener("click", () => {
+          waProtMode = "grouped";
+          refreshProtWaPreview();
+        });
+      }
+      if (btnDet) {
+        btnDet.addEventListener("click", () => {
+          waProtMode = "detail";
+          refreshProtWaPreview();
+        });
+      }
+      if (btnCopy && ta) {
+        btnCopy.addEventListener("click", async () => {
+          const text = ta.value;
+          try {
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(text);
+            } else {
+              ta.select();
+              document.execCommand("copy");
+            }
+          } catch (_) {
+            ta.select();
+            document.execCommand("copy");
+          }
+          const orig = btnCopy.innerHTML;
+          btnCopy.innerHTML = "<span>✅</span><span>Tersalin! Siap Paste ke Grup WA</span>";
+          setTimeout(() => { btnCopy.innerHTML = orig; }, 2200);
+        });
+      }
+    }
   </script>
+
+  <!-- MODAL PREVIEW & COPY FORMAT CHAT WHATSAPP -->
+  <div id="wa-prot-modal" class="hidden fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl rounded-2xl bg-white text-slate-900 border-2 border-[#00529b] shadow-2xl overflow-hidden">
+      <div class="px-5 py-3.5 bg-gradient-to-r from-[#004785] to-[#0077b6] text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">💬</span>
+          <div>
+            <h3 class="text-sm font-extrabold">Format Chat WhatsApp — Rincian Proteksi Tower</h3>
+            <p id="wa-prot-meta" class="text-[11px] text-sky-100">0 tower</p>
+          </div>
+        </div>
+        <button id="btn-wa-prot-close" type="button" class="px-2.5 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold">✕ Tutup</button>
+      </div>
+
+      <div class="p-4 space-y-3 bg-slate-50">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold text-slate-600">Mode Teks:</span>
+            <button id="btn-wa-mode-grouped" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#00529b] text-white">📦 Ringkas Kelompok</button>
+            <button id="btn-wa-mode-detail" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700">📋 Detail Per Tower</button>
+          </div>
+          <span class="text-[11px] text-slate-500">Teks bisa diedit langsung sebelum disalin</span>
+        </div>
+
+        <textarea id="wa-prot-preview" rows="14"
+                  class="w-full p-3 rounded-xl border border-slate-300 bg-white text-slate-800 font-mono text-xs leading-relaxed focus:outline-none focus:border-[#00529b]"></textarea>
+
+        <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
+          <a id="btn-wa-prot-open" href="https://wa.me/" target="_blank" rel="noopener"
+             class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 flex items-center gap-1.5 transition">
+            <span>📲</span><span>Buka WhatsApp</span>
+          </a>
+          <button id="btn-wa-prot-copy" type="button"
+                  class="px-4 py-2 rounded-xl text-xs font-extrabold bg-[#16a34a] hover:bg-[#15803d] text-white flex items-center gap-1.5 shadow-md transition">
+            <span>📋</span><span>Copy Chat WA</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
   </div><!-- END #app-shell -->
 </body>
 </html>
