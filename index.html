@@ -942,6 +942,38 @@
       </div>
     </section>
 
+    <!-- GRAFIK 4 GANGGUAN PETIR: PERBANDINGAN TIAP BULAN PER TAHUN (2021-2026) -->
+    <section class="glass-card rounded-2xl p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-sky-500 text-white">GRAFIK 4 • TREN BULANAN PER TAHUN</span>
+            <h2 class="text-base lg:text-lg font-extrabold text-white">
+              Perbandingan Gangguan Petir Tiap Bulan Antar Tahun (Januari – Desember)
+            </h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Membandingkan jumlah gangguan petir per bulan dari tahun 2021–2026 (mengikuti filter ULTG, Penghantar &amp; Mode Hitung). Klik tahun di kanan untuk menyaring.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-1.5 text-xs" id="ggn-monthly-year-filters">
+          <span class="text-slate-400 font-semibold mr-1">Filter Tahun:</span>
+          <button type="button" data-gy="2021" class="ggn-my-btn px-2.5 py-1 rounded-lg font-bold bg-slate-600 text-white transition">2021</button>
+          <button type="button" data-gy="2022" class="ggn-my-btn px-2.5 py-1 rounded-lg font-bold bg-sky-600 text-white transition">2022</button>
+          <button type="button" data-gy="2023" class="ggn-my-btn px-2.5 py-1 rounded-lg font-bold bg-emerald-600 text-white transition">2023</button>
+          <button type="button" data-gy="2024" class="ggn-my-btn px-2.5 py-1 rounded-lg font-bold bg-amber-600 text-white transition">2024</button>
+          <button type="button" data-gy="2025" class="ggn-my-btn px-2.5 py-1 rounded-lg font-bold bg-purple-600 text-white transition">2025</button>
+          <button type="button" data-gy="2026" class="ggn-my-btn px-2.5 py-1 rounded-lg font-bold bg-rose-600 text-white transition">2026</button>
+          <button type="button" id="btn-ggn-my-all" class="px-2.5 py-1 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Semua</button>
+          <button type="button" id="btn-ggn-my-3y" class="px-2.5 py-1 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">2024–2026</button>
+        </div>
+      </div>
+      <div class="relative w-full" style="height: 360px;">
+        <canvas id="chart-ggn-monthly-years"></canvas>
+      </div>
+    </section>
+
     <!-- TABEL REKAP GANGGUAN PETIR -->
     <section class="glass-card rounded-2xl p-5 shadow-xl">
       <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-800">
@@ -1612,6 +1644,8 @@
     let chartGgnInduk = null;
     let chartGgnTrend = null;
     let chartGgnTowers = null;
+    let chartGgnMonthlyYears = null;
+    let ggnMonthlySelectedYears = new Set([2021, 2022, 2023, 2024, 2025, 2026]);
 
     let chartProtInduk = null;
     let chartProtTypes = null;
@@ -3013,7 +3047,90 @@
         }
       });
 
+      renderGgnMonthlyYearChart();
       renderGgnTables(filtered);
+    }
+
+    const GGN_YEAR_COLORS = {
+      2021: { bg: "rgba(100, 116, 139, 0.85)", btn: "bg-slate-600 text-white" },
+      2022: { bg: "rgba(14, 165, 233, 0.85)", btn: "bg-sky-600 text-white" },
+      2023: { bg: "rgba(16, 185, 129, 0.85)", btn: "bg-emerald-600 text-white" },
+      2024: { bg: "rgba(245, 158, 11, 0.88)", btn: "bg-amber-600 text-white" },
+      2025: { bg: "rgba(139, 92, 246, 0.88)", btn: "bg-purple-600 text-white" },
+      2026: { bg: "rgba(244, 63, 94, 0.90)", btn: "bg-rose-600 text-white" }
+    };
+
+    function syncGgnMonthlyYearButtons() {
+      document.querySelectorAll(".ggn-my-btn").forEach(btn => {
+        const y = Number(btn.dataset.gy);
+        const active = ggnMonthlySelectedYears.has(y);
+        const c = GGN_YEAR_COLORS[y] || { btn: "bg-sky-600 text-white" };
+        btn.className = active
+          ? `ggn-my-btn px-2.5 py-1 rounded-lg font-bold ${c.btn} transition shadow-sm`
+          : "ggn-my-btn px-2.5 py-1 rounded-lg font-semibold bg-slate-200 dark:bg-slate-800 text-slate-500 opacity-55 transition";
+      });
+    }
+
+    function renderGgnMonthlyYearChart() {
+      const canvas = document.getElementById("chart-ggn-monthly-years");
+      if (!canvas) return;
+
+      const baseFiltered = allGgnRecords.filter(r => {
+        if (ggnState.ultg !== "ALL" && r.u !== ggnState.ultg) return false;
+        if (ggnState.induk !== "ALL" && r.i !== ggnState.induk) return false;
+        return true;
+      });
+
+      const years = [2021, 2022, 2023, 2024, 2025, 2026].filter(y => ggnMonthlySelectedYears.has(y));
+      const isDampak = ggnState.mode === "dampak";
+
+      const datasets = years.map(y => {
+        const counts = Array(12).fill(0);
+        const uniqPerMonth = Array.from({ length: 12 }, () => new Set());
+        for (const r of baseFiltered) {
+          if (Number(r.y) !== y) continue;
+          const m = Number(r.m);
+          if (m < 1 || m > 12) continue;
+          if (isDampak) counts[m - 1] += 1;
+          else uniqPerMonth[m - 1].add(r.id);
+        }
+        const data = isDampak ? counts : uniqPerMonth.map(s => s.size);
+        return {
+          label: String(y),
+          data,
+          backgroundColor: (GGN_YEAR_COLORS[y] || {}).bg || "rgba(59, 130, 246, 0.85)",
+          borderRadius: 4
+        };
+      });
+
+      const ctx = canvas.getContext("2d");
+      if (chartGgnMonthlyYears) chartGgnMonthlyYears.destroy();
+      chartGgnMonthlyYears = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+          datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#e2e8f0", font: { weight: "600" } } },
+            y: { beginAtZero: true, grace: "15%", grid: { color: "rgba(148,163,184,0.1)" }, ticks: { color: "#cbd5e1", precision: 0 } }
+          },
+          plugins: {
+            legend: { position: "top", labels: { color: "#e2e8f0", boxWidth: 12, font: { size: 11, weight: "600" } } },
+            datalabels: {
+              display: () => years.length <= 4,
+              anchor: "end",
+              align: "top",
+              color: "#38bdf8",
+              font: { size: 10, weight: "700" },
+              formatter: (val) => (val > 0 ? val : "")
+            }
+          }
+        }
+      });
     }
 
     function renderGgnTables(filteredLogs) {
@@ -4531,10 +4648,43 @@
       }, { passive: true });
     }
 
+    function initGgnMonthlyYearFilters() {
+      document.querySelectorAll(".ggn-my-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const y = Number(btn.dataset.gy);
+          if (ggnMonthlySelectedYears.has(y)) {
+            if (ggnMonthlySelectedYears.size > 1) ggnMonthlySelectedYears.delete(y);
+          } else {
+            ggnMonthlySelectedYears.add(y);
+          }
+          syncGgnMonthlyYearButtons();
+          renderGgnMonthlyYearChart();
+        });
+      });
+      const btnAll = document.getElementById("btn-ggn-my-all");
+      const btn3y = document.getElementById("btn-ggn-my-3y");
+      if (btnAll) {
+        btnAll.addEventListener("click", () => {
+          ggnMonthlySelectedYears = new Set([2021, 2022, 2023, 2024, 2025, 2026]);
+          syncGgnMonthlyYearButtons();
+          renderGgnMonthlyYearChart();
+        });
+      }
+      if (btn3y) {
+        btn3y.addEventListener("click", () => {
+          ggnMonthlySelectedYears = new Set([2024, 2025, 2026]);
+          syncGgnMonthlyYearButtons();
+          renderGgnMonthlyYearChart();
+        });
+      }
+      syncGgnMonthlyYearButtons();
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
       initTabMenuPopovers();
       initSearchableSelects();
       initProtWaModal();
+      initGgnMonthlyYearFilters();
       let savedTheme = "pln";
       try { savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "pln"; } catch (_) {}
       applyDashboardTheme(savedTheme);
