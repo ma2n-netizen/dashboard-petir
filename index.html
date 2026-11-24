@@ -169,6 +169,7 @@
     body.theme-pln main .bg-slate-900,
     body.theme-pln main .bg-slate-900\/80,
     body.theme-pln main .bg-slate-950\/50,
+    body.theme-pln main .bg-slate-950\/30,
     body.theme-pln main .bg-slate-800 {
       background-color: #f1f5f9 !important;
     }
@@ -989,8 +990,12 @@
           </p>
         </div>
 
-        <div class="flex items-center gap-2 text-xs">
-          <span class="text-slate-400 font-semibold">Tampilkan:</span>
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <span class="text-slate-400 font-semibold">Bulan:</span>
+          <select id="ggn-extra-month" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-white focus:outline-none focus:border-rose-500">
+            <option value="ALL">Semua Bulan</option>
+          </select>
+          <span class="text-slate-400 font-semibold ml-1">Tampilkan:</span>
           <select id="ggn-extra-limit" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-white focus:outline-none focus:border-rose-500">
             <option value="10" selected>Top 10 Penghantar Terbanyak</option>
             <option value="25">Top 25 Penghantar Terbanyak</option>
@@ -2826,14 +2831,18 @@
       ggnState.year = selYear.value;
 
       const selMonth = document.getElementById("ggn-month");
+      const selExtraMonth = document.getElementById("ggn-extra-month");
       selMonth.innerHTML = `<option value="ALL">Semua Bulan</option>`;
+      if (selExtraMonth) selExtraMonth.innerHTML = `<option value="ALL">Semua Bulan</option>`;
       for (let m = 1; m <= 12; m++) {
         const opt = document.createElement("option");
         opt.value = String(m);
         opt.textContent = `${m.toString().padStart(2, "0")} - ${NAMA_BULAN[m]}`;
         selMonth.appendChild(opt);
+        if (selExtraMonth) selExtraMonth.appendChild(opt.cloneNode(true));
       }
       selMonth.value = ggnState.month;
+      if (selExtraMonth) selExtraMonth.value = ggnState.month;
 
       const pillsWrap = document.getElementById("ggn-month-pills");
       pillsWrap.innerHTML = "";
@@ -3164,8 +3173,19 @@
       });
 
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-      const grandTotal = monthTotals.reduce((a, b) => a + b, 0);
-      const labelsWithTotal = monthNames.map((nm, idx) => [nm, `Total: ${fmtNum(monthTotals[idx])}`]);
+      const activeMonthIdx = ggnState.month !== "ALL"
+        ? [Number(ggnState.month) - 1].filter(i => i >= 0 && i < 12)
+        : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+      const filteredDatasets = datasets.map(ds => {
+        const sliced = activeMonthIdx.map(i => ds.data[i]);
+        const yrSum = sliced.reduce((a, b) => a + b, 0);
+        const yrLabel = ds.label.split(" ")[0];
+        return { ...ds, label: `${yrLabel} (${fmtNum(yrSum)})`, data: sliced };
+      });
+      const slicedTotals = activeMonthIdx.map(i => monthTotals[i]);
+      const grandTotal = slicedTotals.reduce((a, b) => a + b, 0);
+      const labelsWithTotal = activeMonthIdx.map(i => [monthNames[i], `Total: ${fmtNum(monthTotals[i])}`]);
 
       const ctx = canvas.getContext("2d");
       if (chartGgnMonthlyYears) chartGgnMonthlyYears.destroy();
@@ -3174,11 +3194,11 @@
         data: {
           labels: labelsWithTotal,
           datasets: [
-            ...datasets,
+            ...filteredDatasets,
             {
               label: `Total Gabungan (${fmtNum(grandTotal)})`,
               type: "line",
-              data: monthTotals,
+              data: slicedTotals,
               borderColor: "#00529b",
               backgroundColor: "#ffd100",
               borderWidth: 2.5,
@@ -4902,6 +4922,14 @@
       if (selExtraLim) {
         selExtraLim.addEventListener("change", (e) => {
           ggnExtraLimit = e.target.value;
+          refreshGgnView();
+        });
+      }
+      const selExtraMonth = document.getElementById("ggn-extra-month");
+      if (selExtraMonth) {
+        selExtraMonth.addEventListener("change", (e) => {
+          ggnState.month = e.target.value;
+          populateGgnFilters();
           refreshGgnView();
         });
       }
