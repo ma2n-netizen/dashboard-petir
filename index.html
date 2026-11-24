@@ -974,6 +974,56 @@
       </div>
     </section>
 
+    <!-- GRAFIK 5 & 6 GANGGUAN PETIR: RECLOSE VS TRIP & LINE 1 / LINE 2 / 2 LINE -->
+    <section class="glass-card rounded-2xl p-5 shadow-xl space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-emerald-600 text-white">GRAFIK 5 &amp; 6 • STATUS &amp; SIRKIT TERDAMPAK</span>
+            <h2 class="text-base lg:text-lg font-extrabold text-white">
+              Analisa Reclose vs Trip &amp; Dampak Line 1 / Line 2 / 2 Line Per Penghantar
+            </h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Diurutkan otomatis dari penghantar dengan jumlah kejadian terbanyak (mengikuti filter Tahun, Bulan, ULTG &amp; Mode Hitung).
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-400 font-semibold">Tampilkan:</span>
+          <select id="ggn-extra-limit" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-white focus:outline-none focus:border-rose-500">
+            <option value="10" selected>Top 10 Penghantar Terbanyak</option>
+            <option value="25">Top 25 Penghantar Terbanyak</option>
+            <option value="ALL">Semua Penghantar</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Grafik 5: Reclose vs Trip -->
+        <div class="rounded-xl p-4 border border-slate-800/70 bg-slate-950/30">
+          <h3 class="text-sm font-extrabold text-white mb-1">🔄 Reclose vs Trip Tiap Penghantar</h3>
+          <p class="text-[11px] text-slate-400 mb-3">Perbandingan frekuensi Auto-Reclose (Hijau) dan Trip (Merah/Oranye)</p>
+          <div class="overflow-y-auto max-h-[540px] pr-1">
+            <div id="inner-chart-ggn-status" style="height: 360px;">
+              <canvas id="chart-ggn-status-induk"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grafik 6: Line 1 vs Line 2 vs 2 Line -->
+        <div class="rounded-xl p-4 border border-slate-800/70 bg-slate-950/30">
+          <h3 class="text-sm font-extrabold text-white mb-1">⚡ Dampak Line 1, Line 2 &amp; 2 Line Tiap Penghantar</h3>
+          <p class="text-[11px] text-slate-400 mb-3">Perbandingan gangguan pada Line 1 (Biru), Line 2 (Ungu), dan Trip 2 Line (Merah)</p>
+          <div class="overflow-y-auto max-h-[540px] pr-1">
+            <div id="inner-chart-ggn-line" style="height: 360px;">
+              <canvas id="chart-ggn-line-induk"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- TABEL REKAP GANGGUAN PETIR -->
     <section class="glass-card rounded-2xl p-5 shadow-xl">
       <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-800">
@@ -1646,6 +1696,9 @@
     let chartGgnTowers = null;
     let chartGgnMonthlyYears = null;
     let ggnMonthlySelectedYears = new Set([2021, 2022, 2023, 2024, 2025, 2026]);
+    let chartGgnStatusInduk = null;
+    let chartGgnLineInduk = null;
+    let ggnExtraLimit = "10";
 
     let chartProtInduk = null;
     let chartProtTypes = null;
@@ -3048,6 +3101,7 @@
       });
 
       renderGgnMonthlyYearChart();
+      renderGgnExtraCharts(filtered);
       renderGgnTables(filtered);
     }
 
@@ -3164,6 +3218,140 @@
           }
         }
       });
+    }
+
+    function renderGgnExtraCharts(filtered) {
+      const isDampak = ggnState.mode === "dampak";
+      const segMap = new Map();
+
+      for (const r of filtered) {
+        const seg = r.i || "-";
+        let entry = segMap.get(seg);
+        if (!entry) {
+          entry = {
+            induk: seg,
+            recloseIds: new Set(), tripIds: new Set(),
+            recloseRow: 0, tripRow: 0,
+            l1Ids: new Set(), l2Ids: new Set(), l2BothIds: new Set(),
+            l1Row: 0, l2Row: 0, l2BothRow: 0
+          };
+          segMap.set(seg, entry);
+        }
+
+        const st = String(r.st || "").toLowerCase();
+        if (st.includes("reclose")) {
+          entry.recloseIds.add(r.id);
+          entry.recloseRow += 1;
+        } else {
+          entry.tripIds.add(r.id);
+          entry.tripRow += 1;
+        }
+
+        const ln = String(r.ln || "").toUpperCase();
+        if (ln.includes("2 LINE") || ln.includes("TRIP 2")) {
+          entry.l2BothIds.add(r.id);
+          entry.l2BothRow += 1;
+        } else if (ln.includes("LINE 1")) {
+          entry.l1Ids.add(r.id);
+          entry.l1Row += 1;
+        } else if (ln.includes("LINE 2")) {
+          entry.l2Ids.add(r.id);
+          entry.l2Row += 1;
+        }
+      }
+
+      const rows = Array.from(segMap.values()).map(e => {
+        const reclose = isDampak ? e.recloseRow : e.recloseIds.size;
+        const trip = isDampak ? e.tripRow : e.tripIds.size;
+        const l1 = isDampak ? e.l1Row : e.l1Ids.size;
+        const l2 = isDampak ? e.l2Row : e.l2Ids.size;
+        const l2Both = isDampak ? e.l2BothRow : e.l2BothIds.size;
+        return {
+          induk: e.induk,
+          reclose,
+          trip,
+          totalStatus: reclose + trip,
+          l1,
+          l2,
+          l2Both,
+          totalLine: l1 + l2 + l2Both
+        };
+      });
+
+      const lim = ggnExtraLimit === "ALL" ? rows.length : parseInt(ggnExtraLimit, 10) || 10;
+
+      // Chart 5: Reclose vs Trip sorted descending
+      const statusSorted = [...rows].sort((a, b) => b.totalStatus - a.totalStatus).slice(0, lim);
+      const innerSt = document.getElementById("inner-chart-ggn-status");
+      if (innerSt) innerSt.style.height = `${Math.max(320, statusSorted.length * 28)}px`;
+      const ctxSt = document.getElementById("chart-ggn-status-induk")?.getContext("2d");
+      if (ctxSt) {
+        if (chartGgnStatusInduk) chartGgnStatusInduk.destroy();
+        chartGgnStatusInduk = new Chart(ctxSt, {
+          type: "bar",
+          data: {
+            labels: statusSorted.map(x => `${x.induk.replace(/^TRS\s+/i, "")} (${x.totalStatus})`),
+            datasets: [
+              { label: "Reclose", data: statusSorted.map(x => x.reclose), backgroundColor: "rgba(16, 185, 129, 0.88)", borderRadius: 3 },
+              { label: "Trip", data: statusSorted.map(x => x.trip), backgroundColor: "rgba(244, 63, 94, 0.88)", borderRadius: 3 }
+            ]
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { stacked: true, beginAtZero: true, grid: { color: "rgba(148,163,184,0.12)" }, ticks: { color: "#cbd5e1", precision: 0 } },
+              y: { stacked: true, grid: { display: false }, ticks: { color: "#e2e8f0", font: { size: 10.5, weight: "600" } } }
+            },
+            plugins: {
+              legend: { position: "top", labels: { color: "#e2e8f0", boxWidth: 12, font: { size: 11, weight: "600" } } },
+              datalabels: {
+                color: "#ffffff",
+                font: { size: 10, weight: "700" },
+                formatter: (val) => (val > 0 ? val : "")
+              }
+            }
+          }
+        });
+      }
+
+      // Chart 6: Line 1 vs Line 2 vs 2 Line sorted descending
+      const lineSorted = [...rows].sort((a, b) => b.totalLine - a.totalLine).slice(0, lim);
+      const innerLn = document.getElementById("inner-chart-ggn-line");
+      if (innerLn) innerLn.style.height = `${Math.max(320, lineSorted.length * 28)}px`;
+      const ctxLn = document.getElementById("chart-ggn-line-induk")?.getContext("2d");
+      if (ctxLn) {
+        if (chartGgnLineInduk) chartGgnLineInduk.destroy();
+        chartGgnLineInduk = new Chart(ctxLn, {
+          type: "bar",
+          data: {
+            labels: lineSorted.map(x => `${x.induk.replace(/^TRS\s+/i, "")} (${x.totalLine})`),
+            datasets: [
+              { label: "Line 1", data: lineSorted.map(x => x.l1), backgroundColor: "rgba(14, 165, 233, 0.88)", borderRadius: 3 },
+              { label: "Line 2", data: lineSorted.map(x => x.l2), backgroundColor: "rgba(139, 92, 246, 0.88)", borderRadius: 3 },
+              { label: "2 Line", data: lineSorted.map(x => x.l2Both), backgroundColor: "rgba(244, 63, 94, 0.88)", borderRadius: 3 }
+            ]
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { stacked: true, beginAtZero: true, grid: { color: "rgba(148,163,184,0.12)" }, ticks: { color: "#cbd5e1", precision: 0 } },
+              y: { stacked: true, grid: { display: false }, ticks: { color: "#e2e8f0", font: { size: 10.5, weight: "600" } } }
+            },
+            plugins: {
+              legend: { position: "top", labels: { color: "#e2e8f0", boxWidth: 12, font: { size: 11, weight: "600" } } },
+              datalabels: {
+                color: "#ffffff",
+                font: { size: 10, weight: "700" },
+                formatter: (val) => (val > 0 ? val : "")
+              }
+            }
+          }
+        });
+      }
     }
 
     function renderGgnTables(filteredLogs) {
@@ -4708,6 +4896,13 @@
           ggnMonthlySelectedYears = new Set([2024, 2025, 2026]);
           syncGgnMonthlyYearButtons();
           renderGgnMonthlyYearChart();
+        });
+      }
+      const selExtraLim = document.getElementById("ggn-extra-limit");
+      if (selExtraLim) {
+        selExtraLim.addEventListener("change", (e) => {
+          ggnExtraLimit = e.target.value;
+          refreshGgnView();
         });
       }
       syncGgnMonthlyYearButtons();
