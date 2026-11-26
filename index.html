@@ -6217,7 +6217,7 @@
         `📅 *Periode:* ${stats.yrTxt} | *Cakupan:* ${stats.clTxt}`,
         "",
         "*📊 RINGKASAN KONDISI SEGMEN:*",
-        `• Total Tower: *${fmtNum(stats.totTwr)} Tower* (Elevasi Rata²: ${{avgElev}} mdpl, Maks: ${{maxElev}} mdpl)`,
+        `• Total Tower: *${fmtNum(stats.totTwr)} Tower* (Elevasi Rata²: ${avgElev} mdpl, Maks: ${maxElev} mdpl)`,
         `• Sambaran LDS: *${fmtNum(stats.totLds)}*${topLds && topLds.lds > 0 ? ` (Tertinggi: *#${topLds.no}* = ${fmtNum(topLds.lds)}x)` : ""}`,
         `• Gangguan Petir: *${fmtNum(stats.uniqGgnCount)} Kejadian* (${fmtNum(stats.dampakGgnCount)} titik terdampak)`,
         `• R-Soil Rata-Rata: *${fmtNum(stats.avgRSoil)} Ω·m*`,
