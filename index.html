@@ -1719,9 +1719,9 @@
         <div id="eval-kpi-r-sub" class="text-[11px] text-slate-400 mt-0.5">Prioritas CT Ring → NS</div>
       </div>
       <div class="glass-card rounded-2xl p-4 border-l-4 border-l-orange-500">
-        <div class="text-[11px] font-bold uppercase text-slate-400">Pentanahan Buruk (&gt;10Ω)</div>
+        <div class="text-[11px] font-bold uppercase text-slate-400">Pentanahan Buruk</div>
         <div id="eval-kpi-buruk" class="text-2xl font-extrabold text-orange-400 mt-1">0</div>
-        <div id="eval-kpi-buruk-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari total tower</div>
+        <div id="eval-kpi-buruk-sub" class="text-[11px] text-slate-400 mt-0.5">0% (GI &lt;3Ω • Tengah ≤10Ω)</div>
       </div>
     </section>
 
@@ -2279,9 +2279,13 @@
           if (nsVal === null && nsStRaw && nsStRaw !== "-" && nsStRaw !== "#N/A" && /\d/.test(nsStRaw)) {
             nsVal = parseFloatSafe(nsStRaw);
           }
+          const posStr = cell(r, c_pos).toUpperCase();
+          const isNearGi = (posStr === "AWAL" || posStr === "AKHIR");
           let nsSt = nsStRaw.toUpperCase();
-          if (nsSt !== "BAIK" && nsSt !== "BURUK") {
-            nsSt = nsVal !== null ? (nsVal <= 10.0 ? "BAIK" : "BURUK") : "BELUM ASESMEN";
+          if (nsVal !== null) {
+            nsSt = (isNearGi ? nsVal < 3.0 : nsVal <= 10.0) ? "BAIK" : "BURUK";
+          } else if (nsSt !== "BAIK" && nsSt !== "BURUK") {
+            nsSt = "BELUM ASESMEN";
           }
           let nsKat = cell(r, c_kat);
           if (nsVal !== null) {
@@ -2302,14 +2306,12 @@
           if (peVal !== null) peVal = Math.round(peVal * 100) / 100;
 
           let ctEval = "";
-          if (ctSt === "BAIK") {
-            ctEval = "BAIK";
-          } else if (ctSt === "BURUK") {
-            ctEval = "BURUK";
-          } else if (ctVal !== null || ctRVal !== null) {
-            ctEval = (ctVal <= 5.0 || (ctRVal !== null && ctRVal <= 5.0)) ? "BAIK" : "BURUK";
-          } else {
-            ctEval = "";
+          if (ctRVal !== null) {
+            ctEval = (isNearGi ? ctRVal < 3.0 : ctRVal <= 10.0) ? "BAIK" : "BURUK";
+          } else if (ctSt === "BAIK" || ctSt === "BURUK") {
+            ctEval = ctSt;
+          } else if (ctVal !== null) {
+            ctEval = (isNearGi ? ctVal < 3.0 : ctVal <= 10.0) ? "BAIK" : "BURUK";
           }
 
           const rSoilRaw = cell(r, c_r_soil);
@@ -4447,6 +4449,12 @@
     }
 
     function getKondisiPentanahanGabungan(r) {
+      const pos = String(r.pos || "").trim().toUpperCase();
+      const isNearGi = (pos === "AWAL" || pos === "AKHIR");
+      const val = r.ct_r !== null && r.ct_r !== undefined ? r.ct_r : (r.ns !== null && r.ns !== undefined ? r.ns : null);
+      if (val !== null) {
+        return (isNearGi ? val < 3.0 : val <= 10.0) ? "BAIK" : "BURUK";
+      }
       const ct = String(r.ct_eval || r.ct_st || "").trim().toUpperCase();
       if (ct === "BAIK" || ct === "BURUK") return ct;
       const ns = String(r.ns_st || "").trim().toUpperCase();
@@ -5702,7 +5710,7 @@
         if (r.pe !== null && r.pe > 0) t.pe = r.pe;
         if (r.r_soil !== null && r.r_soil > 0) t.rSoilMap = r.r_soil;
         t.rSoilKes = (t.pe !== null && t.pe > 0) ? t.pe : t.rSoilMap;
-        const ctVal = r.ct_r !== null ? r.ct_r : (r.ct !== null ? r.ct : null);
+        const ctVal = r.ct_r !== null ? r.ct_r : null;
         if (ctVal !== null) t.ct = ctVal;
         if (r.ns !== null) t.ns = r.ns;
         if (t.ct !== null) {
@@ -5712,8 +5720,19 @@
           t.rAcuan = t.ns;
           t.rSource = "NS";
         }
+        const posStr = String(r.pos || "").trim().toUpperCase();
+        t.pos = posStr || "TENGAH";
+        t.isNearGi = (t.pos === "AWAL" || t.pos === "AKHIR");
         if (t.rAcuan !== null) {
-          t.kondisiR = t.rAcuan <= 10 ? "BAIK (≤10Ω)" : "BURUK (>10Ω)";
+          if (t.isNearGi) {
+            t.kondisiR = t.rAcuan < 3.0 ? "BAIK (GI <3Ω)" : "BURUK (GI ≥3Ω)";
+            t.isBuruk = t.rAcuan >= 3.0;
+          } else {
+            t.kondisiR = t.rAcuan <= 10.0 ? "BAIK (≤10Ω)" : "BURUK (>10Ω)";
+            t.isBuruk = t.rAcuan > 10.0;
+          }
+        } else {
+          t.isBuruk = false;
         }
       }
 
@@ -5764,7 +5783,7 @@
         t.cluster = `Cluster ${cIdx}`;
         const ggnScore = t.ggnCount * 15;
         const ldsScore = Math.min(25, t.lds / 10);
-        const rScore = (t.rAcuan !== null && t.rAcuan > 10) ? Math.min(35, t.rAcuan / 5) : 0;
+        const rScore = (t.rAcuan !== null && t.isBuruk) ? Math.min(35, t.rAcuan / 5) : 0;
         const soilScore = (t.rSoilKes !== null && t.rSoilKes > 500) ? Math.min(25, t.rSoilKes / 100) : 0;
         t.skor = Math.round((ggnScore + ldsScore + rScore + soilScore) * 10) / 10;
         if (t.skor >= 55) t.kategori = "KRITIS";
@@ -5794,7 +5813,7 @@
         const avgNs = cNs.length ? (cNs.reduce((a, b) => a + b, 0) / cNs.length).toFixed(2) : "-";
         const cCt = cRows.map(r => r.ct).filter(v => v !== null);
         const avgCt = cCt.length ? (cCt.reduce((a, b) => a + b, 0) / cCt.length).toFixed(2) : "-";
-        const cBuruk = cRows.filter(r => r.rAcuan !== null && r.rAcuan > 10).length;
+        const cBuruk = cRows.filter(r => r.isBuruk).length;
         const cBurukPct = cRows.length ? ((cBuruk / cRows.length) * 100).toFixed(1) : "0.0";
         const rek = avgSoil > 1000
           ? "MGGS (Counterpoise Grid)"
@@ -5856,7 +5875,7 @@
       const avgRSoil = rSoils.length > 0 ? Math.round(rSoils.reduce((a, b) => a + b, 0) / rSoils.length) : 0;
       const rVals = viewRows.map(r => r.rAcuan).filter(v => v !== null);
       const avgR = rVals.length > 0 ? (rVals.reduce((a, b) => a + b, 0) / rVals.length).toFixed(1) : "0.0";
-      const burukCnt = viewRows.filter(r => r.rAcuan !== null && r.rAcuan > 10).length;
+      const burukCnt = viewRows.filter(r => r.isBuruk).length;
       const burukPct = rVals.length > 0 ? ((burukCnt / rVals.length) * 100).toFixed(1) : "0.0";
 
       document.getElementById("eval-kpi-towers").textContent = `${fmtNum(totTwr)} Tower`;
@@ -5867,7 +5886,7 @@
       document.getElementById("eval-kpi-rsoil").textContent = `${fmtNum(avgRSoil)} Ω·m`;
       document.getElementById("eval-kpi-r").textContent = `${avgR} Ω`;
       document.getElementById("eval-kpi-buruk").textContent = `${fmtNum(burukCnt)} Twr`;
-      document.getElementById("eval-kpi-buruk-sub").textContent = `${burukPct}% (>10 Ω)`;
+      document.getElementById("eval-kpi-buruk-sub").textContent = `${burukPct}% (GI <3Ω • Tengah ≤10Ω)`;
 
       const kCounts = {
         KRITIS: viewRows.filter(r => r.kategori === "KRITIS").length,
@@ -6185,7 +6204,7 @@
       const avgNs = nsVals.length ? (nsVals.reduce((a, b) => a + b, 0) / nsVals.length).toFixed(2) : "-";
       const ctVals = allRows.map(r => r.ct).filter(v => v !== null);
       const avgCt = ctVals.length ? (ctVals.reduce((a, b) => a + b, 0) / ctVals.length).toFixed(2) : "-";
-      const totBuruk = allRows.filter(r => r.rAcuan !== null && r.rAcuan > 10).length;
+      const totBuruk = allRows.filter(r => r.isBuruk).length;
       const totBurukPct = allRows.length ? ((totBuruk / allRows.length) * 100).toFixed(1) : "0.0";
 
       tfoot.innerHTML = `
@@ -6233,7 +6252,7 @@
         `• Gangguan Petir: *${fmtNum(stats.uniqGgnCount)} Kejadian* (${fmtNum(stats.dampakGgnCount)} titik terdampak)`,
         `• R-Soil Rata-Rata: *${fmtNum(stats.avgRSoil)} Ω·m*`,
         `• Pentanahan Rata-Rata: *${stats.avgR} Ω* (Prioritas CT Ring → NS)`,
-        `• Pentanahan Buruk (>10 Ω): *${fmtNum(stats.burukCnt)} Tower (${stats.burukPct}%)*`,
+        `• Pentanahan Buruk (GI ≥3Ω / Tengah >10Ω): *${fmtNum(stats.burukCnt)} Tower (${stats.burukPct}%)*`,
         `• Tower Kritis / Tinggi: *${kritisCnt} Kritis* | *${tinggiCnt} Tinggi*`,
         ""
       ];
