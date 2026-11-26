@@ -199,6 +199,8 @@
     body.theme-pln main .text-purple-200,
     body.theme-pln main .text-purple-300,
     body.theme-pln main .text-purple-400 { color: #6d28d9 !important; }
+    body.theme-pln main .text-teal-300,
+    body.theme-pln main .text-teal-400 { color: #0f766e !important; }
     body.theme-pln main button.bg-emerald-600,
     body.theme-pln main button.bg-sky-600,
     body.theme-pln main button.bg-amber-600,
@@ -1146,7 +1148,7 @@
     </section>
 
     <!-- KARTU KPI PROTEKSI PETIR TERPASANG -->
-    <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    <section class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3.5">
       <div class="glass-card rounded-2xl p-4 border-l-4 border-l-slate-400">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Tower</div>
         <div id="prot-kpi-towers" class="text-2xl font-extrabold text-white mt-1">0</div>
@@ -1180,7 +1182,13 @@
       <div class="glass-card rounded-2xl p-4 border-l-4 border-l-rose-500">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-400">TLA &amp; MDG</div>
         <div id="prot-kpi-tla" class="text-2xl font-extrabold text-rose-400 mt-1">0</div>
-        <div id="prot-kpi-clean-sub" class="text-[11px] text-slate-400 mt-1">Cleaning: 0 Tower</div>
+        <div class="text-[11px] text-slate-400 mt-1">Arrester &amp; Modifikasi</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-teal-500">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Cleaning Isolator</div>
+        <div id="prot-kpi-cln" class="text-2xl font-extrabold text-teal-400 mt-1">0</div>
+        <div id="prot-kpi-clean-sub" class="text-[11px] text-slate-400 mt-1">Pembersihan Isolator</div>
       </div>
     </section>
 
@@ -3481,6 +3489,8 @@
       protState.contract = selContract.value;
     }
 
+    let currentProtFiltered = [];
+
     function refreshProtView() {
       const filtered = allProtRecords.filter(r => {
         if (protState.ultg !== "ALL" && r.u !== protState.ultg) return false;
@@ -3489,24 +3499,35 @@
         if (protState.contract !== "ALL" && !(r.k_list || []).includes(protState.contract)) return false;
         return true;
       });
+      currentProtFiltered = filtered;
 
       const uTxt = protState.ultg === "ALL" ? "Semua ULTG" : protState.ultg;
       const iTxt = protState.induk === "ALL" ? "Semua Penghantar" : protState.induk;
       document.getElementById("prot-filter-badge").textContent = `${uTxt} • ${iTxt}`;
+
+      const hasContract = (info) => protState.contract === "ALL" || (info && String(info).includes(protState.contract));
 
       let sumMrg = 0, sumMggs = 0, sumDgs = 0, sumIgsw = 0, sumMdg = 0, sumTla = 0, sumClean = 0, sumProtected = 0;
       const indukMap = new Map();
       const ultgMap = new Map();
 
       for (const r of filtered) {
-        sumMrg += r.mrg;
-        sumMggs += r.mggs;
-        sumDgs += r.dgs;
-        sumIgsw += r.igsw;
-        sumMdg += r.mdg;
-        sumTla += r.tla;
-        sumClean += r.cln;
-        const isProt = (r.mrg || r.mggs || r.dgs || r.igsw || r.mdg || r.tla) ? 1 : 0;
+        const vMrg = (r.mrg && hasContract(r.mrg_i)) ? r.mrg : 0;
+        const vMggs = (r.mggs && hasContract(r.mggs_i)) ? r.mggs : 0;
+        const vDgs = (r.dgs && hasContract(r.dgs_i)) ? r.dgs : 0;
+        const vIgsw = (r.igsw && hasContract(r.igsw_i)) ? r.igsw : 0;
+        const vMdg = (r.mdg && hasContract(r.mdg_i)) ? r.mdg : 0;
+        const vTla = (r.tla && hasContract(r.tla_i)) ? r.tla : 0;
+        const vCln = (r.cln && hasContract(r.cln_i)) ? r.cln : 0;
+
+        sumMrg += vMrg;
+        sumMggs += vMggs;
+        sumDgs += vDgs;
+        sumIgsw += vIgsw;
+        sumMdg += vMdg;
+        sumTla += vTla;
+        sumClean += vCln;
+        const isProt = (vMrg || vMggs || vDgs || vIgsw || vMdg || vTla) ? 1 : 0;
         sumProtected += isProt;
 
         let im = indukMap.get(r.i);
@@ -3515,13 +3536,13 @@
           indukMap.set(r.i, im);
         }
         im.towers += 1;
-        im.mrg += r.mrg;
-        im.mggs += r.mggs;
-        im.dgs += r.dgs;
-        im.igsw += r.igsw;
-        im.mdg += r.mdg;
-        im.tla += r.tla;
-        im.cln += r.cln;
+        im.mrg += vMrg;
+        im.mggs += vMggs;
+        im.dgs += vDgs;
+        im.igsw += vIgsw;
+        im.mdg += vMdg;
+        im.tla += vTla;
+        im.cln += vCln;
         im.protectedTowers += isProt;
 
         let um = ultgMap.get(r.u);
@@ -3529,11 +3550,11 @@
           um = { ultg: r.u, mrg: 0, mggs: 0, dgs: 0, igsw: 0, tla: 0 };
           ultgMap.set(r.u, um);
         }
-        um.mrg += r.mrg;
-        um.mggs += r.mggs;
-        um.dgs += r.dgs;
-        um.igsw += r.igsw;
-        um.tla += r.tla;
+        um.mrg += vMrg;
+        um.mggs += vMggs;
+        um.dgs += vDgs;
+        um.igsw += vIgsw;
+        um.tla += vTla;
       }
 
       currentProtIndukList = Array.from(indukMap.values()).sort((a, b) => {
@@ -3549,7 +3570,9 @@
       document.getElementById("prot-kpi-mggs").textContent = fmtNum(sumMggs);
       document.getElementById("prot-kpi-igsw").textContent = fmtNum(sumIgsw);
       document.getElementById("prot-kpi-tla").textContent = `${fmtNum(sumTla)} TLA / ${fmtNum(sumMdg)} MDG`;
-      document.getElementById("prot-kpi-clean-sub").textContent = `Cleaning Insulator: ${fmtNum(sumClean)} Tower`;
+      const clnEl = document.getElementById("prot-kpi-cln");
+      if (clnEl) clnEl.textContent = fmtNum(sumClean);
+      document.getElementById("prot-kpi-clean-sub").textContent = `Pembersihan Isolator (${fmtNum(sumClean)} Tower)`;
 
       // Chart 1 Prot: Per Penghantar
       const ctx1 = document.getElementById("chart-prot-induk").getContext("2d");
@@ -3938,6 +3961,73 @@
       document.getElementById("ggn-tab-btn-induk").className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
     });
     document.getElementById("ggn-search").addEventListener("input", (e) => { ggnState.search = e.target.value; refreshGgnView(); });
+
+    // Event Listeners Tab 3 (Proteksi Petir Terpasang)
+    document.getElementById("prot-ultg").addEventListener("change", (e) => {
+      protState.ultg = e.target.value;
+      protState.induk = "ALL";
+      populateProtFilters();
+      refreshProtView();
+    });
+    document.getElementById("prot-induk").addEventListener("change", (e) => {
+      protState.induk = e.target.value;
+      refreshProtView();
+    });
+    document.getElementById("prot-type").addEventListener("change", (e) => {
+      protState.type = e.target.value;
+      refreshProtView();
+    });
+    document.getElementById("prot-contract").addEventListener("change", (e) => {
+      protState.contract = e.target.value;
+      refreshProtView();
+    });
+    document.getElementById("btn-reset-prot").addEventListener("click", () => {
+      protState.ultg = "ALL";
+      protState.induk = "ALL";
+      protState.type = "ALL";
+      protState.contract = "ALL";
+      protState.search = "";
+      protState.towerStatus = "ALL";
+      protState.towerSearch = "";
+      protState.towerLimit = "500";
+      document.getElementById("prot-type").value = "ALL";
+      document.getElementById("prot-search").value = "";
+      document.getElementById("prot-tower-search").value = "";
+      document.getElementById("prot-tower-limit").value = "500";
+      document.querySelectorAll(".prot-status-btn").forEach(b => {
+        const isAll = b.dataset.protstatus === "ALL";
+        b.className = isAll
+          ? "prot-status-btn px-3 py-1.5 rounded-xl font-bold bg-emerald-500 text-slate-950 transition"
+          : "prot-status-btn px-3 py-1.5 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+      });
+      populateProtFilters();
+      refreshProtView();
+    });
+    document.getElementById("prot-search").addEventListener("input", (e) => {
+      protState.search = e.target.value;
+      renderProtTables(currentProtFiltered);
+    });
+    document.getElementById("prot-tower-search").addEventListener("input", (e) => {
+      protState.towerSearch = e.target.value;
+      renderProtTables(currentProtFiltered);
+    });
+    document.getElementById("prot-tower-limit").addEventListener("change", (e) => {
+      protState.towerLimit = e.target.value;
+      renderProtTables(currentProtFiltered);
+    });
+    document.querySelectorAll(".prot-status-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        protState.towerStatus = btn.dataset.protstatus;
+        document.querySelectorAll(".prot-status-btn").forEach(b => {
+          const active = b === btn;
+          b.className = active
+            ? "prot-status-btn px-3 py-1.5 rounded-xl font-bold bg-emerald-500 text-slate-950 transition"
+            : "prot-status-btn px-3 py-1.5 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+        });
+        renderProtTables(currentProtFiltered);
+      });
+    });
+    document.getElementById("btn-export-prot-tower").addEventListener("click", exportProtTowersToCsv);
 
     /* ===================================================================== */
     /* TAB 4 LOGIC: PENTANAHAN TOWER (NILAI NS, CT RING & R SOIL)             */
