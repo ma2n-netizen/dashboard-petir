@@ -1590,6 +1590,17 @@
         </div>
       </div>
 
+      <!-- FILTER CEPAT KHUSUS TABEL PENTANAHAN -->
+      <div class="flex flex-wrap items-center gap-1.5 pb-3 mb-3 border-b border-slate-800 text-xs">
+        <span class="text-slate-400 font-semibold mr-1">Filter Cepat Tabel:</span>
+        <button type="button" data-tanahquick="ALL" class="tanah-quick-btn px-3 py-1 rounded-xl font-bold bg-cyan-500 text-slate-950 transition">Semua</button>
+        <button type="button" data-tanahquick="BAIK" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">✅ Baik (Gabungan)</button>
+        <button type="button" data-tanahquick="BURUK" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">⚠️ Buruk (Gabungan)</button>
+        <button type="button" data-tanahquick="HAS_CT" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">🔄 Ada CT Ring</button>
+        <button type="button" data-tanahquick="HAS_PE" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">🌍 Ada R-Soil Pe</button>
+        <button type="button" data-tanahquick="NEAR_GI" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">📍 Dekat GI (Awal/Akhir)</button>
+      </div>
+
       <div class="overflow-x-auto rounded-xl border border-slate-800 max-h-[580px]">
         <table class="w-full text-left text-xs whitespace-nowrap">
           <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase tracking-wider font-bold border-b border-slate-800 shadow-sm z-10">
@@ -1599,6 +1610,7 @@
               <th class="py-3 px-3">Penghantar (Segmen)</th>
               <th class="py-3 px-3">Nama Tower</th>
               <th class="py-3 px-3">Posisi</th>
+              <th class="py-3 px-3 text-emerald-400">Kondisi Gabungan</th>
               <th class="py-3 px-3 text-cyan-300">Nilai NS (Ω)</th>
               <th class="py-3 px-3 text-cyan-300">Kondisi NS</th>
               <th class="py-3 px-3 text-sky-400">CT Ring Max (Ω)</th>
@@ -4303,6 +4315,7 @@
     // Pastikan state Tab 4 memiliki filter evaluasi CT Ring & R Soil Pengukuran
     tanahState.ctEval = "ALL";
     tanahState.rSoilUkur = "ALL";
+    tanahState.tableQuick = "ALL";
 
     function populateTanahFilters() {
       const selUltg = document.getElementById("tanah-ultg");
@@ -4378,6 +4391,17 @@
         // Filter R Soil FAO
         if (tanahState.rSoil !== "ALL") {
           if (r.r_soil === null || Math.round(r.r_soil) !== Math.round(parseFloat(tanahState.rSoil))) return false;
+        }
+
+        // Filter cepat khusus tabel
+        if (tanahState.tableQuick && tanahState.tableQuick !== "ALL") {
+          const stGab = getKondisiPentanahanGabungan(r);
+          const posStr = String(r.pos || "").trim().toUpperCase();
+          if (tanahState.tableQuick === "BAIK" && stGab !== "BAIK") return false;
+          if (tanahState.tableQuick === "BURUK" && stGab !== "BURUK") return false;
+          if (tanahState.tableQuick === "HAS_CT" && r.ct_r === null && r.ct === null) return false;
+          if (tanahState.tableQuick === "HAS_PE" && (r.pe === null || r.pe <= 0)) return false;
+          if (tanahState.tableQuick === "NEAR_GI" && posStr !== "AWAL" && posStr !== "AKHIR") return false;
         }
 
         // Search text
@@ -4677,11 +4701,19 @@
       document.getElementById("tanah-btn-next").disabled = tanahState.page >= maxPage;
 
       if (pageItems.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="15" class="py-8 text-center text-slate-400">Tidak ada data pentanahan yang sesuai filter.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="16" class="py-8 text-center text-slate-400">Tidak ada data pentanahan yang sesuai filter.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = pageItems.map((r, idx) => {
+        const gabSt = getKondisiPentanahanGabungan(r);
+        const gabSrc = (r.ct_r !== null && r.ct_r !== undefined) ? "CT Ring" : (r.ns !== null ? "NS" : "");
+        let gabBadge = '<span class="text-slate-500">-</span>';
+        if (gabSt === "BAIK") {
+          gabBadge = `<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">✅ BAIK (${gabSrc || "-"})</span>`;
+        } else if (gabSt === "BURUK") {
+          gabBadge = `<span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">⚠️ BURUK (${gabSrc || "-"})</span>`;
+        }
         // Badge Nilai NS
         let nsBadge = '<span class="text-slate-500">-</span>';
         if (r.ns !== null) {
@@ -4746,6 +4778,7 @@
             <td class="py-2.5 px-3 font-bold text-slate-100">${escapeHtml(r.i || "-")}</td>
             <td class="py-2.5 px-3 font-mono font-bold text-cyan-300">${escapeHtml(r.n || "-")}</td>
             <td class="py-2.5 px-3 text-slate-400">${escapeHtml(r.pos || "-")}</td>
+            <td class="py-2.5 px-3">${gabBadge}</td>
             <td class="py-2.5 px-3">${nsBadge}</td>
             <td class="py-2.5 px-3">${stNsBadge}</td>
             <td class="py-2.5 px-3">${ctValText}</td>
@@ -4871,8 +4904,15 @@
       tanahState.ctEval = "ALL";
       tanahState.rSoilUkur = "ALL";
       tanahState.rSoil = "ALL";
+      tanahState.tableQuick = "ALL";
       tanahState.search = "";
       tanahState.page = 1;
+      document.querySelectorAll(".tanah-quick-btn").forEach(b => {
+        const isAll = b.dataset.tanahquick === "ALL";
+        b.className = isAll
+          ? "tanah-quick-btn px-3 py-1 rounded-xl font-bold bg-cyan-500 text-slate-950 transition"
+          : "tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+      });
       document.getElementById("tanah-ns-st").value = "ALL";
       document.getElementById("tanah-ns-kat").value = "ALL";
       if (document.getElementById("tanah-ct-eval")) document.getElementById("tanah-ct-eval").value = "ALL";
@@ -4891,6 +4931,19 @@
       tanahState.limit = e.target.value;
       tanahState.page = 1;
       refreshTanahView();
+    });
+    document.querySelectorAll(".tanah-quick-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        tanahState.tableQuick = btn.dataset.tanahquick;
+        tanahState.page = 1;
+        document.querySelectorAll(".tanah-quick-btn").forEach(b => {
+          const active = b === btn;
+          b.className = active
+            ? "tanah-quick-btn px-3 py-1 rounded-xl font-bold bg-cyan-500 text-slate-950 transition"
+            : "tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+        });
+        refreshTanahView();
+      });
     });
     document.getElementById("tanah-btn-prev").addEventListener("click", () => {
       if (tanahState.page > 1) {
