@@ -49,6 +49,12 @@
       border-color: #38bdf8;
       box-shadow: 0 4px 18px rgba(6, 182, 212, 0.35);
     }
+    .main-nav-tab.active-eval {
+      background: linear-gradient(135deg, #ea580c, #dc2626);
+      color: #ffffff;
+      border-color: #fb923c;
+      box-shadow: 0 4px 18px rgba(234, 88, 12, 0.35);
+    }
     .month-chip {
       transition: all 0.15s ease;
     }
@@ -416,7 +422,7 @@
               DASHBOARD ANALISA &amp; PROTEKSI PETIR TRANSMISI
             </h1>
             <span class="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              4 MODUL TERINTEGRASI
+              5 MODUL TERINTEGRASI
             </span>
           </div>
           <p class="text-xs text-slate-400 mt-0.5">
@@ -461,6 +467,12 @@
               <span class="flex items-center gap-2"><span>🌱</span><span>4. Pentanahan (NS, CT Ring &amp; R Soil)</span></span>
               <span id="badge-nav-tanah" class="px-2 py-0.5 text-[11px] rounded-full bg-cyan-500/20 text-cyan-300 font-bold">0</span>
             </button>
+
+            <button id="main-tab-eval" onclick="switchMainView('eval')"
+                    class="main-nav-tab w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center justify-between gap-2 text-left">
+              <span class="flex items-center gap-2"><span>🔥</span><span>5. Evaluasi Kerawanan Petir</span></span>
+              <span id="badge-nav-eval" class="px-2 py-0.5 text-[11px] rounded-full bg-orange-500/20 text-orange-300 font-bold">39 Seg</span>
+            </button>
           </div>
         </div>
 
@@ -498,6 +510,7 @@
       <button onclick="switchMainView('ggn')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-rose-500 hover:text-white text-slate-200 transition">🌩️ 2. Gangguan Petir</button>
       <button onclick="switchMainView('prot')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 transition">🛡️ 3. Proteksi Petir Terpasang</button>
       <button onclick="switchMainView('tanah')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-cyan-500 hover:text-slate-950 text-slate-200 transition">🌱 4. Pentanahan (NS, CT Ring &amp; R Soil)</button>
+      <button onclick="switchMainView('eval')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-orange-500 hover:text-white text-slate-200 transition">🔥 5. Evaluasi Kerawanan Petir</button>
     </div>
     <button id="btn-floating-tab-toggle" type="button"
             class="ml-auto px-4 py-2.5 rounded-full text-xs font-extrabold bg-[#00529b] hover:bg-[#0066b2] text-white border-2 border-[#ffd100] shadow-xl flex items-center gap-2 transition">
@@ -1623,6 +1636,191 @@
 
   </main>
 
+  <!-- ========================================================================= -->
+  <!-- VIEW 5: EVALUASI KERAWANAN PETIR TERPADU (PER PENGHANTAR & PER TAHUN)     -->
+  <!-- ========================================================================= -->
+  <main id="view-eval" class="hidden max-w-[1600px] mx-auto px-4 lg:px-6 pt-5 space-y-5">
+
+    <!-- PANEL FILTER EVALUASI KERAWANAN PETIR -->
+    <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3.5 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="text-orange-400 text-base">🔥</span>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">Evaluasi Kerawanan Gangguan Petir Terpadu Per Tower</h2>
+          <span id="eval-filter-badge" class="ml-2 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30">
+            Memuat Segmen...
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-export-eval-csv" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5">
+            <span>⬇️</span><span>Export CSV Evaluasi</span>
+          </button>
+          <button id="btn-reset-eval" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+            Reset Filter
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 text-xs">
+        <div>
+          <label class="block font-bold uppercase tracking-wider text-orange-400 mb-1">🏢 Filter ULTG</label>
+          <select id="eval-ultg" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-semibold focus:outline-none">
+            <option value="ALL">Semua ULTG</option>
+          </select>
+        </div>
+        <div class="lg:col-span-2">
+          <label class="block font-bold uppercase tracking-wider text-orange-400 mb-1">⚡ Filter Penghantar (Segmen)</label>
+          <select id="eval-induk" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-semibold focus:outline-none">
+            <option value="">Pilih Penghantar...</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold uppercase tracking-wider text-orange-400 mb-1">📅 Filter Tahun (LDS &amp; Gangguan)</label>
+          <select id="eval-year" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-semibold focus:outline-none">
+            <option value="ALL">Semua Tahun (Akumulasi)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold uppercase tracking-wider text-orange-400 mb-1">🎯 Rentang No Tower (Opsional)</label>
+          <div class="flex items-center gap-1.5">
+            <input id="eval-tower-from" type="number" min="1" placeholder="Dari" class="w-full px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-semibold focus:outline-none" />
+            <span class="text-slate-400 font-bold">–</span>
+            <input id="eval-tower-to" type="number" min="1" placeholder="Sampai" class="w-full px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-semibold focus:outline-none" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 KPI CARDS EVALUASI KERAWANAN -->
+    <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-slate-400">
+        <div class="text-[11px] font-bold uppercase text-slate-400">Total Tower Segmen</div>
+        <div id="eval-kpi-towers" class="text-2xl font-extrabold text-white mt-1">0</div>
+        <div id="eval-kpi-towers-sub" class="text-[11px] text-slate-400 mt-0.5">-</div>
+      </div>
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-amber-500">
+        <div class="text-[11px] font-bold uppercase text-slate-400">Total Sambaran LDS</div>
+        <div id="eval-kpi-lds" class="text-2xl font-extrabold text-amber-400 mt-1">0</div>
+        <div id="eval-kpi-lds-sub" class="text-[11px] text-slate-400 mt-0.5">Akumulasi koridor</div>
+      </div>
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-rose-500">
+        <div class="text-[11px] font-bold uppercase text-slate-400">Gangguan Petir</div>
+        <div id="eval-kpi-ggn" class="text-2xl font-extrabold text-rose-400 mt-1">0</div>
+        <div id="eval-kpi-ggn-sub" class="text-[11px] text-slate-400 mt-0.5">0 Titik terdampak</div>
+      </div>
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-sky-500">
+        <div class="text-[11px] font-bold uppercase text-slate-400">R-Soil Rata-Rata</div>
+        <div id="eval-kpi-rsoil" class="text-2xl font-extrabold text-sky-400 mt-1">0 Ω·m</div>
+        <div id="eval-kpi-rsoil-sub" class="text-[11px] text-slate-400 mt-0.5">Prioritas Ukur Pe → FAO</div>
+      </div>
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-cyan-500">
+        <div class="text-[11px] font-bold uppercase text-slate-400">Pentanahan Rata-Rata</div>
+        <div id="eval-kpi-r" class="text-2xl font-extrabold text-cyan-400 mt-1">0 Ω</div>
+        <div id="eval-kpi-r-sub" class="text-[11px] text-slate-400 mt-0.5">Prioritas CT Ring → NS</div>
+      </div>
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-orange-500">
+        <div class="text-[11px] font-bold uppercase text-slate-400">Pentanahan Buruk (&gt;10Ω)</div>
+        <div id="eval-kpi-buruk" class="text-2xl font-extrabold text-orange-400 mt-1">0</div>
+        <div id="eval-kpi-buruk-sub" class="text-[11px] text-slate-400 mt-0.5">0% dari total tower</div>
+      </div>
+    </section>
+
+    <!-- GRAFIK DUAL-AXIS PROFIL KERAWANAN PETIR PER TOWER + RINGKASAN KATEGORI -->
+    <section class="grid grid-cols-1 lg:grid-cols-4 gap-5">
+      <div class="glass-card rounded-2xl p-5 lg:col-span-3 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-orange-600 text-white">GRAFIK PROFIL KERAWANAN</span>
+              <h3 id="eval-chart-title" class="text-sm lg:text-base font-extrabold text-white">
+                Evaluasi Terpadu: Gangguan Petir, Pentanahan (CT Ring→NS), R-Soil &amp; Sambaran LDS
+              </h3>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Sumbu Kiri: Gangguan Petir (Batang Merah) • Sumbu Kanan: Pentanahan Ω (Hitam, cap 500), R-Soil /10 Ω·m (Biru), &amp; Sambaran LDS (Oranye).
+            </p>
+          </div>
+        </div>
+        <div class="relative w-full" style="height: 410px;">
+          <canvas id="chart-eval-profile"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+        <div class="pb-3 mb-2 border-b border-slate-800">
+          <h3 class="text-sm font-extrabold text-white">Kategori Kerawanan Tower</h3>
+          <p class="text-[11px] text-slate-400">Skor gabungan Gangguan, LDS, Pentanahan &amp; R-Soil</p>
+        </div>
+        <div class="relative h-60 my-auto">
+          <canvas id="chart-eval-kat"></canvas>
+        </div>
+        <div id="eval-kat-note" class="text-center text-[11px] text-slate-400 pt-2 border-t border-slate-800">-</div>
+      </div>
+    </section>
+
+    <!-- KESIMPULAN OTOMATIS & EKSTRAK FORMAT CHAT WA -->
+    <section class="glass-card rounded-2xl p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-[#16a34a] text-white">KESIMPULAN GRAFIK • SIAP KIRIM WA</span>
+            <h3 class="text-sm lg:text-base font-extrabold text-white">
+              Ekstrak Kesimpulan Evaluasi Kerawanan Petir (Format Grup WhatsApp)
+            </h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Otomatis merangkum profil penghantar, titik tower paling rawan (hotspot), kondisi pentanahan &amp; proteksi terpasang, serta rekomendasi.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <a id="btn-eval-wa-open" href="https://wa.me/" target="_blank" rel="noopener"
+             class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition">
+            <span>📲</span><span>Buka WhatsApp</span>
+          </a>
+          <button id="btn-eval-wa-copy" type="button"
+                  class="px-4 py-2 rounded-xl text-xs font-extrabold bg-[#16a34a] hover:bg-[#15803d] text-white flex items-center gap-1.5 shadow-md transition">
+            <span>📋</span><span>Copy Kesimpulan WA</span>
+          </button>
+        </div>
+      </div>
+      <textarea id="eval-wa-summary" rows="11"
+                class="w-full p-3.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-200 font-mono text-xs leading-relaxed focus:outline-none focus:border-orange-500"></textarea>
+    </section>
+
+    <!-- TABEL DATA EVALUASI KERAWANAN PER TOWER -->
+    <section class="glass-card rounded-2xl p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="text-orange-400 text-base">📋</span>
+          <h3 class="text-sm font-extrabold text-white uppercase tracking-wider">Data Evaluasi Kerawanan Per Tower</h3>
+          <span id="eval-table-badge" class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-orange-500/20 text-orange-300">0 tower</span>
+        </div>
+        <input id="eval-search" type="text" placeholder="Cari nomor tower, kategori (KRITIS/TINGGI), atau proteksi..."
+               class="w-full sm:w-80 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-orange-500" />
+      </div>
+      <div class="overflow-x-auto max-h-[520px]">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase text-[11px] border-b border-slate-700 z-10">
+            <tr>
+              <th class="py-2.5 px-3">No Twr</th>
+              <th class="py-2.5 px-3">Nama Tower</th>
+              <th class="py-2.5 px-3 text-right">R-Soil Kesimpulan (Ω·m)</th>
+              <th class="py-2.5 px-3 text-right">Pentanahan Acuan (Ω)</th>
+              <th class="py-2.5 px-3">Kondisi Pentanahan</th>
+              <th class="py-2.5 px-3 text-right">Sambaran LDS</th>
+              <th class="py-2.5 px-3 text-right">Gangguan Petir</th>
+              <th class="py-2.5 px-3">Proteksi Terpasang</th>
+              <th class="py-2.5 px-3 text-right">Skor</th>
+              <th class="py-2.5 px-3">Kategori</th>
+            </tr>
+          </thead>
+          <tbody id="eval-tbody" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
   <script>
     Chart.register(ChartDataLabels);
 
@@ -1754,11 +1952,13 @@
       document.getElementById("view-ggn").classList.toggle("hidden", view !== "ggn");
       document.getElementById("view-prot").classList.toggle("hidden", view !== "prot");
       document.getElementById("view-tanah").classList.toggle("hidden", view !== "tanah");
+      document.getElementById("view-eval").classList.toggle("hidden", view !== "eval");
 
       const btnLds = document.getElementById("main-tab-lds");
       const btnGgn = document.getElementById("main-tab-ggn");
       const btnProt = document.getElementById("main-tab-prot");
       const btnTanah = document.getElementById("main-tab-tanah");
+      const btnEval = document.getElementById("main-tab-eval");
 
       const baseInactive = "main-nav-tab w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center justify-between gap-2 text-left";
       btnLds.className = view === "lds"
@@ -1773,12 +1973,18 @@
       btnTanah.className = view === "tanah"
         ? "main-nav-tab active-tanah w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 flex items-center justify-between gap-2 text-left"
         : baseInactive;
+      if (btnEval) {
+        btnEval.className = view === "eval"
+          ? "main-nav-tab active-eval w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 flex items-center justify-between gap-2 text-left"
+          : baseInactive;
+      }
 
       const labelMap = {
         lds: "1. Analisa Sambaran Petir (LDS)",
         ggn: "2. Gangguan Petir",
         prot: "3. Proteksi Petir Terpasang",
-        tanah: "4. Pentanahan (NS, CT Ring & R Soil)"
+        tanah: "4. Pentanahan (NS, CT Ring & R Soil)",
+        eval: "5. Evaluasi Kerawanan Petir"
       };
       const activeLabelEl = document.getElementById("active-tab-menu-label");
       if (activeLabelEl && labelMap[view]) activeLabelEl.textContent = labelMap[view];
@@ -1803,10 +2009,14 @@
         sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=107946563#gid=107946563";
         sheetLabel.textContent = "Sheet: ROADMAP PROTEKSI PETIR";
         refreshProtView();
-      } else {
+      } else if (view === "tanah") {
         sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=2110094299#gid=2110094299";
         sheetLabel.textContent = "Sheet: NILAI PENTANAHAN";
         refreshTanahView();
+      } else {
+        sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=286301078#gid=286301078";
+        sheetLabel.textContent = "Evaluasi 4 Sheet Terpadu";
+        refreshEvalView();
       }
     };
 
@@ -2143,11 +2353,13 @@
       populateGgnFilters();
       populateProtFilters();
       populateTanahFilters();
+      populateEvalFilters();
 
       if (activeMainView === "lds") refreshDashboard();
       else if (activeMainView === "ggn") refreshGgnView();
       else if (activeMainView === "prot") refreshProtView();
-      else refreshTanahView();
+      else if (activeMainView === "tanah") refreshTanahView();
+      else refreshEvalView();
     }
 
     /* ===================================================================== */
@@ -4937,7 +5149,8 @@
         "filter-year", "filter-month", "filter-ultg", "filter-induk", "filter-metric",
         "ggn-year", "ggn-month", "ggn-ultg", "ggn-induk", "ggn-mode",
         "prot-ultg", "prot-induk", "prot-type", "prot-contract",
-        "tanah-ultg", "tanah-induk", "tanah-ns-st", "tanah-ns-kat", "tanah-ct-eval", "tanah-rsoil-ukur", "tanah-rsoil"
+        "tanah-ultg", "tanah-induk", "tanah-ns-st", "tanah-ns-kat", "tanah-ct-eval", "tanah-rsoil-ukur", "tanah-rsoil",
+        "eval-ultg", "eval-induk", "eval-year"
       ];
       ids.forEach((id) => enhanceSearchableSelect(document.getElementById(id)));
       document.addEventListener("click", () => closeAllSearchableSelects());
@@ -5031,6 +5244,7 @@
       initSearchableSelects();
       initProtWaModal();
       initGgnMonthlyYearFilters();
+      initEvalListeners();
       let savedTheme = "pln";
       try { savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "pln"; } catch (_) {}
       applyDashboardTheme(savedTheme);
@@ -5301,8 +5515,572 @@
         });
       }
     }
+    // =========================================================================
+    // TAB 5 LOGIC: EVALUASI KERAWANAN PETIR TERPADU (PER PENGHANTAR & TAHUN)
+    // =========================================================================
+    const evalState = {
+      ultg: "ALL",
+      induk: "",
+      year: "ALL",
+      fromTwr: "",
+      toTwr: "",
+      search: ""
+    };
+    let chartEvalProfile = null;
+    let chartEvalKat = null;
+    let currentEvalRows = [];
+
+    function normSegKeyEval(s) {
+      return String(s || "").toUpperCase().replace(/\s+/g, "");
+    }
+
+    function extractAllTowerNumsEval(str) {
+      const res = [];
+      const re = /#(\d+)/g;
+      let m;
+      while ((m = re.exec(String(str || ""))) !== null) {
+        res.push(parseInt(m[1], 10));
+      }
+      return res;
+    }
+
+    function populateEvalFilters() {
+      const selUltg = document.getElementById("eval-ultg");
+      const selInduk = document.getElementById("eval-induk");
+      const selYear = document.getElementById("eval-year");
+      if (!selUltg || !selInduk || !selYear) return;
+
+      const source = allTanahRecords.length > 0 ? allTanahRecords : allProtRecords;
+      const ultgs = Array.from(new Set(source.map(r => r.u).filter(Boolean))).sort();
+      selUltg.innerHTML = `<option value="ALL">Semua ULTG (${ultgs.length})</option>`;
+      ultgs.forEach(u => {
+        const o = document.createElement("option");
+        o.value = u;
+        o.textContent = u;
+        selUltg.appendChild(o);
+      });
+      selUltg.value = ultgs.includes(evalState.ultg) ? evalState.ultg : "ALL";
+      evalState.ultg = selUltg.value;
+
+      const induks = Array.from(new Set(
+        source
+          .filter(r => evalState.ultg === "ALL" || r.u === evalState.ultg)
+          .map(r => r.i)
+          .filter(Boolean)
+      )).sort();
+      selInduk.innerHTML = "";
+      induks.forEach(seg => {
+        const o = document.createElement("option");
+        o.value = seg;
+        o.textContent = seg;
+        selInduk.appendChild(o);
+      });
+      if (!induks.includes(evalState.induk)) {
+        const dukong = induks.find(s => s.toUpperCase().includes("DUKONG") && s.toUpperCase().includes("MANGGAR"));
+        evalState.induk = dukong || induks[0] || "";
+      }
+      selInduk.value = evalState.induk;
+
+      const years = Array.from(new Set([
+        ...allRecords.map(r => Number(r.y)),
+        ...allGgnRecords.map(r => Number(r.y))
+      ].filter(y => y >= 2020 && y <= 2030))).sort((a, b) => a - b);
+      selYear.innerHTML = `<option value="ALL">Semua Tahun (Akumulasi)</option>`;
+      years.forEach(y => {
+        const o = document.createElement("option");
+        o.value = String(y);
+        o.textContent = `Tahun ${y}`;
+        selYear.appendChild(o);
+      });
+      selYear.value = years.map(String).includes(String(evalState.year)) ? String(evalState.year) : "ALL";
+      evalState.year = selYear.value;
+
+      const navEval = document.getElementById("badge-nav-eval");
+      if (navEval) navEval.textContent = `${induks.length} Seg`;
+    }
+
+    function buildEvalDataset() {
+      const seg = evalState.induk;
+      if (!seg) return { rows: [], uniqGgnCount: 0, dampakGgnCount: 0 };
+      const segKey = normSegKeyEval(seg);
+      const yrFilter = evalState.year;
+
+      // 1. Base towers from Tanah & Prot for this segment
+      const towerMap = new Map();
+      const ensureTower = (noNum, name, ultg) => {
+        if (!towerMap.has(noNum)) {
+          towerMap.set(noNum, {
+            no: noNum,
+            name: name || `${seg}#${String(noNum).padStart(4, "0")}`,
+            ultg: ultg || "-",
+            pe: null,
+            rSoilMap: null,
+            rSoilKes: null,
+            ct: null,
+            ns: null,
+            rAcuan: null,
+            rSource: "-",
+            kondisiR: "-",
+            lds: 0,
+            ggnIds: new Set(),
+            ggnCount: 0,
+            prot: "Belum Terpasang",
+            skor: 0,
+            kategori: "RENDAH"
+          });
+        }
+        return towerMap.get(noNum);
+      };
+
+      for (const r of allTanahRecords) {
+        if (normSegKeyEval(r.i) !== segKey) continue;
+        const nums = extractAllTowerNumsEval(r.n);
+        if (nums.length === 0) continue;
+        const t = ensureTower(nums[0], r.n, r.u);
+        if (r.pe !== null && r.pe > 0) t.pe = r.pe;
+        if (r.r_soil !== null && r.r_soil > 0) t.rSoilMap = r.r_soil;
+        t.rSoilKes = (t.pe !== null && t.pe > 0) ? t.pe : t.rSoilMap;
+        const ctVal = r.ct !== null ? r.ct : (r.ct_r !== null ? r.ct_r : null);
+        if (ctVal !== null) t.ct = ctVal;
+        if (r.ns !== null) t.ns = r.ns;
+        if (t.ct !== null) {
+          t.rAcuan = t.ct;
+          t.rSource = "CT Ring";
+        } else if (t.ns !== null) {
+          t.rAcuan = t.ns;
+          t.rSource = "NS";
+        }
+        if (t.rAcuan !== null) {
+          t.kondisiR = t.rAcuan <= 10 ? "BAIK (≤10Ω)" : "BURUK (>10Ω)";
+        }
+      }
+
+      for (const r of allProtRecords) {
+        if (normSegKeyEval(r.i) !== segKey) continue;
+        const nums = extractAllTowerNumsEval(r.n);
+        if (nums.length === 0) continue;
+        const t = ensureTower(nums[0], r.n, r.u);
+        t.prot = getTowerInstalledTextList(r);
+      }
+
+      // 2. Correlate LDS strikes (filtered by year)
+      for (const r of allRecords) {
+        if (normSegKeyEval(r.i) !== segKey) continue;
+        if (yrFilter !== "ALL" && String(r.y) !== String(yrFilter)) continue;
+        const nums = extractAllTowerNumsEval(r.n);
+        if (nums.length === 0) continue;
+        const t = ensureTower(nums[0], r.n, r.u);
+        t.lds += (r.c || 0);
+      }
+
+      // 3. Correlate Gangguan Petir (filtered by year)
+      const segGgnIds = new Set();
+      let segDampakGgn = 0;
+      for (const r of allGgnRecords) {
+        if (normSegKeyEval(r.i) !== segKey) continue;
+        if (yrFilter !== "ALL" && String(r.y) !== String(yrFilter)) continue;
+        segGgnIds.add(r.id);
+        segDampakGgn += 1;
+        const nums = extractAllTowerNumsEval(r.na || r.nt);
+        for (const num of nums) {
+          if (towerMap.has(num)) {
+            const t = towerMap.get(num);
+            t.ggnIds.add(r.id);
+            t.ggnCount += 1;
+          }
+        }
+      }
+
+      let rows = Array.from(towerMap.values()).sort((a, b) => a.no - b.no);
+
+      const fNum = evalState.fromTwr ? parseInt(evalState.fromTwr, 10) : null;
+      const tNum = evalState.toTwr ? parseInt(evalState.toTwr, 10) : null;
+      if (fNum !== null && !isNaN(fNum)) rows = rows.filter(x => x.no >= fNum);
+      if (tNum !== null && !isNaN(tNum)) rows = rows.filter(x => x.no <= tNum);
+
+      // Compute vulnerability score & category
+      for (const t of rows) {
+        const ggnScore = t.ggnCount * 15;
+        const ldsScore = Math.min(25, t.lds / 10);
+        const rScore = (t.rAcuan !== null && t.rAcuan > 10) ? Math.min(35, t.rAcuan / 5) : 0;
+        const soilScore = (t.rSoilKes !== null && t.rSoilKes > 500) ? Math.min(25, t.rSoilKes / 100) : 0;
+        t.skor = Math.round((ggnScore + ldsScore + rScore + soilScore) * 10) / 10;
+        if (t.skor >= 55) t.kategori = "KRITIS";
+        else if (t.skor >= 35) t.kategori = "TINGGI";
+        else if (t.skor >= 18) t.kategori = "SEDANG";
+        else t.kategori = "RENDAH";
+      }
+
+      return { rows, uniqGgnCount: segGgnIds.size, dampakGgnCount: segDampakGgn };
+    }
+
+    function refreshEvalView() {
+      if (!document.getElementById("view-eval")) return;
+      const { rows, uniqGgnCount, dampakGgnCount } = buildEvalDataset();
+      currentEvalRows = rows;
+
+      const yrTxt = evalState.year === "ALL" ? "Semua Tahun" : `Tahun ${evalState.year}`;
+      document.getElementById("eval-filter-badge").textContent = `${evalState.induk || "-"} • ${yrTxt}`;
+      document.getElementById("eval-chart-title").textContent =
+        `Evaluasi Kerawanan Petir: ${evalState.induk || "-"} (${yrTxt})`;
+
+      const totTwr = rows.length;
+      const totLds = rows.reduce((a, r) => a + r.lds, 0);
+      const rSoils = rows.map(r => r.rSoilKes).filter(v => v !== null && v > 0);
+      const avgRSoil = rSoils.length > 0 ? Math.round(rSoils.reduce((a, b) => a + b, 0) / rSoils.length) : 0;
+      const rVals = rows.map(r => r.rAcuan).filter(v => v !== null);
+      const avgR = rVals.length > 0 ? (rVals.reduce((a, b) => a + b, 0) / rVals.length).toFixed(1) : "0.0";
+      const burukCnt = rows.filter(r => r.rAcuan !== null && r.rAcuan > 10).length;
+      const burukPct = rVals.length > 0 ? ((burukCnt / rVals.length) * 100).toFixed(1) : "0.0";
+
+      document.getElementById("eval-kpi-towers").textContent = `${fmtNum(totTwr)} Tower`;
+      document.getElementById("eval-kpi-towers-sub").textContent = rows[0]?.ultg || "-";
+      document.getElementById("eval-kpi-lds").textContent = fmtNum(totLds);
+      document.getElementById("eval-kpi-ggn").textContent = fmtNum(uniqGgnCount);
+      document.getElementById("eval-kpi-ggn-sub").textContent = `${fmtNum(dampakGgnCount)} Titik terdampak`;
+      document.getElementById("eval-kpi-rsoil").textContent = `${fmtNum(avgRSoil)} Ω·m`;
+      document.getElementById("eval-kpi-r").textContent = `${avgR} Ω`;
+      document.getElementById("eval-kpi-buruk").textContent = `${fmtNum(burukCnt)} Twr`;
+      document.getElementById("eval-kpi-buruk-sub").textContent = `${burukPct}% (>10 Ω)`;
+
+      renderEvalCharts(rows);
+      buildEvalWaSummary(rows, { totTwr, totLds, uniqGgnCount, dampakGgnCount, avgRSoil, avgR, burukCnt, burukPct, yrTxt });
+      renderEvalTable(rows);
+    }
+
+    function renderEvalCharts(rows) {
+      const ctxProf = document.getElementById("chart-eval-profile")?.getContext("2d");
+      if (ctxProf) {
+        if (chartEvalProfile) chartEvalProfile.destroy();
+        const isPln = document.body.classList.contains("theme-pln");
+        chartEvalProfile = new Chart(ctxProf, {
+          type: "line",
+          data: {
+            labels: rows.map(r => `#${r.no}`),
+            datasets: [
+              {
+                label: "Gangguan Petir",
+                type: "bar",
+                yAxisID: "yLeft",
+                data: rows.map(r => r.ggnCount),
+                backgroundColor: "rgba(153, 27, 27, 0.85)",
+                borderRadius: 2,
+                order: 3
+              },
+              {
+                label: "Pentanahan Acuan (Ω, cap 500)",
+                yAxisID: "yRight",
+                data: rows.map(r => r.rAcuan !== null ? Math.min(500, r.rAcuan) : null),
+                borderColor: isPln ? "#0f172a" : "#e2e8f0",
+                backgroundColor: isPln ? "#0f172a" : "#e2e8f0",
+                borderWidth: 1.5,
+                pointRadius: rows.length > 150 ? 1.5 : 3,
+                tension: 0.15,
+                spanGaps: true,
+                order: 1
+              },
+              {
+                label: "R-Soil (/10 Ω·m, cap 500)",
+                yAxisID: "yRight",
+                data: rows.map(r => r.rSoilKes !== null ? Math.min(500, Math.round((r.rSoilKes / 10) * 10) / 10) : null),
+                borderColor: "#0284c7",
+                backgroundColor: "#0284c7",
+                borderWidth: 1.6,
+                pointRadius: 0,
+                tension: 0.2,
+                spanGaps: true,
+                order: 2
+              },
+              {
+                label: "Sambaran LDS",
+                yAxisID: "yRight",
+                data: rows.map(r => r.lds),
+                borderColor: "#f59e0b",
+                backgroundColor: "#f59e0b",
+                borderWidth: 1.5,
+                pointStyle: "crossRot",
+                pointRadius: rows.length > 150 ? 2 : 3.5,
+                tension: 0.1,
+                order: 0
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            scales: {
+              x: {
+                ticks: { maxTicksLimit: 24, color: "#94a3b8", font: { size: 10, weight: "600" } },
+                grid: { display: false }
+              },
+              yLeft: {
+                type: "linear",
+                position: "left",
+                beginAtZero: true,
+                suggestedMax: 6,
+                title: { display: true, text: "Frekuensi Gangguan Petir", color: "#991b1b", font: { size: 11, weight: "700" } },
+                ticks: { stepSize: 1, precision: 0, color: "#991b1b" },
+                grid: { color: "rgba(148,163,184,0.12)" }
+              },
+              yRight: {
+                type: "linear",
+                position: "right",
+                beginAtZero: true,
+                suggestedMax: 500,
+                title: { display: true, text: "Pentanahan (Ω) / R-Soil (/10) / LDS", color: "#0284c7", font: { size: 11, weight: "700" } },
+                ticks: { color: "#0284c7" },
+                grid: { drawOnChartArea: false }
+              }
+            },
+            plugins: {
+              legend: { position: "top", labels: { boxWidth: 12, font: { size: 11, weight: "600" } } },
+              datalabels: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const r = rows[ctx.dataIndex];
+                    if (!r) return ctx.formattedValue;
+                    if (ctx.datasetIndex === 0) return `Gangguan Petir: ${r.ggnCount} kali`;
+                    if (ctx.datasetIndex === 1) return `Pentanahan (${r.rSource}): ${r.rAcuan !== null ? r.rAcuan + " Ω" : "-"}`;
+                    if (ctx.datasetIndex === 2) return `R-Soil Kesimpulan: ${r.rSoilKes !== null ? fmtNum(r.rSoilKes) + " Ω·m" : "-"}`;
+                    return `Sambaran LDS: ${fmtNum(r.lds)}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      const ctxKat = document.getElementById("chart-eval-kat")?.getContext("2d");
+      if (ctxKat) {
+        const kCounts = {
+          KRITIS: rows.filter(r => r.kategori === "KRITIS").length,
+          TINGGI: rows.filter(r => r.kategori === "TINGGI").length,
+          SEDANG: rows.filter(r => r.kategori === "SEDANG").length,
+          RENDAH: rows.filter(r => r.kategori === "RENDAH").length
+        };
+        if (chartEvalKat) chartEvalKat.destroy();
+        chartEvalKat = new Chart(ctxKat, {
+          type: "doughnut",
+          data: {
+            labels: ["KRITIS", "TINGGI", "SEDANG", "RENDAH"],
+            datasets: [{
+              data: [kCounts.KRITIS, kCounts.TINGGI, kCounts.SEDANG, kCounts.RENDAH],
+              backgroundColor: ["#e11d48", "#f97316", "#f59e0b", "#10b981"],
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "58%",
+            plugins: {
+              legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 10, weight: "600" } } },
+              datalabels: {
+                color: "#ffffff",
+                font: { size: 11, weight: "700" },
+                formatter: (v) => (v > 0 ? v : "")
+              }
+            }
+          }
+        });
+        document.getElementById("eval-kat-note").textContent =
+          `Kritis: ${kCounts.KRITIS} • Tinggi: ${kCounts.TINGGI} • Sedang: ${kCounts.SEDANG} • Rendah: ${kCounts.RENDAH}`;
+      }
+    }
+
+    function buildEvalWaSummary(rows, stats) {
+      const ta = document.getElementById("eval-wa-summary");
+      const openBtn = document.getElementById("btn-eval-wa-open");
+      if (!ta) return;
+
+      const kritisCnt = rows.filter(r => r.kategori === "KRITIS").length;
+      const tinggiCnt = rows.filter(r => r.kategori === "TINGGI").length;
+      const top5 = [...rows].sort((a, b) => b.skor - a.skor).slice(0, 5);
+      const topLds = [...rows].sort((a, b) => b.lds - a.lds)[0];
+
+      const lines = [
+        "*🔥 KESIMPULAN EVALUASI KERAWANAN PETIR*",
+        "*PT PLN (Persero) UPT Palembang & Babel*",
+        "━━━━━━━━━━━━━━━━━━━━",
+        `⚡ *Penghantar:* ${evalState.induk || "-"}`,
+        `🏢 *ULTG:* ${rows[0]?.ultg || "-"}`,
+        `📅 *Periode:* ${stats.yrTxt}`,
+        "",
+        "*📊 RINGKASAN KONDISI SEGMEN:*",
+        `• Total Tower: *${fmtNum(stats.totTwr)} Tower*`,
+        `• Sambaran LDS: *${fmtNum(stats.totLds)}*${topLds && topLds.lds > 0 ? ` (Tertinggi: *#${topLds.no}* = ${fmtNum(topLds.lds)}x)` : ""}`,
+        `• Gangguan Petir: *${fmtNum(stats.uniqGgnCount)} Kejadian* (${fmtNum(stats.dampakGgnCount)} titik terdampak)`,
+        `• R-Soil Rata-Rata: *${fmtNum(stats.avgRSoil)} Ω·m*`,
+        `• Pentanahan Rata-Rata: *${stats.avgR} Ω* (Prioritas CT Ring → NS)`,
+        `• Pentanahan Buruk (>10 Ω): *${fmtNum(stats.burukCnt)} Tower (${stats.burukPct}%)*`,
+        `• Tower Kritis / Tinggi: *${kritisCnt} Kritis* | *${tinggiCnt} Tinggi*`,
+        ""
+      ];
+
+      if (top5.length > 0) {
+        lines.push("*🎯 TOP 5 TOWER PALING RAWAN (HOTSPOT):*");
+        top5.forEach((t, idx) => {
+          const rStr = t.rAcuan !== null ? `${t.rAcuan} Ω (${t.rSource})` : "-";
+          const soilStr = t.rSoilKes !== null ? `${fmtNum(t.rSoilKes)} Ω·m` : "-";
+          lines.push(
+            `${idx + 1}. *#${String(t.no).padStart(4, "0")}* [${t.kategori} • Skor ${t.skor}] — Ggn: *${t.ggnCount}x*, LDS: *${fmtNum(t.lds)}*, R: *${rStr}*, Soil: ${soilStr} | Proteksi: _${t.prot}_`
+          );
+        });
+        lines.push("");
+      }
+
+      const belumProtHotspot = top5.filter(t => t.prot === "Belum Terpasang" || (t.rAcuan !== null && t.rAcuan > 10));
+      lines.push("*💡 KESIMPULAN & REKOMENDASI:*");
+      if (Number(stats.burukPct) >= 50) {
+        lines.push(`• Mayoritas tower (*${stats.burukPct}%*) memiliki nilai pentanahan >10 Ω dengan R-Soil rata-rata *${fmtNum(stats.avgRSoil)} Ω·m*.`);
+      } else {
+        lines.push(`• Sebanyak *${fmtNum(stats.burukCnt)} tower (${stats.burukPct}%)* masih memiliki pentanahan >10 Ω.`);
+      }
+      if (belumProtHotspot.length > 0) {
+        const listHot = belumProtHotspot.map(t => `#${t.no}`).join(", ");
+        lines.push(`• Prioritaskan perbaikan grounding (CT Ring / elektroda paralel) dan evaluasi proteksi petir (TLA/DGS/MRG) pada hotspot: *${listHot}*.`);
+      } else {
+        lines.push("• Pertahankan monitoring rutin pentanahan dan inspeksi proteksi petir di titik dengan sambaran LDS tinggi.");
+      }
+
+      const text = lines.join("\n");
+      ta.value = text;
+      if (openBtn) openBtn.href = `https://wa.me/?text=${encodeURIComponent(text.slice(0, 4000))}`;
+    }
+
+    function renderEvalTable(rows) {
+      const tbody = document.getElementById("eval-tbody");
+      const badge = document.getElementById("eval-table-badge");
+      if (!tbody) return;
+
+      const q = (evalState.search || "").trim().toLowerCase();
+      const filtered = rows.filter(r =>
+        !q ||
+        String(r.no).includes(q) ||
+        r.name.toLowerCase().includes(q) ||
+        r.kategori.toLowerCase().includes(q) ||
+        r.prot.toLowerCase().includes(q)
+      );
+      if (badge) badge.textContent = `${fmtNum(filtered.length)} tower`;
+
+      const katBadge = (k) => {
+        if (k === "KRITIS") return `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30">KRITIS</span>`;
+        if (k === "TINGGI") return `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-orange-500/20 text-orange-300 border border-orange-500/30">TINGGI</span>`;
+        if (k === "SEDANG") return `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">SEDANG</span>`;
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">RENDAH</span>`;
+      };
+
+      tbody.innerHTML = filtered.slice(0, 500).map(r => `
+        <tr class="hover:bg-slate-800/50 transition">
+          <td class="py-2 px-3 font-bold text-slate-400">#${r.no}</td>
+          <td class="py-2 px-3 font-bold text-white whitespace-nowrap">${escapeHtml(r.name)}</td>
+          <td class="py-2 px-3 text-right">${r.rSoilKes !== null ? fmtNum(Math.round(r.rSoilKes)) : "-"}</td>
+          <td class="py-2 px-3 text-right font-bold">${r.rAcuan !== null ? `${r.rAcuan} Ω <span class="text-[10px] text-slate-400">(${r.rSource})</span>` : "-"}</td>
+          <td class="py-2 px-3 ${r.kondisiR.includes("BURUK") ? "text-rose-400 font-bold" : "text-emerald-400 font-semibold"}">${r.kondisiR}</td>
+          <td class="py-2 px-3 text-right font-bold text-amber-400">${fmtNum(r.lds)}</td>
+          <td class="py-2 px-3 text-right font-extrabold text-rose-400">${fmtNum(r.ggnCount)}</td>
+          <td class="py-2 px-3 text-xs">${escapeHtml(r.prot)}</td>
+          <td class="py-2 px-3 text-right font-extrabold">${r.skor}</td>
+          <td class="py-2 px-3">${katBadge(r.kategori)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function exportEvalCsv() {
+      const lines = [
+        ["No Tower", "Nama Tower", "ULTG", "R-Soil Kesimpulan (Ohm.m)", "Pentanahan Acuan (Ohm)", "Sumber R", "Kondisi Pentanahan", "Sambaran LDS", "Gangguan Petir", "Proteksi Terpasang", "Skor Kerawanan", "Kategori"].join(";")
+      ];
+      for (const r of currentEvalRows) {
+        lines.push([
+          r.no,
+          `"${r.name}"`,
+          `"${r.ultg}"`,
+          r.rSoilKes !== null ? r.rSoilKes : "",
+          r.rAcuan !== null ? r.rAcuan : "",
+          `"${r.rSource}"`,
+          `"${r.kondisiR}"`,
+          r.lds,
+          r.ggnCount,
+          `"${r.prot}"`,
+          r.skor,
+          `"${r.kategori}"`
+        ].join(";"));
+      }
+      const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `EVALUASI_KERAWANAN_${(evalState.induk || "SEGMEN").replace(/[^A-Za-z0-9_-]/g, "_")}_${evalState.year}.csv`;
+      a.click();
+    }
+
+    function initEvalListeners() {
+      document.getElementById("eval-ultg")?.addEventListener("change", (e) => {
+        evalState.ultg = e.target.value;
+        evalState.induk = "";
+        populateEvalFilters();
+        refreshEvalView();
+      });
+      document.getElementById("eval-induk")?.addEventListener("change", (e) => {
+        evalState.induk = e.target.value;
+        refreshEvalView();
+      });
+      document.getElementById("eval-year")?.addEventListener("change", (e) => {
+        evalState.year = e.target.value;
+        refreshEvalView();
+      });
+      document.getElementById("eval-tower-from")?.addEventListener("input", (e) => {
+        evalState.fromTwr = e.target.value;
+        refreshEvalView();
+      });
+      document.getElementById("eval-tower-to")?.addEventListener("input", (e) => {
+        evalState.toTwr = e.target.value;
+        refreshEvalView();
+      });
+      document.getElementById("eval-search")?.addEventListener("input", (e) => {
+        evalState.search = e.target.value;
+        renderEvalTable(currentEvalRows);
+      });
+      document.getElementById("btn-reset-eval")?.addEventListener("click", () => {
+        evalState.ultg = "ALL";
+        evalState.induk = "";
+        evalState.year = "ALL";
+        evalState.fromTwr = "";
+        evalState.toTwr = "";
+        evalState.search = "";
+        document.getElementById("eval-tower-from").value = "";
+        document.getElementById("eval-tower-to").value = "";
+        document.getElementById("eval-search").value = "";
+        populateEvalFilters();
+        refreshEvalView();
+      });
+      document.getElementById("btn-export-eval-csv")?.addEventListener("click", exportEvalCsv);
+      const btnCopyWa = document.getElementById("btn-eval-wa-copy");
+      const taWa = document.getElementById("eval-wa-summary");
+      if (btnCopyWa && taWa) {
+        btnCopyWa.addEventListener("click", async () => {
+          try {
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(taWa.value);
+            } else {
+              taWa.select();
+              document.execCommand("copy");
+            }
+          } catch (_) {
+            taWa.select();
+            document.execCommand("copy");
+          }
+          const orig = btnCopyWa.innerHTML;
+          btnCopyWa.innerHTML = "<span>✅</span><span>Tersalin! Siap Paste ke WA</span>";
+          setTimeout(() => { btnCopyWa.innerHTML = orig; }, 2200);
+        });
+      }
+    }
   </script>
 
+  <!-- ========================================================================= -->
   <!-- MODAL PREVIEW & COPY FORMAT CHAT WHATSAPP -->
   <div id="wa-prot-modal" class="hidden fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="w-full max-w-2xl rounded-2xl bg-white text-slate-900 border-2 border-[#00529b] shadow-2xl overflow-hidden">
