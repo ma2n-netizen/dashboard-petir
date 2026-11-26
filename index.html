@@ -1424,7 +1424,7 @@
 
         <!-- Filter Kondisi Pentanahan Gabungan (CT Ring -> NS) -->
         <div>
-          <label class="block font-semibold text-slate-400 mb-1">Kondisi Pentanahan (Gabungan)</label>
+          <label class="block font-semibold text-slate-400 mb-1">Kondisi Pentanahan</label>
           <select id="tanah-ns-st" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
             <option value="ALL">Semua Kondisi</option>
             <option value="BAIK">✅ BAIK</option>
@@ -1482,13 +1482,13 @@
       </div>
       <!-- KPI 2 -->
       <div class="glass-card rounded-2xl p-4 border-l-4 border-emerald-400">
-        <div class="text-[11px] font-semibold uppercase text-slate-400">Pentanahan Baik (Gabungan)</div>
+        <div class="text-[11px] font-semibold uppercase text-slate-400">Pentanahan Baik</div>
         <div id="tanah-kpi-ns-baik" class="text-2xl font-black text-emerald-400 mt-1">0</div>
         <div id="tanah-kpi-ns-baik-pct" class="text-[11px] text-emerald-300 mt-0.5">0% (CT Ring → NS)</div>
       </div>
       <!-- KPI 3 -->
       <div class="glass-card rounded-2xl p-4 border-l-4 border-rose-500">
-        <div class="text-[11px] font-semibold uppercase text-slate-400">Pentanahan Buruk (Gabungan)</div>
+        <div class="text-[11px] font-semibold uppercase text-slate-400">Pentanahan Buruk</div>
         <div id="tanah-kpi-ns-buruk" class="text-2xl font-black text-rose-400 mt-1">0</div>
         <div id="tanah-kpi-ns-buruk-pct" class="text-[11px] text-rose-300 mt-0.5">0% (GI ≥3Ω / Tengah &gt;10Ω)</div>
       </div>
@@ -1538,7 +1538,7 @@
       <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
         <div class="flex items-center justify-between pb-3 border-b border-slate-800">
           <div>
-            <h3 class="text-sm font-bold text-slate-200">Kondisi Pentanahan Gabungan per ULTG</h3>
+            <h3 class="text-sm font-bold text-slate-200">Kondisi Pentanahan per ULTG</h3>
             <p class="text-xs text-slate-400">Prioritas CT Ring → NS (GI &lt;3Ω • Tengah ≤10Ω)</p>
           </div>
         </div>
@@ -1589,9 +1589,10 @@
               <th class="py-2.5 px-3">ULTG</th>
               <th class="py-2.5 px-3 text-right">Jml Segmen</th>
               <th class="py-2.5 px-3 text-right">Total Tower</th>
-              <th class="py-2.5 px-3 text-right text-emerald-400">Baik (Gabungan)</th>
-              <th class="py-2.5 px-3 text-right text-rose-400">Buruk (Gabungan)</th>
-              <th class="py-2.5 px-3 text-right">% Baik</th>
+              <th class="py-2.5 px-3 text-right text-emerald-400">Baik</th>
+              <th class="py-2.5 px-3 text-right text-rose-400">Buruk</th>
+              <th class="py-2.5 px-3 text-right text-emerald-400">% Baik</th>
+              <th class="py-2.5 px-3 text-right text-rose-400">% Buruk</th>
               <th class="py-2.5 px-3 text-right text-cyan-300">NS Rata² (Ω)</th>
               <th class="py-2.5 px-3 text-right text-sky-400">CT Ring Paralel Rata² (Ω)</th>
               <th class="py-2.5 px-3 text-right text-purple-300">Titik Ukur Pe</th>
@@ -1636,8 +1637,8 @@
       <div class="flex flex-wrap items-center gap-1.5 pb-3 mb-3 border-b border-slate-800 text-xs">
         <span class="text-slate-400 font-semibold mr-1">Filter Cepat Tabel:</span>
         <button type="button" data-tanahquick="ALL" class="tanah-quick-btn px-3 py-1 rounded-xl font-bold bg-cyan-500 text-slate-950 transition">Semua</button>
-        <button type="button" data-tanahquick="BAIK" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">✅ Baik (Gabungan)</button>
-        <button type="button" data-tanahquick="BURUK" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">⚠️ Buruk (Gabungan)</button>
+        <button type="button" data-tanahquick="BAIK" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">✅ Baik</button>
+        <button type="button" data-tanahquick="BURUK" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">⚠️ Buruk</button>
         <button type="button" data-tanahquick="HAS_CT" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">🔄 Ada CT Ring</button>
         <button type="button" data-tanahquick="HAS_PE" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">🌍 Ada R-Soil Pe</button>
         <button type="button" data-tanahquick="NEAR_GI" class="tanah-quick-btn px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">📍 Dekat GI (Awal/Akhir)</button>
@@ -1652,7 +1653,7 @@
               <th class="py-3 px-3">Penghantar (Segmen)</th>
               <th class="py-3 px-3">Nama Tower</th>
               <th class="py-3 px-3">Posisi</th>
-              <th class="py-3 px-3 text-emerald-400">Kondisi Gabungan</th>
+              <th class="py-3 px-3 text-emerald-400">Kondisi</th>
               <th class="py-3 px-3 text-cyan-300">Nilai NS (Ω)</th>
               <th class="py-3 px-3 text-cyan-300">Kondisi NS</th>
               <th class="py-3 px-3 text-sky-400">CT Ring Max (Ω)</th>
@@ -4769,6 +4770,7 @@
         baik: e.baik,
         buruk: e.buruk,
         pctBaik: e.total > 0 ? ((e.baik / e.total) * 100).toFixed(1) : "0.0",
+        pctBuruk: e.total > 0 ? ((e.buruk / e.total) * 100).toFixed(1) : "0.0",
         avgNs: e.nsCnt > 0 ? (e.nsSum / e.nsCnt).toFixed(2) : "-",
         avgCt: e.ctCnt > 0 ? (e.ctSum / e.ctCnt).toFixed(2) : "-",
         peCnt: e.peCnt,
@@ -4788,7 +4790,8 @@
             <td class="py-2.5 px-3 text-right font-bold">${fmtNum(x.total)}</td>
             <td class="py-2.5 px-3 text-right font-extrabold text-emerald-400">${fmtNum(x.baik)}</td>
             <td class="py-2.5 px-3 text-right font-extrabold text-rose-400">${fmtNum(x.buruk)}</td>
-            <td class="py-2.5 px-3 text-right font-bold">${x.pctBaik}%</td>
+            <td class="py-2.5 px-3 text-right font-bold text-emerald-400">${x.pctBaik}%</td>
+            <td class="py-2.5 px-3 text-right font-bold text-rose-400">${x.pctBuruk}%</td>
             <td class="py-2.5 px-3 text-right text-cyan-300 font-semibold">${x.avgNs !== "-" ? `${x.avgNs} Ω` : "-"}</td>
             <td class="py-2.5 px-3 text-right text-sky-400 font-semibold">${x.avgCt !== "-" ? `${x.avgCt} Ω` : "-"}</td>
             <td class="py-2.5 px-3 text-right text-purple-300">${fmtNum(x.peCnt)}</td>
@@ -4808,6 +4811,7 @@
       const gBaik = rows.reduce((a, x) => a + x.baik, 0);
       const gBuruk = rows.reduce((a, x) => a + x.buruk, 0);
       const gPctBaik = gTot > 0 ? ((gBaik / gTot) * 100).toFixed(1) : "0.0";
+      const gPctBuruk = gTot > 0 ? ((gBuruk / gTot) * 100).toFixed(1) : "0.0";
       const nsArr = filtered.map(r => r.ns).filter(v => v !== null);
       const gAvgNs = nsArr.length ? (nsArr.reduce((a, b) => a + b, 0) / nsArr.length).toFixed(2) : "-";
       const ctArr = filtered.map(r => r.ct_r).filter(v => v !== null);
@@ -4822,7 +4826,8 @@
           <td class="py-2.5 px-3 text-right">${fmtNum(gTot)}</td>
           <td class="py-2.5 px-3 text-right text-emerald-400">${fmtNum(gBaik)}</td>
           <td class="py-2.5 px-3 text-right text-rose-400">${fmtNum(gBuruk)}</td>
-          <td class="py-2.5 px-3 text-right">${gPctBaik}%</td>
+          <td class="py-2.5 px-3 text-right text-emerald-400">${gPctBaik}%</td>
+          <td class="py-2.5 px-3 text-right text-rose-400">${gPctBuruk}%</td>
           <td class="py-2.5 px-3 text-right text-cyan-300">${gAvgNs !== "-" ? `${gAvgNs} Ω` : "-"}</td>
           <td class="py-2.5 px-3 text-right text-sky-400">${gAvgCt !== "-" ? `${gAvgCt} Ω` : "-"}</td>
           <td class="py-2.5 px-3 text-right text-purple-300">${fmtNum(peArr.length)}</td>
@@ -5118,10 +5123,10 @@
     });
     document.getElementById("btn-export-tanah-ultg-csv")?.addEventListener("click", () => {
       const lines = [
-        ["No", "ULTG", "Jml Segmen", "Total Tower", "Baik (Gabungan)", "Buruk (Gabungan)", "% Baik", "NS Rata-rata (Ohm)", "CT Ring Paralel Rata-rata (Ohm)", "Titik Ukur Pe", "R-Soil Pe Rata-rata (Ohm.m)"].join(";")
+        ["No", "ULTG", "Jml Segmen", "Total Tower", "Baik", "Buruk", "% Baik", "% Buruk", "NS Rata-rata (Ohm)", "CT Ring Paralel Rata-rata (Ohm)", "Titik Ukur Pe", "R-Soil Pe Rata-rata (Ohm.m)"].join(";")
       ];
       currentTanahUltgRows.forEach((x, i) => {
-        lines.push([i + 1, `"${x.ultg}"`, x.segCount, x.total, x.baik, x.buruk, `${x.pctBaik}%`, x.avgNs, x.avgCt, x.peCnt, x.avgPe !== null ? x.avgPe : ""].join(";"));
+        lines.push([i + 1, `"${x.ultg}"`, x.segCount, x.total, x.baik, x.buruk, `${x.pctBaik}%`, `${x.pctBuruk}%`, x.avgNs, x.avgCt, x.peCnt, x.avgPe !== null ? x.avgPe : ""].join(";"));
       });
       const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
       const a = document.createElement("a");
