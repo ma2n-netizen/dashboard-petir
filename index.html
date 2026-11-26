@@ -1550,10 +1550,19 @@
 
     <!-- Chart 3: Kondisi Pentanahan per Penghantar -->
     <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
         <div>
           <h3 class="text-sm font-bold text-slate-200">Kondisi Pentanahan per Penghantar</h3>
           <p class="text-xs text-slate-400">Prioritas hasil CT Ring; jika tidak ada CT Ring menggunakan kondisi pentanahan NS (diurutkan dari Buruk terbanyak)</p>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-slate-400">
+          <span id="tanah-induk-count-badge" class="px-2 py-0.5 text-xs font-bold rounded-full bg-sky-500/20 text-sky-300">0 Penghantar</span>
+          <span>Tampilkan:</span>
+          <select id="tanah-induk-limit" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="ALL" selected>Semuanya</option>
+          </select>
         </div>
       </div>
       <div id="wrap-chart-tanah-kondisi-induk" class="mt-3 overflow-y-auto max-h-[540px] pr-2">
@@ -1950,6 +1959,7 @@
       rSoil: "ALL",
       search: "",
       limit: 50,
+      indukChartLimit: "ALL",
       page: 1
     };
 
@@ -4678,10 +4688,18 @@
           if (st === "BAIK") indukMap.get(seg).baik++;
           else if (st === "BURUK") indukMap.get(seg).buruk++;
         });
-        const induks = Array.from(indukMap.keys()).sort((a, b) => {
+        const allInduks = Array.from(indukMap.keys()).sort((a, b) => {
           const db = indukMap.get(b).buruk - indukMap.get(a).buruk;
           return db !== 0 ? db : (indukMap.get(b).baik - indukMap.get(a).baik);
         });
+        const limitInduk = tanahState.indukChartLimit || "ALL";
+        const induks = limitInduk === "ALL" ? allInduks : allInduks.slice(0, parseInt(limitInduk, 10));
+        const badgeInduk = document.getElementById("tanah-induk-count-badge");
+        if (badgeInduk) {
+          badgeInduk.textContent = limitInduk === "ALL"
+            ? `${allInduks.length} Penghantar`
+            : `${induks.length} / ${allInduks.length} Penghantar`;
+        }
         if (innerInduk) {
           innerInduk.style.height = `${Math.max(260, induks.length * 26)}px`;
         }
@@ -5093,6 +5111,13 @@
       tanahState.page = 1;
       refreshTanahView();
     });
+    const elIndukLimit = document.getElementById("tanah-induk-limit");
+    if (elIndukLimit) {
+      elIndukLimit.addEventListener("change", (e) => {
+        tanahState.indukChartLimit = e.target.value;
+        refreshTanahView();
+      });
+    }
     document.querySelectorAll(".tanah-quick-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         tanahState.tableQuick = btn.dataset.tanahquick;
