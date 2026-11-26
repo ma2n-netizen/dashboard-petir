@@ -1483,39 +1483,33 @@
       </div>
     </section>
 
-    <!-- RINGKASAN METRIK / 6 KPI CARDS -->
-    <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+    <!-- RINGKASAN METRIK / 5 KPI CARDS TERPADU (CT RING -> NS) -->
+    <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
       <!-- KPI 1 -->
       <div class="glass-card rounded-2xl p-4 border-l-4 border-cyan-400">
         <div class="text-[11px] font-semibold uppercase text-slate-400">Total Tower Terdata</div>
         <div id="tanah-kpi-total" class="text-2xl font-black text-cyan-300 mt-1">0</div>
-        <div class="text-[11px] text-slate-400 mt-0.5">39 Segmen Penghantar</div>
+        <div id="tanah-kpi-total-sub" class="text-[11px] text-slate-400 mt-0.5">39 Segmen Penghantar</div>
       </div>
       <!-- KPI 2 -->
       <div class="glass-card rounded-2xl p-4 border-l-4 border-emerald-400">
-        <div class="text-[11px] font-semibold uppercase text-slate-400">Pentanahan NS Baik</div>
+        <div class="text-[11px] font-semibold uppercase text-slate-400">Pentanahan Baik (Gabungan)</div>
         <div id="tanah-kpi-ns-baik" class="text-2xl font-black text-emerald-400 mt-1">0</div>
-        <div id="tanah-kpi-ns-baik-pct" class="text-[11px] text-emerald-300 mt-0.5">0% dari total</div>
+        <div id="tanah-kpi-ns-baik-pct" class="text-[11px] text-emerald-300 mt-0.5">0% (CT Ring → NS)</div>
       </div>
       <!-- KPI 3 -->
       <div class="glass-card rounded-2xl p-4 border-l-4 border-rose-500">
-        <div class="text-[11px] font-semibold uppercase text-slate-400">Pentanahan NS Buruk (&gt;10 Ω)</div>
+        <div class="text-[11px] font-semibold uppercase text-slate-400">Pentanahan Buruk (Gabungan)</div>
         <div id="tanah-kpi-ns-buruk" class="text-2xl font-black text-rose-400 mt-1">0</div>
-        <div id="tanah-kpi-ns-buruk-pct" class="text-[11px] text-rose-300 mt-0.5">0% perlu penanganan</div>
+        <div id="tanah-kpi-ns-buruk-pct" class="text-[11px] text-rose-300 mt-0.5">0% (GI ≥3Ω / Tengah &gt;10Ω)</div>
       </div>
       <!-- KPI 4 -->
-      <div class="glass-card rounded-2xl p-4 border-l-4 border-sky-400">
-        <div class="text-[11px] font-semibold uppercase text-slate-400">Evaluasi Hasil CT Ring</div>
-        <div id="tanah-kpi-ct-ada" class="text-2xl font-black text-sky-400 mt-1">0</div>
-        <div id="tanah-kpi-ct-detail" class="text-[11px] text-sky-300 mt-0.5">Baik: 0 | Buruk: 0</div>
-      </div>
-      <!-- KPI 5 -->
       <div class="glass-card rounded-2xl p-4 border-l-4 border-purple-400">
         <div class="text-[11px] font-semibold uppercase text-slate-400">R Soil Pengukuran (Pe)</div>
         <div id="tanah-kpi-pe-count" class="text-2xl font-black text-purple-300 mt-1">0 Titik</div>
         <div id="tanah-kpi-pe-avg" class="text-[11px] text-purple-200 mt-0.5">Rata-rata: 0 Ω·m</div>
       </div>
-      <!-- KPI 6 -->
+      <!-- KPI 5 -->
       <div class="glass-card rounded-2xl p-4 border-l-4 border-amber-400">
         <div class="text-[11px] font-semibold uppercase text-slate-400">R Soil Peta FAO (Standar)</div>
         <div id="tanah-kpi-rsoil-avg" class="text-2xl font-black text-amber-400 mt-1">0 Ω·m</div>
@@ -1523,14 +1517,14 @@
       </div>
     </section>
 
-    <!-- VISUALISASI GRAFIK: PENGUKURAN R SOIL & KONDISI PENTANAHAN (CT RING -> NS) -->
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <!-- VISUALISASI GRAFIK: PENGUKURAN R SOIL, PERBANDINGAN NS VS CT RING & KONDISI PENTANAHAN -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
       <!-- Chart 1: Pengukuran R Soil -->
       <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
         <div class="flex items-center justify-between pb-3 border-b border-slate-800">
           <div>
             <h3 class="text-sm font-bold text-slate-200">Chart Pengukuran R Soil (Pe)</h3>
-            <p class="text-xs text-slate-400">Distribusi jumlah tower berdasarkan nilai tahanan jenis tanah terukur di lapangan</p>
+            <p class="text-xs text-slate-400">Distribusi tahanan jenis tanah terukur di lapangan</p>
           </div>
         </div>
         <div class="h-72 mt-3">
@@ -1538,12 +1532,25 @@
         </div>
       </div>
 
-      <!-- Chart 2: Kondisi Pentanahan per ULTG -->
+      <!-- Chart 2: Grafik Tersendiri Perbandingan NS vs CT Ring -->
       <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
         <div class="flex items-center justify-between pb-3 border-b border-slate-800">
           <div>
-            <h3 class="text-sm font-bold text-slate-200">Kondisi Pentanahan per ULTG</h3>
-            <p class="text-xs text-slate-400">Prioritas hasil CT Ring; jika tidak ada CT Ring menggunakan kondisi pentanahan NS</p>
+            <h3 class="text-sm font-bold text-slate-200">Perbandingan Pentanahan: NS vs CT Ring</h3>
+            <p class="text-xs text-slate-400">Grafik terpisah jumlah Baik &amp; Buruk dari NS vs CT Ring</p>
+          </div>
+        </div>
+        <div class="h-72 mt-3">
+          <canvas id="chart-tanah-ns-vs-ct"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 3: Kondisi Pentanahan Gabungan per ULTG -->
+      <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="text-sm font-bold text-slate-200">Kondisi Pentanahan Gabungan per ULTG</h3>
+            <p class="text-xs text-slate-400">Prioritas CT Ring → NS (GI &lt;3Ω • Tengah ≤10Ω)</p>
           </div>
         </div>
         <div class="h-72 mt-3">
@@ -1886,6 +1893,7 @@
 
     let chartTanahKondisiUltg = null;
     let chartTanahKondisiInduk = null;
+    let chartTanahNsVsCt = null;
     let chartTanahRsoil = null;
 
     // State Tab 4: Pentanahan (NS, CT Ring & R Soil)
@@ -4407,27 +4415,24 @@
         badge.textContent = `${uText} • ${iText}`;
       }
 
-      // Update 6 KPIs
+      // Update 5 KPIs (Rangkuman Gabungan CT Ring -> NS)
       const total = filtered.length;
       document.getElementById("tanah-kpi-total").textContent = fmtNum(total);
 
-      const baikCount = filtered.filter(r => r.ns_st === "BAIK").length;
-      const burukCount = filtered.filter(r => r.ns_st === "BURUK").length;
+      let baikCount = 0, burukCount = 0;
+      for (const r of filtered) {
+        const st = getKondisiPentanahanGabungan(r);
+        if (st === "BAIK") baikCount++;
+        else if (st === "BURUK") burukCount++;
+      }
       const pctBaik = total > 0 ? ((baikCount / total) * 100).toFixed(1) : "0";
       const pctBuruk = total > 0 ? ((burukCount / total) * 100).toFixed(1) : "0";
 
       document.getElementById("tanah-kpi-ns-baik").textContent = fmtNum(baikCount);
-      document.getElementById("tanah-kpi-ns-baik-pct").textContent = `${pctBaik}% dari ${fmtNum(total)} tower`;
+      document.getElementById("tanah-kpi-ns-baik-pct").textContent = `${pctBaik}% (CT Ring → NS)`;
 
       document.getElementById("tanah-kpi-ns-buruk").textContent = fmtNum(burukCount);
-      document.getElementById("tanah-kpi-ns-buruk-pct").textContent = `${pctBuruk}% perlu penanganan`;
-
-      // Evaluasi CT Ring KPI (Murni Kolom L)
-      const ctBaik = filtered.filter(r => (r.ct_eval === "BAIK" || r.ct_st === "BAIK")).length;
-      const ctBuruk = filtered.filter(r => (r.ct_eval === "BURUK" || r.ct_st === "BURUK")).length;
-      const ctAda = ctBaik + ctBuruk;
-      document.getElementById("tanah-kpi-ct-ada").textContent = `${fmtNum(ctAda)} Tower`;
-      document.getElementById("tanah-kpi-ct-detail").textContent = `Baik: ${fmtNum(ctBaik)} | Buruk: ${fmtNum(ctBuruk)}`;
+      document.getElementById("tanah-kpi-ns-buruk-pct").textContent = `${pctBuruk}% (GI ≥3Ω / Tengah >10Ω)`;
 
       // R Soil Pengukuran Pe KPI
       const peItems = filtered.filter(r => r.pe !== null && r.pe > 0);
@@ -4510,6 +4515,50 @@
             scales: {
               x: { ticks: { color: "#cbd5e1", font: { weight: "bold" } }, grid: { display: false } },
               y: { ticks: { color: "#94a3b8" }, grid: { color: "rgba(51, 65, 85, 0.4)" } }
+            }
+          }
+        });
+      }
+
+      // 1b. Chart Perbandingan Terpisah: Nilai NS vs Hasil CT Ring
+      const chartElNsCt = document.getElementById("chart-tanah-ns-vs-ct");
+      if (chartElNsCt) {
+        let nsBaik = 0, nsBuruk = 0, ctBaik = 0, ctBuruk = 0;
+        for (const r of filtered) {
+          if (r.ns_st === "BAIK") nsBaik++;
+          else if (r.ns_st === "BURUK") nsBuruk++;
+          const ctS = String(r.ct_eval || r.ct_st || "").trim().toUpperCase();
+          if (ctS === "BAIK") ctBaik++;
+          else if (ctS === "BURUK") ctBuruk++;
+        }
+        const ctxNsCt = chartElNsCt.getContext("2d");
+        if (chartTanahNsVsCt) chartTanahNsVsCt.destroy();
+        chartTanahNsVsCt = new Chart(ctxNsCt, {
+          type: "bar",
+          data: {
+            labels: ["Nilai NS (Konvensional)", "CT Ring (R Paralel)"],
+            datasets: [
+              { label: "BAIK", data: [nsBaik, ctBaik], backgroundColor: "rgba(16, 185, 129, 0.88)", borderRadius: 6 },
+              { label: "BURUK", data: [nsBuruk, ctBuruk], backgroundColor: "rgba(244, 63, 94, 0.88)", borderRadius: 6 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { top: 20 } },
+            plugins: {
+              legend: { position: "top", labels: { color: "#cbd5e1", boxWidth: 12, font: { size: 11, weight: "600" } } },
+              datalabels: {
+                anchor: "end",
+                align: "top",
+                color: "#38bdf8",
+                font: { weight: "bold", size: 11 },
+                formatter: (val) => (val > 0 ? fmtNum(val) : "")
+              }
+            },
+            scales: {
+              x: { ticks: { color: "#cbd5e1", font: { weight: "bold", size: 11 } }, grid: { display: false } },
+              y: { beginAtZero: true, grace: "15%", ticks: { color: "#94a3b8" }, grid: { color: "rgba(51, 65, 85, 0.4)" } }
             }
           }
         });
