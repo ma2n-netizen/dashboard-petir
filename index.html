@@ -2274,10 +2274,21 @@
           const tower = cell(r, c_n);
           if (!tower) continue;
           const nsRaw = cell(r, c_ns);
-          const nsVal = nsRaw && nsRaw !== "-" && nsRaw !== "#N/A" ? parseFloatSafe(nsRaw) : null;
-          let nsSt = cell(r, c_ns_st);
-          if (!nsSt || nsSt === "#N/A") {
-            nsSt = nsVal !== null ? (nsVal <= 5.0 ? "BAIK" : "BURUK") : "BELUM ASESMEN";
+          let nsVal = nsRaw && nsRaw !== "-" && nsRaw !== "#N/A" ? parseFloatSafe(nsRaw) : null;
+          const nsStRaw = cell(r, c_ns_st);
+          if (nsVal === null && nsStRaw && nsStRaw !== "-" && nsStRaw !== "#N/A" && /\d/.test(nsStRaw)) {
+            nsVal = parseFloatSafe(nsStRaw);
+          }
+          let nsSt = nsStRaw.toUpperCase();
+          if (nsSt !== "BAIK" && nsSt !== "BURUK") {
+            nsSt = nsVal !== null ? (nsVal <= 10.0 ? "BAIK" : "BURUK") : "BELUM ASESMEN";
+          }
+          let nsKat = cell(r, c_kat);
+          if (nsVal !== null) {
+            if (nsVal < 3.0) nsKat = "0 < x < 3 ohm";
+            else if (nsVal <= 5.0) nsKat = "3 < x < 5 ohm";
+            else if (nsVal <= 10.0) nsKat = "5 < x < 10 ohm";
+            else nsKat = "x > 10 ohm";
           }
           const ctRaw = cell(r, c_ct);
           const ctVal = ctRaw && ctRaw !== "-" && ctRaw !== "#N/A" ? parseFloatSafe(ctRaw) : null;
@@ -2313,7 +2324,7 @@
             pos: cell(r, c_pos),
             teg: cell(r, c_teg),
             ns: nsVal,
-            ns_kat: cell(r, c_kat),
+            ns_kat: nsKat,
             ns_st: nsSt,
             ct_st: ctSt,
             ct: ctVal,
@@ -5691,7 +5702,7 @@
         if (r.pe !== null && r.pe > 0) t.pe = r.pe;
         if (r.r_soil !== null && r.r_soil > 0) t.rSoilMap = r.r_soil;
         t.rSoilKes = (t.pe !== null && t.pe > 0) ? t.pe : t.rSoilMap;
-        const ctVal = r.ct !== null ? r.ct : (r.ct_r !== null ? r.ct_r : null);
+        const ctVal = r.ct_r !== null ? r.ct_r : (r.ct !== null ? r.ct : null);
         if (ctVal !== null) t.ct = ctVal;
         if (r.ns !== null) t.ns = r.ns;
         if (t.ct !== null) {
