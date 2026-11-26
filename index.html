@@ -1563,6 +1563,48 @@
       </div>
     </section>
 
+    <!-- TABEL KHUSUS REKAPITULASI PER ULTG -->
+    <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-[#00529b] text-white">REKAP PER ULTG</span>
+            <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Tabel Rekapitulasi Kondisi Pentanahan &amp; R-Soil Per ULTG</h3>
+            <span id="tanah-ultg-count-badge" class="px-2 py-0.5 text-xs font-bold rounded-full bg-sky-500/20 text-sky-300">0 ULTG</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Menggunakan aturan gabungan (CT Ring Paralel → NS, GI &lt;3Ω • Tengah ≤10Ω). Klik <strong>Lihat</strong> untuk memfilter tower pada ULTG tersebut.
+          </p>
+        </div>
+        <button id="btn-export-tanah-ultg-csv" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5">
+          <span>⬇️</span><span>Export CSV Per ULTG</span>
+        </button>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-800">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+          <thead class="bg-slate-900 text-slate-300 uppercase tracking-wider font-bold border-b border-slate-800">
+            <tr>
+              <th class="py-2.5 px-3">No</th>
+              <th class="py-2.5 px-3">ULTG</th>
+              <th class="py-2.5 px-3 text-right">Jml Segmen</th>
+              <th class="py-2.5 px-3 text-right">Total Tower</th>
+              <th class="py-2.5 px-3 text-right text-emerald-400">Baik (Gabungan)</th>
+              <th class="py-2.5 px-3 text-right text-rose-400">Buruk (Gabungan)</th>
+              <th class="py-2.5 px-3 text-right">% Baik</th>
+              <th class="py-2.5 px-3 text-right text-cyan-300">NS Rata² (Ω)</th>
+              <th class="py-2.5 px-3 text-right text-sky-400">CT Ring Paralel Rata² (Ω)</th>
+              <th class="py-2.5 px-3 text-right text-purple-300">Titik Ukur Pe</th>
+              <th class="py-2.5 px-3 text-right text-purple-300">R-Soil Pe Rata² (Ω·m)</th>
+              <th class="py-2.5 px-3 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tanah-tbody-ultg" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+          <tfoot id="tanah-tfoot-ultg" class="bg-slate-900 font-bold text-white border-t-2 border-cyan-500/50"></tfoot>
+        </table>
+      </div>
+    </section>
+
     <!-- TABEL DATA LENGKAP PENTANAHAN TOWER -->
     <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
       <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-800">
@@ -4461,8 +4503,9 @@
 
       document.getElementById("tanah-count-badge").textContent = `${fmtNum(total)} baris`;
 
-      // Render Charts & Table
+      // Render Charts & Tables
       renderTanahCharts(filtered);
+      renderTanahUltgTable(filtered);
       renderTanahTable(filtered);
     }
 
@@ -4674,6 +4717,119 @@
           }
         });
       }
+    }
+
+    let currentTanahUltgRows = [];
+
+    window.selectTanahUltgFromTable = function(ultgName) {
+      tanahState.ultg = tanahState.ultg === ultgName ? "ALL" : ultgName;
+      tanahState.induk = "ALL";
+      tanahState.page = 1;
+      populateTanahFilters();
+      refreshTanahView();
+    };
+
+    function renderTanahUltgTable(filtered) {
+      const tbody = document.getElementById("tanah-tbody-ultg");
+      const tfoot = document.getElementById("tanah-tfoot-ultg");
+      const badge = document.getElementById("tanah-ultg-count-badge");
+      if (!tbody || !tfoot) return;
+
+      const uMap = new Map();
+      for (const r of filtered) {
+        const u = r.u || "LAINNYA";
+        let entry = uMap.get(u);
+        if (!entry) {
+          entry = {
+            ultg: u,
+            segs: new Set(),
+            total: 0,
+            baik: 0,
+            buruk: 0,
+            nsSum: 0, nsCnt: 0,
+            ctSum: 0, ctCnt: 0,
+            peSum: 0, peCnt: 0
+          };
+          uMap.set(u, entry);
+        }
+        entry.total += 1;
+        if (r.i) entry.segs.add(r.i);
+        const st = getKondisiPentanahanGabungan(r);
+        if (st === "BAIK") entry.baik += 1;
+        else if (st === "BURUK") entry.buruk += 1;
+        if (r.ns !== null) { entry.nsSum += r.ns; entry.nsCnt += 1; }
+        if (r.ct_r !== null) { entry.ctSum += r.ct_r; entry.ctCnt += 1; }
+        if (r.pe !== null && r.pe > 0) { entry.peSum += r.pe; entry.peCnt += 1; }
+      }
+
+      const rows = Array.from(uMap.values()).map(e => ({
+        ultg: e.ultg,
+        segCount: e.segs.size,
+        total: e.total,
+        baik: e.baik,
+        buruk: e.buruk,
+        pctBaik: e.total > 0 ? ((e.baik / e.total) * 100).toFixed(1) : "0.0",
+        avgNs: e.nsCnt > 0 ? (e.nsSum / e.nsCnt).toFixed(2) : "-",
+        avgCt: e.ctCnt > 0 ? (e.ctSum / e.ctCnt).toFixed(2) : "-",
+        peCnt: e.peCnt,
+        avgPe: e.peCnt > 0 ? Math.round(e.peSum / e.peCnt) : null
+      })).sort((a, b) => b.buruk - a.buruk || b.total - a.total);
+
+      currentTanahUltgRows = rows;
+      if (badge) badge.textContent = `${rows.length} ULTG`;
+
+      tbody.innerHTML = rows.map((x, idx) => {
+        const isSel = tanahState.ultg === x.ultg;
+        return `
+          <tr class="hover:bg-slate-800/40 transition ${isSel ? "bg-cyan-500/15" : ""}">
+            <td class="py-2.5 px-3 text-slate-400 font-mono">${idx + 1}</td>
+            <td class="py-2.5 px-3 font-extrabold text-white">${escapeHtml(x.ultg)}</td>
+            <td class="py-2.5 px-3 text-right">${fmtNum(x.segCount)}</td>
+            <td class="py-2.5 px-3 text-right font-bold">${fmtNum(x.total)}</td>
+            <td class="py-2.5 px-3 text-right font-extrabold text-emerald-400">${fmtNum(x.baik)}</td>
+            <td class="py-2.5 px-3 text-right font-extrabold text-rose-400">${fmtNum(x.buruk)}</td>
+            <td class="py-2.5 px-3 text-right font-bold">${x.pctBaik}%</td>
+            <td class="py-2.5 px-3 text-right text-cyan-300 font-semibold">${x.avgNs !== "-" ? `${x.avgNs} Ω` : "-"}</td>
+            <td class="py-2.5 px-3 text-right text-sky-400 font-semibold">${x.avgCt !== "-" ? `${x.avgCt} Ω` : "-"}</td>
+            <td class="py-2.5 px-3 text-right text-purple-300">${fmtNum(x.peCnt)}</td>
+            <td class="py-2.5 px-3 text-right text-purple-300 font-bold">${x.avgPe !== null ? `${fmtNum(x.avgPe)} Ω·m` : "-"}</td>
+            <td class="py-2.5 px-3 text-center">
+              <button type="button" onclick="selectTanahUltgFromTable('${x.ultg.replace(/'/g, "\\'")}')"
+                      class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${isSel ? "bg-rose-600 text-white" : "bg-slate-800 hover:bg-cyan-500 hover:text-slate-950 text-cyan-300"} border border-slate-700 transition">
+                ${isSel ? "Reset" : "Lihat"}
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      const gSegs = new Set(filtered.map(r => r.i).filter(Boolean)).size;
+      const gTot = filtered.length;
+      const gBaik = rows.reduce((a, x) => a + x.baik, 0);
+      const gBuruk = rows.reduce((a, x) => a + x.buruk, 0);
+      const gPctBaik = gTot > 0 ? ((gBaik / gTot) * 100).toFixed(1) : "0.0";
+      const nsArr = filtered.map(r => r.ns).filter(v => v !== null);
+      const gAvgNs = nsArr.length ? (nsArr.reduce((a, b) => a + b, 0) / nsArr.length).toFixed(2) : "-";
+      const ctArr = filtered.map(r => r.ct_r).filter(v => v !== null);
+      const gAvgCt = ctArr.length ? (ctArr.reduce((a, b) => a + b, 0) / ctArr.length).toFixed(2) : "-";
+      const peArr = filtered.map(r => r.pe).filter(v => v !== null && v > 0);
+      const gAvgPe = peArr.length ? Math.round(peArr.reduce((a, b) => a + b, 0) / peArr.length) : null;
+
+      tfoot.innerHTML = `
+        <tr>
+          <td colspan="2" class="py-2.5 px-3">GRAND TOTAL (${rows.length} ULTG)</td>
+          <td class="py-2.5 px-3 text-right">${fmtNum(gSegs)}</td>
+          <td class="py-2.5 px-3 text-right">${fmtNum(gTot)}</td>
+          <td class="py-2.5 px-3 text-right text-emerald-400">${fmtNum(gBaik)}</td>
+          <td class="py-2.5 px-3 text-right text-rose-400">${fmtNum(gBuruk)}</td>
+          <td class="py-2.5 px-3 text-right">${gPctBaik}%</td>
+          <td class="py-2.5 px-3 text-right text-cyan-300">${gAvgNs !== "-" ? `${gAvgNs} Ω` : "-"}</td>
+          <td class="py-2.5 px-3 text-right text-sky-400">${gAvgCt !== "-" ? `${gAvgCt} Ω` : "-"}</td>
+          <td class="py-2.5 px-3 text-right text-purple-300">${fmtNum(peArr.length)}</td>
+          <td class="py-2.5 px-3 text-right text-purple-300">${gAvgPe !== null ? `${fmtNum(gAvgPe)} Ω·m` : "-"}</td>
+          <td></td>
+        </tr>
+      `;
     }
 
     function renderTanahTable(filtered) {
@@ -4959,6 +5115,19 @@
         tanahState.page++;
         renderTanahTable(filtered);
       }
+    });
+    document.getElementById("btn-export-tanah-ultg-csv")?.addEventListener("click", () => {
+      const lines = [
+        ["No", "ULTG", "Jml Segmen", "Total Tower", "Baik (Gabungan)", "Buruk (Gabungan)", "% Baik", "NS Rata-rata (Ohm)", "CT Ring Paralel Rata-rata (Ohm)", "Titik Ukur Pe", "R-Soil Pe Rata-rata (Ohm.m)"].join(";")
+      ];
+      currentTanahUltgRows.forEach((x, i) => {
+        lines.push([i + 1, `"${x.ultg}"`, x.segCount, x.total, x.baik, x.buruk, `${x.pctBaik}%`, x.avgNs, x.avgCt, x.peCnt, x.avgPe !== null ? x.avgPe : ""].join(";"));
+      });
+      const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "REKAP_PENTANAHAN_PER_ULTG.csv";
+      a.click();
     });
     document.getElementById("btn-export-tanah-csv").addEventListener("click", exportTanahCsv);
 
