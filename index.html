@@ -1405,7 +1405,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 text-xs">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
         <!-- Filter ULTG -->
         <div>
           <label class="block font-semibold text-slate-400 mb-1">ULTG</label>
@@ -1422,14 +1422,13 @@
           </select>
         </div>
 
-        <!-- Filter Kondisi NS -->
+        <!-- Filter Kondisi Pentanahan Gabungan (CT Ring -> NS) -->
         <div>
-          <label class="block font-semibold text-slate-400 mb-1">Kondisi Pentanahan NS</label>
+          <label class="block font-semibold text-slate-400 mb-1">Kondisi Pentanahan (Gabungan)</label>
           <select id="tanah-ns-st" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-            <option value="ALL">Semua Status NS</option>
-            <option value="BAIK">BAIK (≤ 5 Ω)</option>
-            <option value="BURUK">BURUK (&gt; 10 Ω / anomali)</option>
-            <option value="BELUM ASESMEN">BELUM ASESMEN</option>
+            <option value="ALL">Semua Kondisi</option>
+            <option value="BAIK">✅ BAIK</option>
+            <option value="BURUK">⚠️ BURUK</option>
           </select>
         </div>
 
@@ -1442,16 +1441,6 @@
             <option value="3TO5">3 – 5 Ω (Baik)</option>
             <option value="5TO10">5 – 10 Ω (Waspada)</option>
             <option value="GT10">&gt; 10 Ω (Anomali / Perlu Penanganan)</option>
-          </select>
-        </div>
-
-        <!-- Filter Evaluasi CT Ring -->
-        <div>
-          <label class="block font-semibold text-slate-400 mb-1">Evaluasi Hasil CT Ring</label>
-          <select id="tanah-ct-eval" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-            <option value="ALL">Semua Hasil Pengukuran CT Ring</option>
-            <option value="BAIK">✅ BAIK</option>
-            <option value="BURUK">⚠️ BURUK</option>
           </select>
         </div>
 
@@ -4357,7 +4346,7 @@
       return allTanahRecords.filter(r => {
         if (tanahState.ultg !== "ALL" && r.u !== tanahState.ultg) return false;
         if (tanahState.induk !== "ALL" && r.i !== tanahState.induk) return false;
-        if (tanahState.nsSt !== "ALL" && r.ns_st !== tanahState.nsSt) return false;
+        if (tanahState.nsSt !== "ALL" && getKondisiPentanahanGabungan(r) !== tanahState.nsSt) return false;
 
         // Filter rentang NS
         if (tanahState.nsKat !== "ALL") {
@@ -4859,7 +4848,7 @@
       tanahState.page = 1;
       refreshTanahView();
     });
-    document.getElementById("tanah-ct-eval").addEventListener("change", (e) => {
+    document.getElementById("tanah-ct-eval")?.addEventListener("change", (e) => {
       tanahState.ctEval = e.target.value;
       tanahState.page = 1;
       refreshTanahView();
@@ -4886,7 +4875,7 @@
       tanahState.page = 1;
       document.getElementById("tanah-ns-st").value = "ALL";
       document.getElementById("tanah-ns-kat").value = "ALL";
-      document.getElementById("tanah-ct-eval").value = "ALL";
+      if (document.getElementById("tanah-ct-eval")) document.getElementById("tanah-ct-eval").value = "ALL";
       document.getElementById("tanah-rsoil-ukur").value = "ALL";
       document.getElementById("tanah-rsoil").value = "ALL";
       document.getElementById("tanah-search").value = "";
@@ -5262,7 +5251,7 @@
         "filter-year", "filter-month", "filter-ultg", "filter-induk", "filter-metric",
         "ggn-year", "ggn-month", "ggn-ultg", "ggn-induk", "ggn-mode",
         "prot-ultg", "prot-induk", "prot-type", "prot-contract",
-        "tanah-ultg", "tanah-induk", "tanah-ns-st", "tanah-ns-kat", "tanah-ct-eval", "tanah-rsoil-ukur", "tanah-rsoil",
+        "tanah-ultg", "tanah-induk", "tanah-ns-st", "tanah-ns-kat", "tanah-rsoil-ukur", "tanah-rsoil",
         "eval-ultg", "eval-induk", "eval-year"
       ];
       ids.forEach((id) => enhanceSearchableSelect(document.getElementById(id)));
