@@ -473,6 +473,12 @@
               <span class="flex items-center gap-2"><span>🔥</span><span>5. Evaluasi Kerawanan Petir</span></span>
               <span id="badge-nav-eval" class="px-2 py-0.5 text-[11px] rounded-full bg-orange-500/20 text-orange-300 font-bold">39 Seg</span>
             </button>
+
+            <button id="main-tab-analisa" onclick="switchMainView('analisa')"
+                    class="main-nav-tab w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center justify-between gap-2 text-left">
+              <span class="flex items-center gap-2"><span>🎯</span><span>6. Analisa Petir (BFO &amp; SF)</span></span>
+              <span id="badge-nav-analisa" class="px-2 py-0.5 text-[11px] rounded-full bg-indigo-500/20 text-indigo-300 font-bold">0 Data</span>
+            </button>
           </div>
         </div>
 
@@ -511,6 +517,7 @@
       <button onclick="switchMainView('prot')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 transition">🛡️ 3. Proteksi Petir Terpasang</button>
       <button onclick="switchMainView('tanah')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-cyan-500 hover:text-slate-950 text-slate-200 transition">🌱 4. Pentanahan (NS, CT Ring &amp; R Soil)</button>
       <button onclick="switchMainView('eval')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-orange-500 hover:text-white text-slate-200 transition">🔥 5. Evaluasi Kerawanan Petir</button>
+      <button onclick="switchMainView('analisa')" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-left bg-slate-800/80 hover:bg-indigo-500 hover:text-white text-slate-200 transition">🎯 6. Analisa Petir (BFO &amp; SF)</button>
     </div>
     <button id="btn-floating-tab-toggle" type="button"
             class="ml-auto px-4 py-2.5 rounded-full text-xs font-extrabold bg-[#00529b] hover:bg-[#0066b2] text-white border-2 border-[#ffd100] shadow-xl flex items-center gap-2 transition">
@@ -1926,6 +1933,303 @@
 
   </main>
 
+  <!-- ========================================================================= -->
+  <!-- VIEW 6: ANALISA PETIR (BFO & SHIELDING FAILURE + DATA + WA TEMPLATE)      -->
+  <!-- ========================================================================= -->
+  <main id="view-analisa" class="hidden max-w-[1600px] mx-auto px-4 lg:px-6 pt-5 space-y-5">
+
+    <!-- Sub-tab Bar & Header -->
+    <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded bg-[#00529b] text-white">TAB 6 • ANALISA PETIR</span>
+          <h2 class="text-base lg:text-lg font-extrabold text-white">Analisa Back Flash Over (BFO) &amp; Shielding Failure (SF)</h2>
+        </div>
+        <p class="text-xs text-slate-400 mt-0.5">Perhitungan Analisa Petir Berdasarkan CIGRE TB 839 2021 • Terintegrasi Database Tower Pentanahan LDS</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="anp-subtab-btn-analisa" type="button" onclick="switchAnpSubTab('analisa')"
+                class="px-4 py-2 rounded-xl text-xs font-extrabold bg-[#00529b] text-white shadow transition">
+          🧮 Analisa
+        </button>
+        <button id="anp-subtab-btn-data" type="button" onclick="switchAnpSubTab('data')"
+                class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1.5">
+          <span>📋 Data</span>
+          <span id="anp-data-count-pill" class="px-1.5 py-0.5 text-[10px] rounded-full bg-indigo-500/20 text-indigo-300 font-bold">0</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- SUB-TAB 1: ANALISA -->
+    <div id="anp-subtab-analisa" class="space-y-5">
+      <!-- Form Input -->
+      <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="lg:col-span-2">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Nama Tower (Cari / Ketik Manual)</label>
+            <input id="anp-tower" type="text" list="anp-tower-datalist" placeholder="Contoh: TOWER SUTT 150 KV KYUNG - GMWNG #0163"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <datalist id="anp-tower-datalist"></datalist>
+            <p id="anp-tower-autofill-hint" class="text-[11px] text-slate-400 mt-1">Pilih tower dari daftar untuk mengisi nilai pentanahan (CT Ring → NS) secara otomatis.</p>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Tanggal</label>
+            <input id="anp-tanggal" type="date"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tinggi Tower (m)</label>
+              <div class="inline-flex rounded-lg border border-slate-700 overflow-hidden text-[10px] font-bold">
+                <button id="anp-mode-tinggi-manual" type="button" onclick="setAnpTinggiMode('manual')" class="px-2 py-0.5 bg-slate-700 text-white">Manual</button>
+                <button id="anp-mode-tinggi-auto" type="button" onclick="setAnpTinggiMode('auto')" class="px-2 py-0.5 bg-[#00529b] text-white">Otomatis</button>
+              </div>
+            </div>
+            <div id="anp-tinggi-manual-wrap" class="hidden grid grid-cols-2 gap-2">
+              <input id="anp-tinggi-val" type="number" step="0.1" value="35.4" placeholder="Tinggi (m)"
+                     class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none" />
+              <select id="anp-tegangan" class="w-full px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none">
+                <option value="70">70 kV</option>
+                <option value="150" selected>150 kV</option>
+                <option value="275">275 kV</option>
+                <option value="500">500 kV</option>
+              </select>
+            </div>
+            <div id="anp-tinggi-auto-wrap">
+              <select id="anp-tipe-tower" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+              <p id="anp-geom-info" class="text-[11px] text-sky-400 font-semibold mt-1">GSW 35.4m • Atas 31.4m • Tengah 26.9m • Bawah 22.9m</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+          <div class="lg:col-span-2">
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Sudut Lindung (°)</label>
+              <div class="inline-flex rounded-lg border border-slate-700 overflow-hidden text-[10px] font-bold">
+                <button id="anp-mode-sudut-manual" type="button" onclick="setAnpSudutMode('manual')" class="px-2 py-0.5 bg-slate-700 text-white">Manual</button>
+                <button id="anp-mode-sudut-hitung" type="button" onclick="setAnpSudutMode('hitung')" class="px-2 py-0.5 bg-[#00529b] text-white">Hitung</button>
+              </div>
+            </div>
+            <div id="anp-sudut-manual-wrap" class="hidden">
+              <input id="anp-sudut-val" type="number" step="0.01" value="18.00" placeholder="Sudut (°)"
+                     class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none" />
+            </div>
+            <div id="anp-sudut-hitung-wrap" class="grid grid-cols-3 gap-2">
+              <div>
+                <input id="anp-dy-gsw" type="number" step="0.1" value="4" title="Tinggi GSW - Konduktor (m)"
+                       class="w-full px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
+                <span class="block text-[10px] text-slate-400 mt-0.5">GSW-Kond (m)</span>
+              </div>
+              <div>
+                <input id="anp-tr-gsw" type="number" step="0.1" value="2.2" title="Panjang Traves GSW (m)"
+                       class="w-full px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
+                <span class="block text-[10px] text-slate-400 mt-0.5">Tr. GSW (m)</span>
+              </div>
+              <div>
+                <input id="anp-tr-atas" type="number" step="0.1" value="3.5" title="Panjang Traves Phasa Atas (m)"
+                       class="w-full px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
+                <span class="block text-[10px] text-slate-400 mt-0.5">Tr. Atas (m)</span>
+              </div>
+            </div>
+            <p id="anp-sudut-computed-label" class="text-[11px] text-emerald-400 font-bold mt-1">Sudut Lindung: 18.00°</p>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pentanahan (Ohm)</label>
+            <input id="anp-pentanahan" type="number" step="0.01" value="5"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Insulator (Keping)</label>
+            <input id="anp-insulator" type="number" step="1" value="12"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Arching Horn (cm)</label>
+            <input id="anp-ah" type="number" step="0.1" value="160"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Arus (kA)</label>
+              <input id="anp-arus" type="number" step="0.1" value="23"
+                     class="w-full px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">di/dt</label>
+              <input id="anp-didt" type="number" step="0.1" value="30"
+                     class="w-full px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800">
+          <button id="anp-btn-calculate" type="button" onclick="calculateAnalisaPetir()"
+                  class="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#00529b] hover:bg-[#0066b2] text-white shadow transition flex items-center gap-1.5">
+            <span>⚡</span><span>Calculate</span>
+          </button>
+          <button id="anp-btn-copy-wa" type="button" onclick="copyAnpWaText(this)"
+                  class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow transition flex items-center gap-1.5">
+            <span>📋</span><span>Salin WA</span>
+          </button>
+          <button id="anp-btn-preview-wa" type="button" onclick="openAnpWaModal()"
+                  class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+            <span>👁️</span><span>Lihat Pratinjau Template WA</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Hasil Analisa BFO & SF -->
+      <section class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- BFO -->
+        <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+            <h3 class="text-sm font-extrabold text-white">⚡ Analisa Back Flash Over (BFO)</h3>
+            <span id="anp-bfo-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">NON BFO</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-900 text-slate-300 uppercase font-bold border-b border-slate-800">
+                <tr>
+                  <th class="py-2 px-3">Posisi / Phasa</th>
+                  <th class="py-2 px-3 text-right">BIL AH (kV)</th>
+                  <th class="py-2 px-3 text-right">BIL INS (kV)</th>
+                  <th class="py-2 px-3 text-right">VT TOWER (kV)</th>
+                  <th class="py-2 px-3 text-right">VT GSW (kV)</th>
+                </tr>
+              </thead>
+              <tbody id="anp-bfo-tbody" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SF -->
+        <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+            <h3 class="text-sm font-extrabold text-white">🛡️ Analisa Shielding Failure (SF)</h3>
+            <span id="anp-sf-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">NON SF</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-900 text-slate-300 uppercase font-bold border-b border-slate-800">
+                <tr>
+                  <th class="py-2 px-3">Parameter</th>
+                  <th class="py-2 px-3 text-right">Object Tower</th>
+                  <th class="py-2 px-3 text-right">Rolling Sphere</th>
+                  <th class="py-2 px-3 text-center">Kesimpulan</th>
+                </tr>
+              </thead>
+              <tbody id="anp-sf-tbody" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Hasil Temuan Lapangan -->
+      <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <h3 class="text-sm font-extrabold text-white">🔍 Hasil Temuan Lapangan</h3>
+          <div class="flex items-center gap-1.5 text-xs">
+            <span class="text-slate-400 font-semibold mr-1">Line:</span>
+            <button id="anp-line-btn-1" type="button" onclick="setAnpLineMode('LINE 1')" class="px-3 py-1 rounded-lg font-bold bg-[#00529b] text-white">LINE 1</button>
+            <button id="anp-line-btn-2" type="button" onclick="setAnpLineMode('LINE 2')" class="px-3 py-1 rounded-lg font-bold bg-slate-800 text-slate-300">LINE 2</button>
+            <button id="anp-line-btn-both" type="button" onclick="setAnpLineMode('LINE 1 DAN 2')" class="px-3 py-1 rounded-lg font-bold bg-slate-800 text-slate-300">LINE 1 DAN 2</button>
+            <button type="button" onclick="resetAnpTemuan()" title="Reset Temuan" class="px-2.5 py-1 rounded-lg font-bold bg-rose-500/20 text-rose-300 hover:bg-rose-600 hover:text-white">✕</button>
+          </div>
+        </div>
+
+        <div id="anp-temuan-line1-wrap" class="space-y-2">
+          <div id="anp-temuan-line1-title" class="text-xs font-extrabold text-sky-400 uppercase">Temuan Line 1</div>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <select id="anp-l1-fasa" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"><option value="">FASA (Pilih)</option><option value="ATAS">ATAS</option><option value="TENGAH">TENGAH</option><option value="BAWAH">BAWAH</option></select>
+            <select id="anp-l1-alat" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"><option value="">ALAT (Pilih)</option><option value="ARCHING HORN">ARCHING HORN</option><option value="ISOLATOR">ISOLATOR</option><option value="DGS">DGS</option><option value="LAIN2">LAIN2</option></select>
+            <select id="anp-l1-kondisi" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"><option value="">KONDISI (Pilih)</option><option value="FLASH">FLASH</option><option value="PECAH">PECAH</option></select>
+            <select id="anp-l1-sisi" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"><option value="">SISI (Pilih)</option><option value="COLD">COLD</option><option value="HOT">HOT</option><option value="LAIN2">LAIN2</option></select>
+            <input id="anp-l1-ket" type="text" placeholder="Keterangan Line 1..." class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white" />
+          </div>
+        </div>
+
+        <div id="anp-temuan-line2-wrap" class="hidden space-y-2 pt-2 border-t border-slate-800/70">
+          <div class="text-xs font-extrabold text-amber-400 uppercase">Temuan Line 2</div>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <select id="anp-l2-fasa" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"><option value="">FASA (Pilih)</option><option value="ATAS">ATAS</option><option value="TENGAH">TENGAH</option><option value="BAWAH">BAWAH</option></select>
+            <select id="anp-l2-alat" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"><option value="">ALAT (Pilih)</option><option value="ARCHING HORN">ARCHING HORN</option><option value="ISOLATOR">ISOLATOR</option><option value="DGS">DGS</option><option value="LAIN2">LAIN2</option></select>
+            <select id="anp-l2-kondisi" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"><option value="">KONDISI (Pilih)</option><option value="FLASH">FLASH</option><option value="PECAH">PECAH</option></select>
+            <select id="anp-l2-sisi" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"><option value="">SISI (Pilih)</option><option value="COLD">COLD</option><option value="HOT">HOT</option><option value="LAIN2">LAIN2</option></select>
+            <input id="anp-l2-ket" type="text" placeholder="Keterangan Line 2..." class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white" />
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="copyAnpWaText(this)" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">📋 Salin WA Template</button>
+          <button id="anp-btn-save" type="button" onclick="saveAnalisaPetirRecord()" class="px-5 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 hover:bg-emerald-500 text-white shadow transition">💾 Simpan Analisa &amp; Temuan</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- SUB-TAB 2: DATA TERSIMPAN -->
+    <div id="anp-subtab-data" class="hidden space-y-5">
+      <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-indigo-500">
+          <div class="text-xs font-bold uppercase text-slate-400">Total Analisa Tersimpan</div>
+          <div id="anp-kpi-total" class="text-2xl lg:text-3xl font-extrabold text-white mt-1">0</div>
+        </div>
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-amber-500">
+          <div class="text-xs font-bold uppercase text-slate-400">Shielding Failure (SF)</div>
+          <div class="flex items-baseline gap-3 mt-1">
+            <span id="anp-kpi-sf" class="text-2xl font-extrabold text-rose-400">0</span>
+            <span id="anp-kpi-nonsf" class="text-xs font-bold text-emerald-400">NON SF: 0</span>
+          </div>
+        </div>
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-rose-500">
+          <div class="text-xs font-bold uppercase text-slate-400">Back Flash Over (BFO)</div>
+          <div class="flex items-baseline gap-3 mt-1">
+            <span id="anp-kpi-bfo" class="text-2xl font-extrabold text-rose-400">0</span>
+            <span id="anp-kpi-nonbfo" class="text-xs font-bold text-emerald-400">NON BFO: 0</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <h3 class="text-sm font-extrabold text-white">📋 Riwayat Data Analisa Petir (Lokal Browser)</h3>
+          <div class="flex flex-wrap items-center gap-2">
+            <input id="anp-data-search" type="text" placeholder="Cari Tower / Temuan..." oninput="renderAnpDataTable()"
+                   class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
+            <button type="button" onclick="exportAnpCsv()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white">📥 Export CSV</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto max-h-[540px] rounded-xl border border-slate-800">
+          <table class="w-full text-xs text-left whitespace-nowrap">
+            <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase font-bold border-b border-slate-800 z-10">
+              <tr>
+                <th class="py-2.5 px-3">Tanggal</th>
+                <th class="py-2.5 px-3">Nama / Lokasi</th>
+                <th class="py-2.5 px-3">Mode</th>
+                <th class="py-2.5 px-3">Tipe / Tinggi</th>
+                <th class="py-2.5 px-3 text-right">kV</th>
+                <th class="py-2.5 px-3 text-right">Pentanahan</th>
+                <th class="py-2.5 px-3 text-right">Ins.</th>
+                <th class="py-2.5 px-3 text-right">AH (cm)</th>
+                <th class="py-2.5 px-3 text-right">Arus (kA)</th>
+                <th class="py-2.5 px-3 text-right">di/dt</th>
+                <th class="py-2.5 px-3 text-right">Sudut (°)</th>
+                <th class="py-2.5 px-3 text-right">VT Twr Atas</th>
+                <th class="py-2.5 px-3 text-right">VT GSW Atas</th>
+                <th class="py-2.5 px-3 text-center">Kes. BFO</th>
+                <th class="py-2.5 px-3 text-center">Kes. SF</th>
+                <th class="py-2.5 px-3">Temuan Lapangan</th>
+                <th class="py-2.5 px-3 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="anp-data-tbody" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
   <script>
     Chart.register(ChartDataLabels);
 
@@ -2060,12 +2364,15 @@
       document.getElementById("view-prot").classList.toggle("hidden", view !== "prot");
       document.getElementById("view-tanah").classList.toggle("hidden", view !== "tanah");
       document.getElementById("view-eval").classList.toggle("hidden", view !== "eval");
+      const viewAnalisa = document.getElementById("view-analisa");
+      if (viewAnalisa) viewAnalisa.classList.toggle("hidden", view !== "analisa");
 
       const btnLds = document.getElementById("main-tab-lds");
       const btnGgn = document.getElementById("main-tab-ggn");
       const btnProt = document.getElementById("main-tab-prot");
       const btnTanah = document.getElementById("main-tab-tanah");
       const btnEval = document.getElementById("main-tab-eval");
+      const btnAnalisa = document.getElementById("main-tab-analisa");
 
       const baseInactive = "main-nav-tab w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center justify-between gap-2 text-left";
       btnLds.className = view === "lds"
@@ -2085,13 +2392,19 @@
           ? "main-nav-tab active-eval w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 flex items-center justify-between gap-2 text-left"
           : baseInactive;
       }
+      if (btnAnalisa) {
+        btnAnalisa.className = view === "analisa"
+          ? "main-nav-tab active-eval w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold border border-slate-700 flex items-center justify-between gap-2 text-left"
+          : baseInactive;
+      }
 
       const labelMap = {
         lds: "1. Analisa Sambaran Petir (LDS)",
         ggn: "2. Gangguan Petir",
         prot: "3. Proteksi Petir Terpasang",
         tanah: "4. Pentanahan (NS, CT Ring & R Soil)",
-        eval: "5. Evaluasi Kerawanan Petir"
+        eval: "5. Evaluasi Kerawanan Petir",
+        analisa: "6. Analisa Petir (BFO & SF)"
       };
       const activeLabelEl = document.getElementById("active-tab-menu-label");
       if (activeLabelEl && labelMap[view]) activeLabelEl.textContent = labelMap[view];
@@ -2120,10 +2433,14 @@
         sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=2110094299#gid=2110094299";
         sheetLabel.textContent = "Sheet: NILAI PENTANAHAN";
         refreshTanahView();
-      } else {
+      } else if (view === "eval") {
         sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=286301078#gid=286301078";
         sheetLabel.textContent = "Evaluasi 4 Sheet Terpadu";
         refreshEvalView();
+      } else if (view === "analisa") {
+        sheetLink.href = "https://docs.google.com/spreadsheets/d/17NH2Hb7w2rDdFLSghJygSnGt255S5VWYdLmbvr1Y1RA/edit?gid=2110094299#gid=2110094299";
+        sheetLabel.textContent = "Analisa Petir (BFO & SF)";
+        if (typeof refreshAnalisaPetirView === "function") refreshAnalisaPetirView();
       }
     };
 
@@ -6728,7 +7045,532 @@
         });
       }
     }
+
+    /* ======================================================================= */
+    /* TAB 6: ANALISA PETIR (BFO & SHIELDING FAILURE - CIGRE TB 839 2021)       */
+    /* ======================================================================= */
+    const ANP_STORAGE_KEY = "lds_analisa_petir_records_v1";
+    const ANP_TOWER_TYPES = (() => {
+      const specs = [
+        { prefix: "AA", offs: [-3, 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33], base: [35.4, 31.4, 26.9, 22.9] },
+        { prefix: "BB", offs: [-3, 0, 3, 6, 9, 12, 15, 18], base: [37.4, 33.4, 28.9, 24.9] },
+        { prefix: "CC", offs: [-3, 0, 3, 6, 9, 12, 15, 18], base: [39.4, 35.4, 30.9, 26.9] },
+        { prefix: "DD", offs: [0, 3, 6, 9, 12, 15, 18], base: [41.4, 37.4, 32.9, 28.9] }
+      ];
+      const map = {};
+      specs.forEach(s => {
+        s.offs.forEach(o => {
+          const name = `${s.prefix}${o >= 0 ? "+" + o : o}`;
+          map[name] = {
+            gsw: +(s.base[0] + o).toFixed(1),
+            atas: +(s.base[1] + o).toFixed(1),
+            tengah: +(s.base[2] + o).toFixed(1),
+            bawah: +(s.base[3] + o).toFixed(1),
+            kv: 150
+          };
+        });
+      });
+      return map;
+    })();
+
+    const anpState = {
+      subTab: "analisa",
+      tinggiMode: "auto",
+      sudutMode: "hitung",
+      lineMode: "LINE 1",
+      lastResult: null,
+      records: []
+    };
+
+    function loadAnpRecords() {
+      try {
+        const raw = localStorage.getItem(ANP_STORAGE_KEY);
+        anpState.records = raw ? JSON.parse(raw) : [];
+      } catch (_) {
+        anpState.records = [];
+      }
+      const b1 = document.getElementById("badge-nav-analisa");
+      const b2 = document.getElementById("anp-data-count-pill");
+      if (b1) b1.textContent = `${anpState.records.length} Data`;
+      if (b2) b2.textContent = String(anpState.records.length);
+    }
+
+    function saveAnpRecordsToStorage() {
+      try { localStorage.setItem(ANP_STORAGE_KEY, JSON.stringify(anpState.records)); } catch (_) {}
+      const b1 = document.getElementById("badge-nav-analisa");
+      const b2 = document.getElementById("anp-data-count-pill");
+      if (b1) b1.textContent = `${anpState.records.length} Data`;
+      if (b2) b2.textContent = String(anpState.records.length);
+    }
+
+    window.switchAnpSubTab = function(sub) {
+      anpState.subTab = sub;
+      document.getElementById("anp-subtab-analisa")?.classList.toggle("hidden", sub !== "analisa");
+      document.getElementById("anp-subtab-data")?.classList.toggle("hidden", sub !== "data");
+      const bA = document.getElementById("anp-subtab-btn-analisa");
+      const bD = document.getElementById("anp-subtab-btn-data");
+      if (bA && bD) {
+        bA.className = sub === "analisa"
+          ? "px-4 py-2 rounded-xl text-xs font-extrabold bg-[#00529b] text-white shadow transition"
+          : "px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition";
+        bD.className = sub === "data"
+          ? "px-4 py-2 rounded-xl text-xs font-extrabold bg-[#00529b] text-white shadow transition flex items-center gap-1.5"
+          : "px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1.5";
+      }
+      if (sub === "data") renderAnpDataTable();
+    };
+
+    window.setAnpTinggiMode = function(mode) {
+      anpState.tinggiMode = mode;
+      document.getElementById("anp-tinggi-manual-wrap")?.classList.toggle("hidden", mode !== "manual");
+      document.getElementById("anp-tinggi-auto-wrap")?.classList.toggle("hidden", mode !== "auto");
+      const bm = document.getElementById("anp-mode-tinggi-manual");
+      const ba = document.getElementById("anp-mode-tinggi-auto");
+      if (bm && ba) {
+        bm.className = mode === "manual" ? "px-2 py-0.5 bg-[#00529b] text-white" : "px-2 py-0.5 bg-slate-700 text-white";
+        ba.className = mode === "auto" ? "px-2 py-0.5 bg-[#00529b] text-white" : "px-2 py-0.5 bg-slate-700 text-white";
+      }
+      calculateAnalisaPetir();
+    };
+
+    window.setAnpSudutMode = function(mode) {
+      anpState.sudutMode = mode;
+      document.getElementById("anp-sudut-manual-wrap")?.classList.toggle("hidden", mode !== "manual");
+      document.getElementById("anp-sudut-hitung-wrap")?.classList.toggle("hidden", mode !== "hitung");
+      const bm = document.getElementById("anp-mode-sudut-manual");
+      const bh = document.getElementById("anp-mode-sudut-hitung");
+      if (bm && bh) {
+        bm.className = mode === "manual" ? "px-2 py-0.5 bg-[#00529b] text-white" : "px-2 py-0.5 bg-slate-700 text-white";
+        bh.className = mode === "hitung" ? "px-2 py-0.5 bg-[#00529b] text-white" : "px-2 py-0.5 bg-slate-700 text-white";
+      }
+      calculateAnalisaPetir();
+    };
+
+    window.setAnpLineMode = function(mode) {
+      anpState.lineMode = mode;
+      document.getElementById("anp-temuan-line2-wrap")?.classList.toggle("hidden", mode !== "LINE 1 DAN 2");
+      const t1 = document.getElementById("anp-temuan-line1-title");
+      if (t1) t1.textContent = mode === "LINE 2" ? "Temuan Line 2" : "Temuan Line 1";
+      const mapBtn = { "LINE 1": "anp-line-btn-1", "LINE 2": "anp-line-btn-2", "LINE 1 DAN 2": "anp-line-btn-both" };
+      Object.entries(mapBtn).forEach(([k, id]) => {
+        const el = document.getElementById(id);
+        if (el) el.className = k === mode ? "px-3 py-1 rounded-lg font-bold bg-[#00529b] text-white" : "px-3 py-1 rounded-lg font-bold bg-slate-800 text-slate-300";
+      });
+    };
+
+    window.resetAnpTemuan = function() {
+      ["l1", "l2"].forEach(p => {
+        ["fasa", "alat", "kondisi", "sisi", "ket"].forEach(f => {
+          const el = document.getElementById(`anp-${p}-${f}`);
+          if (el) el.value = "";
+        });
+      });
+    };
+
+    function getAnpTemuanText(prefix) {
+      const fasa = document.getElementById(`anp-${prefix}-fasa`)?.value || "";
+      const alat = document.getElementById(`anp-${prefix}-alat`)?.value || "";
+      const kondisi = document.getElementById(`anp-${prefix}-kondisi`)?.value || "";
+      const sisi = document.getElementById(`anp-${prefix}-sisi`)?.value || "";
+      const ket = (document.getElementById(`anp-${prefix}-ket`)?.value || "").trim();
+      const parts = [fasa && `Fasa ${fasa}`, alat, kondisi, sisi && `Sisi ${sisi}`, ket].filter(Boolean);
+      return parts.length > 0 ? parts.join(" • ") : "-";
+    }
+
+    window.calculateAnalisaPetir = function() {
+      const tower = (document.getElementById("anp-tower")?.value || "").trim() || "-";
+      const tanggal = document.getElementById("anp-tanggal")?.value || new Date().toISOString().slice(0, 10);
+      let geom = null, tipeLabel = "Manual", kv = 150;
+      if (anpState.tinggiMode === "auto") {
+        const tipe = document.getElementById("anp-tipe-tower")?.value || "AA+0";
+        geom = ANP_TOWER_TYPES[tipe] || ANP_TOWER_TYPES["AA+0"];
+        tipeLabel = tipe;
+        kv = geom.kv;
+        const gInfo = document.getElementById("anp-geom-info");
+        if (gInfo) gInfo.textContent = `GSW ${geom.gsw}m • Atas ${geom.atas}m • Tengah ${geom.tengah}m • Bawah ${geom.bawah}m`;
+      } else {
+        const h = parseFloat(document.getElementById("anp-tinggi-val")?.value) || 35.4;
+        kv = parseFloat(document.getElementById("anp-tegangan")?.value) || 150;
+        geom = {
+          gsw: +h.toFixed(1),
+          atas: +(h - 4.0).toFixed(1),
+          tengah: +(h - 8.5).toFixed(1),
+          bawah: +(h - 12.5).toFixed(1),
+          kv
+        };
+        tipeLabel = `${h.toFixed(1)}m (${kv} kV)`;
+      }
+
+      let dy = parseFloat(document.getElementById("anp-dy-gsw")?.value) || 4;
+      let trGsw = parseFloat(document.getElementById("anp-tr-gsw")?.value) || 2.2;
+      let trAtas = parseFloat(document.getElementById("anp-tr-atas")?.value) || 3.5;
+      let sudut = parseFloat(document.getElementById("anp-sudut-val")?.value) || 18.0;
+      if (anpState.sudutMode === "hitung") {
+        sudut = dy > 0 ? (Math.atan((trAtas - trGsw) / dy) * 180 / Math.PI) : 0;
+      }
+      const sLbl = document.getElementById("anp-sudut-computed-label");
+      if (sLbl) sLbl.textContent = `Sudut Lindung: ${sudut.toFixed(2)}°`;
+
+      const R = parseFloat(document.getElementById("anp-pentanahan")?.value) || 0;
+      const ins = parseFloat(document.getElementById("anp-insulator")?.value) || 12;
+      const ah = parseFloat(document.getElementById("anp-ah")?.value) || 160;
+      const I = parseFloat(document.getElementById("anp-arus")?.value) || 0;
+      const didt = parseFloat(document.getElementById("anp-didt")?.value) || 0;
+
+      const bilAh = +(ah * 6.710625).toFixed(2);
+      const bilIns = +Math.round(ins * (1105 / 12)).toFixed(0);
+      const minBil = Math.min(bilAh, bilIns);
+
+      const calcVt = (h, factor) => +(factor * I * R + 0.79 * h * didt).toFixed(2);
+      const rowsBfo = [
+        { name: "GSW", h: geom.gsw, bilAh: null, bilIns: null, vtTwr: calcVt(geom.gsw, 0.6), vtGsw: calcVt(geom.gsw, 0.3) },
+        { name: "Phasa Atas", h: geom.atas, bilAh, bilIns, vtTwr: calcVt(geom.atas, 0.6), vtGsw: calcVt(geom.atas, 0.3) },
+        { name: "Phasa Tengah", h: geom.tengah, bilAh, bilIns, vtTwr: calcVt(geom.tengah, 0.6), vtGsw: calcVt(geom.tengah, 0.3) },
+        { name: "Phasa Bawah", h: geom.bawah, bilAh, bilIns, vtTwr: calcVt(geom.bawah, 0.6), vtGsw: calcVt(geom.bawah, 0.3) }
+      ];
+      const isBfoTwr = rowsBfo.slice(1).some(r => r.vtTwr > minBil);
+      const isBfoGsw = rowsBfo.slice(1).some(r => r.vtGsw > minBil);
+      const kesBfo = (isBfoTwr || isBfoGsw) ? "BFO" : "NON BFO";
+
+      // CIGRE TB 839 Rolling Sphere
+      const rs = I > 0 ? 10 * Math.pow(I, 0.65) : 0;
+      const hAvg = (geom.gsw + geom.atas) / 2;
+      let sudutSf = 0;
+      if (rs > hAvg) {
+        const arg = Math.max(-1, Math.min(1, 1 - hAvg / rs));
+        sudutSf = Math.asin(arg) * 180 / Math.PI;
+      }
+      const sinA = Math.sin((sudut * Math.PI) / 180);
+      const rsCrit = (1 - sinA) > 0.01 ? (hAvg / (1 - sinA)) : 999;
+      const iSf = Math.pow(rsCrit / 10, 1 / 0.65);
+      const kesSf = (sudut > sudutSf || (I > 0 && I < iSf)) ? "SF" : "NON SF";
+
+      const bfoBody = document.getElementById("anp-bfo-tbody");
+      if (bfoBody) {
+        bfoBody.innerHTML = rowsBfo.map(r => {
+          const twrBad = r.bilAh !== null && r.vtTwr > minBil;
+          const gswBad = r.bilAh !== null && r.vtGsw > minBil;
+          return `
+            <tr class="hover:bg-slate-800/40">
+              <td class="py-2 px-3 font-bold">${r.name} <span class="text-[10px] text-slate-400">(${r.h}m)</span></td>
+              <td class="py-2 px-3 text-right">${r.bilAh !== null ? r.bilAh.toFixed(2) : "-"}</td>
+              <td class="py-2 px-3 text-right">${r.bilIns !== null ? r.bilIns : "-"}</td>
+              <td class="py-2 px-3 text-right font-bold ${twrBad ? "text-rose-400" : "text-emerald-400"}">${r.vtTwr.toFixed(2)}</td>
+              <td class="py-2 px-3 text-right font-bold ${gswBad ? "text-rose-400" : "text-emerald-400"}">${r.vtGsw.toFixed(2)}</td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      const bfoBadge = document.getElementById("anp-bfo-badge");
+      if (bfoBadge) {
+        bfoBadge.textContent = kesBfo;
+        bfoBadge.className = kesBfo === "BFO"
+          ? "px-3 py-1 rounded-full text-xs font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30"
+          : "px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+      }
+
+      const sfBody = document.getElementById("anp-sf-tbody");
+      if (sfBody) {
+        const badgeHtml = kesSf === "SF"
+          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300">SF</span>`
+          : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">NON SF</span>`;
+        sfBody.innerHTML = `
+          <tr class="hover:bg-slate-800/40">
+            <td class="py-2.5 px-3 font-bold">I kA Petir</td>
+            <td class="py-2.5 px-3 text-right font-bold">${I} kA</td>
+            <td class="py-2.5 px-3 text-right font-bold text-sky-400">${iSf.toFixed(2)} kA</td>
+            <td class="py-2.5 px-3 text-center">${badgeHtml}</td>
+          </tr>
+          <tr class="hover:bg-slate-800/40">
+            <td class="py-2.5 px-3 font-bold">Sudut Lindung</td>
+            <td class="py-2.5 px-3 text-right font-bold">${sudut.toFixed(2)}°</td>
+            <td class="py-2.5 px-3 text-right font-bold text-sky-400">${sudutSf.toFixed(2)}°</td>
+            <td class="py-2.5 px-3 text-center">${badgeHtml}</td>
+          </tr>
+        `;
+      }
+
+      const sfBadge = document.getElementById("anp-sf-badge");
+      if (sfBadge) {
+        sfBadge.textContent = kesSf;
+        sfBadge.className = kesSf === "SF"
+          ? "px-3 py-1 rounded-full text-xs font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30"
+          : "px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+      }
+
+      anpState.lastResult = {
+        id: "anp_" + Date.now(),
+        tanggal, tower,
+        modeTinggi: anpState.tinggiMode === "auto" ? "Otomatis" : "Manual",
+        tipeLabel, kv, geom, R, ins, ah, I, didt,
+        sudut: +sudut.toFixed(2),
+        bilAh, bilIns, minBil,
+        rowsBfo, isBfoTwr, isBfoGsw, kesBfo,
+        iSf: +iSf.toFixed(2), sudutSf: +sudutSf.toFixed(2), kesSf
+      };
+      return anpState.lastResult;
+    };
+
+    function buildAnpWaText(res, temuanOverride = null) {
+      const r = res || calculateAnalisaPetir();
+      const lMode = temuanOverride?.lineMode || anpState.lineMode;
+      const t1 = temuanOverride?.l1 ?? getAnpTemuanText("l1");
+      const t2 = temuanOverride?.l2 ?? getAnpTemuanText("l2");
+      const temuanBlock = lMode === "LINE 1 DAN 2"
+        ? `• Line 1 : ${t1}\n• Line 2 : ${t2}`
+        : `• ${lMode === "LINE 2" ? "Line 2" : "Line 1"} : ${t1}`;
+
+      const phRows = r.rowsBfo.slice(1);
+      const fmtBfoLines = (field) => phRows.map(x => {
+        const st = x[field] > r.minBil ? "BFO ⚠️" : "AMAN🆗";
+        return `${x.name.replace("Phasa ", "Phs ")} : ${x[field].toFixed(2)} kV ➔ ${st}`;
+      }).join("\n");
+
+      return [
+        "⚡ *EVALUASI GANGGUAN PETIR* ⚡",
+        "",
+        "*DATA TOWER & PETIR*",
+        `Tower : ${r.tower}`,
+        `Sudut Lindung GSW: ${r.sudut.toFixed(2)}°`,
+        `Jumlah Keping : ${r.ins} keping`,
+        `Jarak Arching Horn : ${r.ah} cm`,
+        `Pentanahan Tower : ${r.R} Ohm`,
+        `Arus Petir : ${r.I} kA`,
+        `Steepness Petir : ${r.didt} kA/µs`,
+        "",
+        "🗼 *Geometri Tower :*",
+        `Type Tower : ${r.tipeLabel}`,
+        `GSW : ${r.geom.gsw}m`,
+        `Phs Atas : ${r.geom.atas}m`,
+        `Phs Tengah : ${r.geom.tengah}m`,
+        `Phs Bawah : ${r.geom.bawah}m`,
+        "",
+        "🛡️ *Analisa Rolling Sphere / Shielding Failure*",
+        `I (kA) Petir : ${r.I} kA`,
+        `I (kA) Sebelum SF : ${r.iSf.toFixed(2)} kA ${r.kesSf === "SF" ? "⚠️" : "🆗"}`,
+        `Sudut Lindung SF : ${r.sudutSf.toFixed(2)}°`,
+        `Sudut Lindung Tower : ${r.sudut.toFixed(2)}° ${r.kesSf === "SF" ? "⚠️" : "🆗"}`,
+        `➔ Hasil : *${r.kesSf === "SF" ? "POTENSI SF" : "AMAN / NON SF"}* ${r.kesSf === "SF" ? "⚠️" : "✅"}`,
+        "",
+        "⚡🗼 *Analisa Sambaran Tower*",
+        `BIL Insulator : ${r.bilIns} kV`,
+        `BIL Arching Horn : ${r.bilAh.toFixed(2)} kV`,
+        "Tegangan Tower (Ut) :",
+        fmtBfoLines("vtTwr"),
+        `➔ Hasil : *${r.isBfoTwr ? "POTENSI BFO" : "AMAN / NON BFO"}* ${r.isBfoTwr ? "⚠️" : "✅"}`,
+        "",
+        "⚡🚠 *Analisa Sambaran GSW*",
+        `BIL Insulator : ${r.bilIns} kV`,
+        `BIL Arching Horn : ${r.bilAh.toFixed(2)} kV`,
+        "Tegangan Tower (Ut) :",
+        fmtBfoLines("vtGsw"),
+        `➔ Hasil : *${r.isBfoGsw ? "POTENSI BFO" : "AMAN / NON BFO"}* ${r.isBfoGsw ? "⚠️" : "✅"}`,
+        "",
+        "🔍 *Hasil Temuan Lapangan :*",
+        `Line : ${lMode}`,
+        temuanBlock,
+        "",
+        "_Perhitungan Analisa Petir Berdasarkan CIGRE TB 839 2021_"
+      ].join("\n");
+    }
+
+    window.copyAnpWaText = async function(btnEl = null, res = null, temuanOverride = null) {
+      const txt = buildAnpWaText(res, temuanOverride);
+      try {
+        if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(txt);
+      } catch (_) {}
+      if (btnEl) {
+        const orig = btnEl.innerHTML;
+        btnEl.innerHTML = "✅ Tersalin!";
+        setTimeout(() => { btnEl.innerHTML = orig; }, 1800);
+      }
+    };
+
+    window.openAnpWaModal = function(res = null, temuanOverride = null) {
+      const txt = buildAnpWaText(res, temuanOverride);
+      const modal = document.getElementById("anp-wa-modal");
+      const ta = document.getElementById("anp-wa-preview");
+      const openBtn = document.getElementById("anp-wa-open-link");
+      if (ta) ta.value = txt;
+      if (openBtn) openBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`;
+      if (modal) modal.classList.remove("hidden");
+    };
+
+    window.closeAnpWaModal = function() {
+      document.getElementById("anp-wa-modal")?.classList.add("hidden");
+    };
+
+    window.saveAnalisaPetirRecord = function() {
+      const res = calculateAnalisaPetir();
+      const rec = {
+        ...res,
+        lineMode: anpState.lineMode,
+        temuanL1: getAnpTemuanText("l1"),
+        temuanL2: getAnpTemuanText("l2")
+      };
+      rec.temuanText = rec.lineMode === "LINE 1 DAN 2"
+        ? `L1: ${rec.temuanL1} | L2: ${rec.temuanL2}`
+        : `${rec.lineMode}: ${rec.temuanL1}`;
+      anpState.records.unshift(rec);
+      saveAnpRecordsToStorage();
+      const btn = document.getElementById("anp-btn-save");
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = "✅ Tersimpan!";
+        setTimeout(() => { btn.innerHTML = orig; }, 1800);
+      }
+      renderAnpDataTable();
+    };
+
+    window.deleteAnpRecord = function(id) {
+      anpState.records = anpState.records.filter(r => r.id !== id);
+      saveAnpRecordsToStorage();
+      renderAnpDataTable();
+    };
+
+    window.renderAnpDataTable = function() {
+      const q = (document.getElementById("anp-data-search")?.value || "").toLowerCase().trim();
+      const list = anpState.records.filter(r => !q || `${r.tower} ${r.tipeLabel} ${r.temuanText}`.toLowerCase().includes(q));
+      const sfCnt = anpState.records.filter(r => r.kesSf === "SF").length;
+      const bfoCnt = anpState.records.filter(r => r.kesBfo === "BFO").length;
+      const elTot = document.getElementById("anp-kpi-total");
+      const elSf = document.getElementById("anp-kpi-sf");
+      const elNonSf = document.getElementById("anp-kpi-nonsf");
+      const elBfo = document.getElementById("anp-kpi-bfo");
+      const elNonBfo = document.getElementById("anp-kpi-nonbfo");
+      if (elTot) elTot.textContent = fmtNum(anpState.records.length);
+      if (elSf) elSf.textContent = fmtNum(sfCnt);
+      if (elNonSf) elNonSf.textContent = `NON SF: ${fmtNum(anpState.records.length - sfCnt)}`;
+      if (elBfo) elBfo.textContent = fmtNum(bfoCnt);
+      if (elNonBfo) elNonBfo.textContent = `NON BFO: ${fmtNum(anpState.records.length - bfoCnt)}`;
+
+      const tbody = document.getElementById("anp-data-tbody");
+      if (!tbody) return;
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="17" class="py-6 text-center text-slate-400">Belum ada data analisa tersimpan. Klik <strong>Simpan Analisa &amp; Temuan</strong> di sub-tab Analisa.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map(r => {
+        const vtTwrAtas = r.rowsBfo?.[1]?.vtTwr ?? 0;
+        const vtGswAtas = r.rowsBfo?.[1]?.vtGsw ?? 0;
+        const bfoCls = r.kesBfo === "BFO" ? "bg-rose-500/20 text-rose-300" : "bg-emerald-500/20 text-emerald-400";
+        const sfCls = r.kesSf === "SF" ? "bg-rose-500/20 text-rose-300" : "bg-emerald-500/20 text-emerald-400";
+        return `
+          <tr class="hover:bg-slate-800/40">
+            <td class="py-2 px-3">${escapeHtml(r.tanggal)}</td>
+            <td class="py-2 px-3 font-bold">${escapeHtml(r.tower)}</td>
+            <td class="py-2 px-3">${escapeHtml(r.modeTinggi)}</td>
+            <td class="py-2 px-3">${escapeHtml(r.tipeLabel)}</td>
+            <td class="py-2 px-3 text-right">${r.kv}</td>
+            <td class="py-2 px-3 text-right">${r.R} Ω</td>
+            <td class="py-2 px-3 text-right">${r.ins}</td>
+            <td class="py-2 px-3 text-right">${r.ah}</td>
+            <td class="py-2 px-3 text-right">${r.I}</td>
+            <td class="py-2 px-3 text-right">${r.didt}</td>
+            <td class="py-2 px-3 text-right">${r.sudut.toFixed(2)}°</td>
+            <td class="py-2 px-3 text-right">${vtTwrAtas.toFixed(2)}</td>
+            <td class="py-2 px-3 text-right">${vtGswAtas.toFixed(2)}</td>
+            <td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${bfoCls}">${r.kesBfo}</span></td>
+            <td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${sfCls}">${r.kesSf}</span></td>
+            <td class="py-2 px-3 max-w-[260px] truncate" title="${escapeHtml(r.temuanText || "-")}">${escapeHtml(r.temuanText || "-")}</td>
+            <td class="py-2 px-3 text-center">
+              <div class="inline-flex items-center gap-1">
+                <button type="button" onclick='openAnpWaModal(anpState.records.find(x => x.id === "${r.id}"), { lineMode: "${escapeHtml(r.lineMode || "LINE 1")}", l1: ${JSON.stringify(r.temuanL1 || "-")}, l2: ${JSON.stringify(r.temuanL2 || "-")} })' class="px-2 py-1 rounded bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600 hover:text-white font-bold">WA</button>
+                <button type="button" onclick='deleteAnpRecord("${r.id}")' class="px-2 py-1 rounded bg-rose-600/20 text-rose-300 hover:bg-rose-600 hover:text-white font-bold">Hapus</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    };
+
+    window.exportAnpCsv = function() {
+      if (!anpState.records.length) return;
+      const headers = ["Tanggal", "Nama Tower", "Mode", "Tipe/Tinggi", "kV", "Pentanahan (Ohm)", "Insulator", "Arching Horn (cm)", "Arus (kA)", "di/dt", "Sudut (deg)", "VT Twr Atas", "VT GSW Atas", "Kesimpulan BFO", "Kesimpulan SF", "Temuan Lapangan"];
+      const rows = anpState.records.map(r => [
+        r.tanggal, r.tower, r.modeTinggi, r.tipeLabel, r.kv, r.R, r.ins, r.ah, r.I, r.didt, r.sudut,
+        r.rowsBfo?.[1]?.vtTwr ?? "", r.rowsBfo?.[1]?.vtGsw ?? "", r.kesBfo, r.kesSf, r.temuanText || "-"
+      ]);
+      const csv = [headers, ...rows].map(row => row.map(c => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `Analisa_Petir_BFO_SF_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+    };
+
+    window.refreshAnalisaPetirView = function() {
+      const dl = document.getElementById("anp-tower-datalist");
+      if (dl && typeof allTanahRecords !== "undefined" && Array.isArray(allTanahRecords) && dl.options.length === 0) {
+        dl.innerHTML = allTanahRecords.map(r => `<option value="${escapeHtml(r.t)}">${escapeHtml(r.u)} • ${escapeHtml(r.i)}</option>`).join("");
+      }
+      calculateAnalisaPetir();
+      if (anpState.subTab === "data") renderAnpDataTable();
+    };
+
+    (function initAnalisaPetirTab() {
+      const selTipe = document.getElementById("anp-tipe-tower");
+      if (selTipe && selTipe.options.length === 0) {
+        Object.keys(ANP_TOWER_TYPES).forEach(k => {
+          const opt = document.createElement("option");
+          opt.value = k;
+          opt.textContent = k;
+          if (k === "AA+0") opt.selected = true;
+          selTipe.appendChild(opt);
+        });
+      }
+      const elTgl = document.getElementById("anp-tanggal");
+      if (elTgl && !elTgl.value) elTgl.value = new Date().toISOString().slice(0, 10);
+
+      document.getElementById("anp-tower")?.addEventListener("change", (e) => {
+        const val = (e.target.value || "").trim();
+        if (typeof allTanahRecords !== "undefined" && Array.isArray(allTanahRecords)) {
+          const match = allTanahRecords.find(r => r.t === val);
+          if (match) {
+            const rVal = (match.ct_r !== null && match.ct_r !== undefined) ? match.ct_r : match.ns;
+            if (rVal !== null && rVal !== undefined) {
+              document.getElementById("anp-pentanahan").value = rVal;
+            }
+            const mKv = String(match.i || match.t || "").match(/(\d+)\s*KV/i);
+            if (mKv && document.getElementById("anp-tegangan")) {
+              const kvStr = mKv[1];
+              if (["70", "150", "275", "500"].includes(kvStr)) document.getElementById("anp-tegangan").value = kvStr;
+            }
+            const hint = document.getElementById("anp-tower-autofill-hint");
+            if (hint) hint.textContent = `Auto-fill dari Database LDS: ${match.u} • Pentanahan ${rVal ?? "-"} Ω (${match.ct_r !== null ? "CT Ring" : "NS"})`;
+            calculateAnalisaPetir();
+          }
+        }
+      });
+
+      ["anp-tipe-tower", "anp-tinggi-val", "anp-tegangan", "anp-sudut-val", "anp-dy-gsw", "anp-tr-gsw", "anp-tr-atas", "anp-pentanahan", "anp-insulator", "anp-ah", "anp-arus", "anp-didt"].forEach(id => {
+        document.getElementById(id)?.addEventListener("input", calculateAnalisaPetir);
+        document.getElementById(id)?.addEventListener("change", calculateAnalisaPetir);
+      });
+
+      loadAnpRecords();
+      calculateAnalisaPetir();
+    })();
   </script>
+
+  <!-- MODAL PRATINJAU WA TAB 6 (ANALISA PETIR BFO & SF) -->
+  <div id="anp-wa-modal" class="hidden fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3.5 bg-[#00529b] text-white">
+        <div class="font-extrabold text-sm flex items-center gap-2"><span>💬</span><span>Pratinjau Template WhatsApp — Analisa Petir (CIGRE TB 839)</span></div>
+        <button type="button" onclick="closeAnpWaModal()" class="text-white/80 hover:text-white font-bold text-lg leading-none">&times;</button>
+      </div>
+      <div class="p-4 space-y-3">
+        <textarea id="anp-wa-preview" rows="16" class="w-full p-3 rounded-xl border border-slate-700 bg-slate-950 text-slate-200 font-mono text-xs leading-relaxed focus:outline-none"></textarea>
+        <div class="flex flex-wrap items-center justify-end gap-2">
+          <button type="button" onclick="closeAnpWaModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200">Tutup</button>
+          <a id="anp-wa-open-link" href="https://api.whatsapp.com/send" target="_blank" rel="noopener" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white">📲 Buka di WhatsApp</a>
+          <button type="button" onclick="navigator.clipboard?.writeText(document.getElementById('anp-wa-preview').value); this.textContent='✅ Tersalin!'; setTimeout(() => this.textContent='📋 Salin Teks', 1800);" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 hover:bg-emerald-500 text-white">📋 Salin Teks</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ========================================================================= -->
   <!-- MODAL PREVIEW & COPY FORMAT CHAT WHATSAPP -->
