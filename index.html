@@ -9,7 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="data/rekap_lds_data.js"></script>
+  <script src="data/rekap_lds_data.js?v=20261128_2"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     body {
@@ -806,120 +806,6 @@
         </table>
       </div>
     </section>
-
-    <!-- ========================================================================= -->
-    <!-- RENCANA PEMASANGAN PROTEKSI PETIR (KOLOM RENCANA ROADMAP PROTEKSI PETIR)  -->
-    <!-- ========================================================================= -->
-    <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-[#00529b] text-white">RENCANA PROTEKSI PETIR</span>
-            <h3 class="text-sm lg:text-base font-extrabold text-white">Grafik &amp; Tabel Rencana Pemasangan Proteksi Petir</h3>
-          </div>
-          <p class="text-xs text-slate-400 mt-0.5">Rekapitulasi rencana pemasangan MRG, MGGS, DGS, MDG, Jumper, Polymer, TLA, dan Cleaning Insulator sesuai filter ULTG &amp; Penghantar.</p>
-        </div>
-        <button id="btn-export-prot-rencana-csv" type="button" onclick="exportProtRencanaCsv()"
-                class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5">
-          <span>📥</span><span>Export Rencana (CSV)</span>
-        </button>
-      </div>
-
-      <!-- KPI Rencana -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-slate-400">Tower Berencana</div>
-          <div id="prot-ren-kpi-total" class="text-xl font-extrabold text-white mt-0.5">0</div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-amber-400">Rencana MRG</div>
-          <div id="prot-ren-kpi-mrg" class="text-xl font-extrabold text-amber-400 mt-0.5">0</div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-sky-400">Rencana MGGS</div>
-          <div id="prot-ren-kpi-mggs" class="text-xl font-extrabold text-sky-400 mt-0.5">0</div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-rose-400">Rencana TLA</div>
-          <div id="prot-ren-kpi-tla" class="text-xl font-extrabold text-rose-400 mt-0.5">0</div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-teal-400">Rencana Cleaning</div>
-          <div id="prot-ren-kpi-cln" class="text-xl font-extrabold text-teal-300 mt-0.5">0</div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-emerald-400">DGS/MDG/Jmp/Poly</div>
-          <div id="prot-ren-kpi-other" class="text-xl font-extrabold text-emerald-400 mt-0.5">0</div>
-        </div>
-      </div>
-
-      <!-- Grafik Rencana -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800">
-          <h4 class="text-xs font-extrabold text-slate-200 mb-2">Rencana Proteksi Petir per Penghantar (Top 20)</h4>
-          <div style="height: 360px;"><canvas id="chart-prot-rencana-induk"></canvas></div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800">
-          <h4 class="text-xs font-extrabold text-slate-200 mb-2">Rencana Proteksi Petir per ULTG</h4>
-          <div style="height: 360px;"><canvas id="chart-prot-rencana-ultg"></canvas></div>
-        </div>
-      </div>
-
-      <!-- Tabel Rekap Rencana per Penghantar -->
-      <div class="overflow-x-auto max-h-[360px] rounded-xl border border-slate-800">
-        <table class="w-full text-xs text-left whitespace-nowrap">
-          <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase font-bold border-b border-slate-800 z-10">
-            <tr>
-              <th class="py-2.5 px-3">No</th>
-              <th class="py-2.5 px-3">Penghantar (Segmen)</th>
-              <th class="py-2.5 px-3">ULTG</th>
-              <th class="py-2.5 px-3 text-right">Tower Berencana</th>
-              <th class="py-2.5 px-3 text-right text-amber-400">Renc. MRG</th>
-              <th class="py-2.5 px-3 text-right text-sky-400">Renc. MGGS</th>
-              <th class="py-2.5 px-3 text-right text-rose-400">Renc. TLA</th>
-              <th class="py-2.5 px-3 text-right text-teal-300">Renc. Cleaning</th>
-              <th class="py-2.5 px-3 text-right text-emerald-400">DGS/MDG/Jmp/Poly</th>
-            </tr>
-          </thead>
-          <tbody id="prot-rencana-tbody-induk" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
-        </table>
-      </div>
-
-      <!-- Tabel Rincian Rencana Tiap Tower -->
-      <div class="space-y-2 pt-2">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <h4 class="text-xs font-extrabold text-slate-200 uppercase">Rincian Rencana Tiap Tower (<span id="prot-ren-tower-count">0</span> Tower)</h4>
-          <div class="flex items-center gap-2">
-            <input id="prot-rencana-search" type="text" placeholder="Cari tower / kontrak rencana..." oninput="renderProtRencanaTowerTable()"
-                   class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
-            <select id="prot-rencana-limit" onchange="renderProtRencanaTowerTable()"
-                    class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none">
-              <option value="100">100 Baris</option>
-              <option value="300" selected>300 Baris</option>
-              <option value="ALL">Semua</option>
-            </select>
-          </div>
-        </div>
-        <div class="overflow-x-auto max-h-[420px] rounded-xl border border-slate-800">
-          <table class="w-full text-xs text-left whitespace-nowrap">
-            <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase font-bold border-b border-slate-800 z-10">
-              <tr>
-                <th class="py-2.5 px-3">No</th>
-                <th class="py-2.5 px-3">Nama Tower</th>
-                <th class="py-2.5 px-3">Penghantar</th>
-                <th class="py-2.5 px-3">ULTG</th>
-                <th class="py-2.5 px-3 text-amber-400">Renc. MRG</th>
-                <th class="py-2.5 px-3 text-sky-400">Renc. MGGS</th>
-                <th class="py-2.5 px-3 text-rose-400">Renc. TLA</th>
-                <th class="py-2.5 px-3 text-teal-300">Renc. Cleaning</th>
-                <th class="py-2.5 px-3 text-emerald-400">Renc. Lainnya</th>
-              </tr>
-            </thead>
-            <tbody id="prot-rencana-tbody-tower" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
   </main>
 
   <!-- ========================================================================= -->
@@ -1224,120 +1110,6 @@
         </table>
       </div>
     </section>
-
-    <!-- ========================================================================= -->
-    <!-- RENCANA PEMASANGAN PROTEKSI PETIR (KOLOM RENCANA ROADMAP PROTEKSI PETIR)  -->
-    <!-- ========================================================================= -->
-    <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-[#00529b] text-white">RENCANA PROTEKSI PETIR</span>
-            <h3 class="text-sm lg:text-base font-extrabold text-white">Grafik &amp; Tabel Rencana Pemasangan Proteksi Petir</h3>
-          </div>
-          <p class="text-xs text-slate-400 mt-0.5">Rekapitulasi rencana pemasangan MRG, MGGS, DGS, MDG, Jumper, Polymer, TLA, dan Cleaning Insulator sesuai filter ULTG &amp; Penghantar.</p>
-        </div>
-        <button id="btn-export-prot-rencana-csv" type="button" onclick="exportProtRencanaCsv()"
-                class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5">
-          <span>📥</span><span>Export Rencana (CSV)</span>
-        </button>
-      </div>
-
-      <!-- KPI Rencana -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-slate-400">Tower Berencana</div>
-          <div id="prot-ren-kpi-total" class="text-xl font-extrabold text-white mt-0.5">0</div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-amber-400">Rencana MRG</div>
-          <div id="prot-ren-kpi-mrg" class="text-xl font-extrabold text-amber-400 mt-0.5">0</div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-sky-400">Rencana MGGS</div>
-          <div id="prot-ren-kpi-mggs" class="text-xl font-extrabold text-sky-400 mt-0.5">0</div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-rose-400">Rencana TLA</div>
-          <div id="prot-ren-kpi-tla" class="text-xl font-extrabold text-rose-400 mt-0.5">0</div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-teal-400">Rencana Cleaning</div>
-          <div id="prot-ren-kpi-cln" class="text-xl font-extrabold text-teal-300 mt-0.5">0</div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-          <div class="text-[10px] font-bold uppercase text-emerald-400">DGS/MDG/Jmp/Poly</div>
-          <div id="prot-ren-kpi-other" class="text-xl font-extrabold text-emerald-400 mt-0.5">0</div>
-        </div>
-      </div>
-
-      <!-- Grafik Rencana -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800">
-          <h4 class="text-xs font-extrabold text-slate-200 mb-2">Rencana Proteksi Petir per Penghantar (Top 20)</h4>
-          <div style="height: 360px;"><canvas id="chart-prot-rencana-induk"></canvas></div>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800">
-          <h4 class="text-xs font-extrabold text-slate-200 mb-2">Rencana Proteksi Petir per ULTG</h4>
-          <div style="height: 360px;"><canvas id="chart-prot-rencana-ultg"></canvas></div>
-        </div>
-      </div>
-
-      <!-- Tabel Rekap Rencana per Penghantar -->
-      <div class="overflow-x-auto max-h-[360px] rounded-xl border border-slate-800">
-        <table class="w-full text-xs text-left whitespace-nowrap">
-          <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase font-bold border-b border-slate-800 z-10">
-            <tr>
-              <th class="py-2.5 px-3">No</th>
-              <th class="py-2.5 px-3">Penghantar (Segmen)</th>
-              <th class="py-2.5 px-3">ULTG</th>
-              <th class="py-2.5 px-3 text-right">Tower Berencana</th>
-              <th class="py-2.5 px-3 text-right text-amber-400">Renc. MRG</th>
-              <th class="py-2.5 px-3 text-right text-sky-400">Renc. MGGS</th>
-              <th class="py-2.5 px-3 text-right text-rose-400">Renc. TLA</th>
-              <th class="py-2.5 px-3 text-right text-teal-300">Renc. Cleaning</th>
-              <th class="py-2.5 px-3 text-right text-emerald-400">DGS/MDG/Jmp/Poly</th>
-            </tr>
-          </thead>
-          <tbody id="prot-rencana-tbody-induk" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
-        </table>
-      </div>
-
-      <!-- Tabel Rincian Rencana Tiap Tower -->
-      <div class="space-y-2 pt-2">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <h4 class="text-xs font-extrabold text-slate-200 uppercase">Rincian Rencana Tiap Tower (<span id="prot-ren-tower-count">0</span> Tower)</h4>
-          <div class="flex items-center gap-2">
-            <input id="prot-rencana-search" type="text" placeholder="Cari tower / kontrak rencana..." oninput="renderProtRencanaTowerTable()"
-                   class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
-            <select id="prot-rencana-limit" onchange="renderProtRencanaTowerTable()"
-                    class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none">
-              <option value="100">100 Baris</option>
-              <option value="300" selected>300 Baris</option>
-              <option value="ALL">Semua</option>
-            </select>
-          </div>
-        </div>
-        <div class="overflow-x-auto max-h-[420px] rounded-xl border border-slate-800">
-          <table class="w-full text-xs text-left whitespace-nowrap">
-            <thead class="sticky top-0 bg-slate-900 text-slate-300 uppercase font-bold border-b border-slate-800 z-10">
-              <tr>
-                <th class="py-2.5 px-3">No</th>
-                <th class="py-2.5 px-3">Nama Tower</th>
-                <th class="py-2.5 px-3">Penghantar</th>
-                <th class="py-2.5 px-3">ULTG</th>
-                <th class="py-2.5 px-3 text-amber-400">Renc. MRG</th>
-                <th class="py-2.5 px-3 text-sky-400">Renc. MGGS</th>
-                <th class="py-2.5 px-3 text-rose-400">Renc. TLA</th>
-                <th class="py-2.5 px-3 text-teal-300">Renc. Cleaning</th>
-                <th class="py-2.5 px-3 text-emerald-400">Renc. Lainnya</th>
-              </tr>
-            </thead>
-            <tbody id="prot-rencana-tbody-tower" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
   </main>
 
   <!-- ========================================================================= -->
@@ -1630,27 +1402,27 @@
 
       <!-- KPI Rencana -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+        <div class="glass-card p-3 rounded-xl border border-slate-800">
           <div class="text-[10px] font-bold uppercase text-slate-400">Tower Berencana</div>
           <div id="prot-ren-kpi-total" class="text-xl font-extrabold text-white mt-0.5">0</div>
         </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+        <div class="glass-card p-3 rounded-xl border border-slate-800">
           <div class="text-[10px] font-bold uppercase text-amber-400">Rencana MRG</div>
           <div id="prot-ren-kpi-mrg" class="text-xl font-extrabold text-amber-400 mt-0.5">0</div>
         </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+        <div class="glass-card p-3 rounded-xl border border-slate-800">
           <div class="text-[10px] font-bold uppercase text-sky-400">Rencana MGGS</div>
           <div id="prot-ren-kpi-mggs" class="text-xl font-extrabold text-sky-400 mt-0.5">0</div>
         </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+        <div class="glass-card p-3 rounded-xl border border-slate-800">
           <div class="text-[10px] font-bold uppercase text-rose-400">Rencana TLA</div>
           <div id="prot-ren-kpi-tla" class="text-xl font-extrabold text-rose-400 mt-0.5">0</div>
         </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+        <div class="glass-card p-3 rounded-xl border border-slate-800">
           <div class="text-[10px] font-bold uppercase text-teal-400">Rencana Cleaning</div>
           <div id="prot-ren-kpi-cln" class="text-xl font-extrabold text-teal-300 mt-0.5">0</div>
         </div>
-        <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+        <div class="glass-card p-3 rounded-xl border border-slate-800">
           <div class="text-[10px] font-bold uppercase text-emerald-400">DGS/MDG/Jmp/Poly</div>
           <div id="prot-ren-kpi-other" class="text-xl font-extrabold text-emerald-400 mt-0.5">0</div>
         </div>
@@ -1658,11 +1430,11 @@
 
       <!-- Grafik Rencana -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800">
+        <div class="glass-card p-3 rounded-xl border border-slate-800">
           <h4 class="text-xs font-extrabold text-slate-200 mb-2">Rencana Proteksi Petir per Penghantar (Top 20)</h4>
           <div style="height: 360px;"><canvas id="chart-prot-rencana-induk"></canvas></div>
         </div>
-        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800">
+        <div class="glass-card p-3 rounded-xl border border-slate-800">
           <h4 class="text-xs font-extrabold text-slate-200 mb-2">Rencana Proteksi Petir per ULTG</h4>
           <div style="height: 360px;"><canvas id="chart-prot-rencana-ultg"></canvas></div>
         </div>
@@ -4709,7 +4481,12 @@
       });
 
       renderProtTables(filtered);
-      renderProtRencanaSection(filtered);
+      const rencanaBase = allProtRecords.filter(r => {
+        if (protState.ultg !== "ALL" && r.u !== protState.ultg) return false;
+        if (protState.induk !== "ALL" && r.i !== protState.induk) return false;
+        return true;
+      });
+      renderProtRencanaSection(rencanaBase);
     }
 
     let chartProtRencanaInduk = null;
