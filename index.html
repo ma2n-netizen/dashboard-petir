@@ -7391,11 +7391,17 @@
               }
               @keyframes anpBoltFlash {
                 0%, 100% { opacity: 1; transform: scale(1); }
-                50% { opacity: 0.45; transform: scale(1.12); }
+                50% { opacity: 0.4; transform: scale(1.15); }
+              }
+              @keyframes anpTravesGlow {
+                0%, 100% { stroke: #f43f5e; stroke-width: 3; opacity: 1; }
+                50% { stroke: #fbbf24; stroke-width: 4; opacity: 0.7; }
               }
               .anp-gsw-shield { transform-box: fill-box; transform-origin: center; animation: anpPulseGlow 1.5s ease-in-out infinite; }
               .anp-ground-flow { stroke-dasharray: 6 6; animation: anpFlowDown 0.8s linear infinite; }
-              .anp-flash-bolt { transform-box: fill-box; transform-origin: center; animation: anpBoltFlash 0.9s ease-in-out infinite; }
+              .anp-flash-bolt { transform-box: fill-box; transform-origin: center; animation: anpBoltFlash 0.85s ease-in-out infinite; }
+              .anp-traves-bfo { animation: anpTravesGlow 0.9s ease-in-out infinite; }
+              .anp-bfo-arc { stroke-dasharray: 5 4; animation: anpFlowDown 0.6s linear infinite; }
             </style>
             <radialGradient id="anpGswGlow" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stop-color="#93c5fd" stop-opacity="0.95"/>
@@ -7473,19 +7479,27 @@
               <line x1="36" y1="${y}" x2="${rx + 28}" y2="${y}" stroke="#10b981" stroke-width="1.1" stroke-dasharray="3,3" opacity="0.85"/>
               <text x="10" y="${y - 4}" fill="#cbd5e1" font-size="10.5" font-weight="700">${ph.row.h} m</text>
 
-              <!-- Crossarm triangle -->
-              <polygon points="${lx},${y} ${rx},${y} ${cx + 18},${y - 24} ${cx - 18},${y - 24}" fill="none" stroke="#94a3b8" stroke-width="2"/>
-              <line x1="${lx}" y1="${y}" x2="${cx - 18}" y2="${y + 12}" stroke="#94a3b8" stroke-width="1.3"/>
-              <line x1="${rx}" y1="${y}" x2="${cx + 18}" y2="${y + 12}" stroke="#94a3b8" stroke-width="1.3"/>
+              <!-- Crossarm triangle (berkedip merah-kuning jika traves ini mengalami BFO) -->
+              <polygon points="${lx},${y} ${rx},${y} ${cx + 18},${y - 24} ${cx - 18},${y - 24}" fill="${flash ? "rgba(244,63,94,0.14)" : "none"}" stroke="${flash ? "#f43f5e" : "#94a3b8"}" stroke-width="${flash ? "2.8" : "2"}" class="${flash ? "anp-traves-bfo" : ""}"/>
+              <line x1="${lx}" y1="${y}" x2="${cx - 18}" y2="${y + 12}" stroke="${flash ? "#f43f5e" : "#94a3b8"}" stroke-width="${flash ? "2" : "1.3"}" class="${flash ? "anp-traves-bfo" : ""}"/>
+              <line x1="${rx}" y1="${y}" x2="${cx + 18}" y2="${y + 12}" stroke="${flash ? "#f43f5e" : "#94a3b8"}" stroke-width="${flash ? "2" : "1.3"}" class="${flash ? "anp-traves-bfo" : ""}"/>
 
               <!-- Left & Right Insulator Strings -->
-              <line x1="${lx}" y1="${y}" x2="${lx}" y2="${y + 34}" stroke="#cbd5e1" stroke-width="1.6"/>
-              <line x1="${rx}" y1="${y}" x2="${rx}" y2="${y + 34}" stroke="#cbd5e1" stroke-width="1.6"/>
+              <line x1="${lx}" y1="${y}" x2="${lx}" y2="${y + 34}" stroke="${flash ? "#fb7185" : "#cbd5e1"}" stroke-width="${flash ? "2.2" : "1.6"}"/>
+              <line x1="${rx}" y1="${y}" x2="${rx}" y2="${y + 34}" stroke="${flash ? "#fb7185" : "#cbd5e1"}" stroke-width="${flash ? "2.2" : "1.6"}"/>
               ${insulatorDiscs(lx, y)}
               ${insulatorDiscs(rx, y)}
 
-              <!-- Lightning Flashover Bolts ONLY if BFO occurs on this phase -->
-              ${flash ? `${flashBolt(lx + 18, y + 20)}${flashBolt(rx - 18, y + 20)}` : ""}
+              <!-- Lightning Flashover Arc & Bolts + Label Traves BFO -->
+              ${flash ? `
+                <line x1="${cx}" y1="44" x2="${cx}" y2="${y}" stroke="#f43f5e" stroke-width="2.2" class="anp-bfo-arc"/>
+                <line x1="${cx}" y1="${y}" x2="${lx}" y2="${y}" stroke="#facc15" stroke-width="2" class="anp-bfo-arc"/>
+                <line x1="${cx}" y1="${y}" x2="${rx}" y2="${y}" stroke="#facc15" stroke-width="2" class="anp-bfo-arc"/>
+                ${flashBolt(lx + 18, y + 20)}
+                ${flashBolt(rx - 18, y + 20)}
+                <rect x="${cx - 42}" y="${y - 14}" width="84" height="16" rx="8" fill="#be123c" stroke="#fda4af" stroke-width="1"/>
+                <text x="${cx}" y="${y - 3}" text-anchor="middle" fill="#fff1f2" font-size="8.5" font-weight="800">⚡ BFO ${ph.row.name.replace("Phasa ", "").toUpperCase()}</text>
+              ` : ""}
 
               <!-- Right Mini Table for this Phase -->
               <text x="278" y="${y - 4}" fill="#f8fafc" font-size="11" font-weight="800">${ph.row.name}</text>
