@@ -1964,13 +1964,13 @@
     <div id="anp-subtab-analisa" class="space-y-5">
       <!-- Form Input -->
       <section class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           <div class="lg:col-span-2">
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Nama Tower (Cari / Ketik Manual)</label>
             <input id="anp-tower" type="text" list="anp-tower-datalist" placeholder="Contoh: TOWER SUTT 150 KV KYUNG - GMWNG #0163"
                    class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             <datalist id="anp-tower-datalist"></datalist>
-            <p id="anp-tower-autofill-hint" class="text-[11px] text-slate-400 mt-1">Pilih tower dari daftar untuk mengisi nilai pentanahan (CT Ring → NS) secara otomatis.</p>
+            <p id="anp-tower-autofill-hint" class="text-[11px] text-slate-400 mt-1">Pilih tower dari daftar untuk mengisi pentanahan (CT Ring → NS) &amp; tegangan otomatis.</p>
           </div>
           <div>
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Tanggal</label>
@@ -1978,22 +1978,45 @@
                    class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
           <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Rating Tegangan (kV)</label>
+            <select id="anp-tegangan" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="70">70 kV</option>
+              <option value="150" selected>150 kV</option>
+              <option value="275">275 kV</option>
+              <option value="500">500 kV</option>
+            </select>
+          </div>
+          <div class="lg:col-span-2">
             <div class="flex items-center justify-between mb-1">
               <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tinggi Tower (m)</label>
               <div class="inline-flex rounded-lg border border-slate-700 overflow-hidden text-[10px] font-bold">
-                <button id="anp-mode-tinggi-manual" type="button" onclick="setAnpTinggiMode('manual')" class="px-2 py-0.5 bg-slate-700 text-white">Manual</button>
-                <button id="anp-mode-tinggi-auto" type="button" onclick="setAnpTinggiMode('auto')" class="px-2 py-0.5 bg-[#00529b] text-white">Otomatis</button>
+                <button id="anp-mode-tinggi-manual" type="button" onclick="setAnpTinggiMode('manual')" class="px-2.5 py-0.5 bg-slate-700 text-white cursor-pointer">Manual</button>
+                <button id="anp-mode-tinggi-auto" type="button" onclick="setAnpTinggiMode('auto')" class="px-2.5 py-0.5 bg-[#00529b] text-white cursor-pointer">Otomatis</button>
               </div>
             </div>
-            <div id="anp-tinggi-manual-wrap" class="hidden grid grid-cols-2 gap-2">
-              <input id="anp-tinggi-val" type="number" step="0.1" value="35.4" placeholder="Tinggi (m)"
-                     class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none" />
-              <select id="anp-tegangan" class="w-full px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none">
-                <option value="70">70 kV</option>
-                <option value="150" selected>150 kV</option>
-                <option value="275">275 kV</option>
-                <option value="500">500 kV</option>
-              </select>
+            <div id="anp-tinggi-manual-wrap" style="display: none;">
+              <div class="grid grid-cols-4 gap-1.5">
+                <div>
+                  <input id="anp-h-gsw" type="number" step="0.1" value="35.4" title="Tinggi GSW (m)"
+                         class="w-full px-2 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
+                  <span class="block text-[10px] text-slate-400 mt-0.5 text-center">GSW (m)</span>
+                </div>
+                <div>
+                  <input id="anp-h-atas" type="number" step="0.1" value="31.4" title="Tinggi Phasa Atas (m)"
+                         class="w-full px-2 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
+                  <span class="block text-[10px] text-slate-400 mt-0.5 text-center">Atas (m)</span>
+                </div>
+                <div>
+                  <input id="anp-h-tengah" type="number" step="0.1" value="26.9" title="Tinggi Phasa Tengah (m)"
+                         class="w-full px-2 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
+                  <span class="block text-[10px] text-slate-400 mt-0.5 text-center">Tengah (m)</span>
+                </div>
+                <div>
+                  <input id="anp-h-bawah" type="number" step="0.1" value="22.9" title="Tinggi Phasa Bawah (m)"
+                         class="w-full px-2 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
+                  <span class="block text-[10px] text-slate-400 mt-0.5 text-center">Bawah (m)</span>
+                </div>
+              </div>
             </div>
             <div id="anp-tinggi-auto-wrap">
               <select id="anp-tipe-tower" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
@@ -2007,15 +2030,16 @@
             <div class="flex items-center justify-between mb-1">
               <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Sudut Lindung (°)</label>
               <div class="inline-flex rounded-lg border border-slate-700 overflow-hidden text-[10px] font-bold">
-                <button id="anp-mode-sudut-manual" type="button" onclick="setAnpSudutMode('manual')" class="px-2 py-0.5 bg-slate-700 text-white">Manual</button>
-                <button id="anp-mode-sudut-hitung" type="button" onclick="setAnpSudutMode('hitung')" class="px-2 py-0.5 bg-[#00529b] text-white">Hitung</button>
+                <button id="anp-mode-sudut-manual" type="button" onclick="setAnpSudutMode('manual')" class="px-2.5 py-0.5 bg-slate-700 text-white cursor-pointer">Manual</button>
+                <button id="anp-mode-sudut-hitung" type="button" onclick="setAnpSudutMode('hitung')" class="px-2.5 py-0.5 bg-[#00529b] text-white cursor-pointer">Hitung</button>
               </div>
             </div>
-            <div id="anp-sudut-manual-wrap" class="hidden">
+            <div id="anp-sudut-manual-wrap" style="display: none;">
               <input id="anp-sudut-val" type="number" step="0.01" value="18.00" placeholder="Sudut (°)"
                      class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none" />
             </div>
-            <div id="anp-sudut-hitung-wrap" class="grid grid-cols-3 gap-2">
+            <div id="anp-sudut-hitung-wrap">
+              <div class="grid grid-cols-3 gap-2">
               <div>
                 <input id="anp-dy-gsw" type="number" step="0.1" value="4" title="Tinggi GSW - Konduktor (m)"
                        class="w-full px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
@@ -2030,6 +2054,7 @@
                 <input id="anp-tr-atas" type="number" step="0.1" value="3.5" title="Panjang Traves Phasa Atas (m)"
                        class="w-full px-2.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
                 <span class="block text-[10px] text-slate-400 mt-0.5">Tr. Atas (m)</span>
+              </div>
               </div>
             </div>
             <p id="anp-sudut-computed-label" class="text-[11px] text-emerald-400 font-bold mt-1">Sudut Lindung: 18.00°</p>
@@ -2080,48 +2105,63 @@
         </div>
       </section>
 
-      <!-- Hasil Analisa BFO & SF -->
-      <section class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <!-- BFO -->
-        <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+      <!-- Hasil Analisa BFO, SF & Gambar Tower -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- Gambar Geometri Tower + Nilai Hasil -->
+        <div class="lg:col-span-5 glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
           <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
-            <h3 class="text-sm font-extrabold text-white">⚡ Analisa Back Flash Over (BFO)</h3>
-            <span id="anp-bfo-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">NON BFO</span>
+            <div>
+              <h3 class="text-sm font-extrabold text-white">🗼 Gambar Tower &amp; Hasil Tegangan</h3>
+              <p id="anp-svg-subtitle" class="text-[11px] text-slate-400 mt-0.5">Tipe AA+0 • 150 kV • BIL Min: 1073.70 kV</p>
+            </div>
+            <span id="anp-svg-kv-pill" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/30">150 kV</span>
           </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
-              <thead class="bg-slate-900 text-slate-300 uppercase font-bold border-b border-slate-800">
-                <tr>
-                  <th class="py-2 px-3">Posisi / Phasa</th>
-                  <th class="py-2 px-3 text-right">BIL AH (kV)</th>
-                  <th class="py-2 px-3 text-right">BIL INS (kV)</th>
-                  <th class="py-2 px-3 text-right">VT TOWER (kV)</th>
-                  <th class="py-2 px-3 text-right">VT GSW (kV)</th>
-                </tr>
-              </thead>
-              <tbody id="anp-bfo-tbody" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
-            </table>
-          </div>
+          <div id="anp-tower-svg-wrap" class="w-full flex justify-center"></div>
         </div>
 
-        <!-- SF -->
-        <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
-          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
-            <h3 class="text-sm font-extrabold text-white">🛡️ Analisa Shielding Failure (SF)</h3>
-            <span id="anp-sf-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">NON SF</span>
+        <!-- BFO & SF Tables -->
+        <div class="lg:col-span-7 space-y-5">
+          <!-- BFO -->
+          <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <h3 class="text-sm font-extrabold text-white">⚡ Analisa Back Flash Over (BFO)</h3>
+              <span id="anp-bfo-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">NON BFO</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-900 text-slate-300 uppercase font-bold border-b border-slate-800">
+                  <tr>
+                    <th class="py-2 px-3">Posisi / Phasa</th>
+                    <th class="py-2 px-3 text-right">BIL AH (kV)</th>
+                    <th class="py-2 px-3 text-right">BIL INS (kV)</th>
+                    <th class="py-2 px-3 text-right">VT TOWER (kV)</th>
+                    <th class="py-2 px-3 text-right">VT GSW (kV)</th>
+                  </tr>
+                </thead>
+                <tbody id="anp-bfo-tbody" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+              </table>
+            </div>
           </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
-              <thead class="bg-slate-900 text-slate-300 uppercase font-bold border-b border-slate-800">
-                <tr>
-                  <th class="py-2 px-3">Parameter</th>
-                  <th class="py-2 px-3 text-right">Object Tower</th>
-                  <th class="py-2 px-3 text-right">Rolling Sphere</th>
-                  <th class="py-2 px-3 text-center">Kesimpulan</th>
-                </tr>
-              </thead>
-              <tbody id="anp-sf-tbody" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
-            </table>
+
+          <!-- SF -->
+          <div class="glass-card rounded-2xl p-4 lg:p-5 shadow-xl">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <h3 class="text-sm font-extrabold text-white">🛡️ Analisa Shielding Failure (SF)</h3>
+              <span id="anp-sf-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">NON SF</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-900 text-slate-300 uppercase font-bold border-b border-slate-800">
+                  <tr>
+                    <th class="py-2 px-3">Parameter</th>
+                    <th class="py-2 px-3 text-right">Object Tower</th>
+                    <th class="py-2 px-3 text-right">Rolling Sphere</th>
+                    <th class="py-2 px-3 text-center">Kesimpulan</th>
+                  </tr>
+                </thead>
+                <tbody id="anp-sf-tbody" class="divide-y divide-slate-800/80 text-slate-200"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -7122,26 +7162,30 @@
 
     window.setAnpTinggiMode = function(mode) {
       anpState.tinggiMode = mode;
-      document.getElementById("anp-tinggi-manual-wrap")?.classList.toggle("hidden", mode !== "manual");
-      document.getElementById("anp-tinggi-auto-wrap")?.classList.toggle("hidden", mode !== "auto");
+      const manWrap = document.getElementById("anp-tinggi-manual-wrap");
+      const autoWrap = document.getElementById("anp-tinggi-auto-wrap");
+      if (manWrap) manWrap.style.display = mode === "manual" ? "block" : "none";
+      if (autoWrap) autoWrap.style.display = mode === "auto" ? "block" : "none";
       const bm = document.getElementById("anp-mode-tinggi-manual");
       const ba = document.getElementById("anp-mode-tinggi-auto");
       if (bm && ba) {
-        bm.className = mode === "manual" ? "px-2 py-0.5 bg-[#00529b] text-white" : "px-2 py-0.5 bg-slate-700 text-white";
-        ba.className = mode === "auto" ? "px-2 py-0.5 bg-[#00529b] text-white" : "px-2 py-0.5 bg-slate-700 text-white";
+        bm.className = mode === "manual" ? "px-2.5 py-0.5 bg-[#00529b] text-white cursor-pointer" : "px-2.5 py-0.5 bg-slate-700 text-white cursor-pointer";
+        ba.className = mode === "auto" ? "px-2.5 py-0.5 bg-[#00529b] text-white cursor-pointer" : "px-2.5 py-0.5 bg-slate-700 text-white cursor-pointer";
       }
       calculateAnalisaPetir();
     };
 
     window.setAnpSudutMode = function(mode) {
       anpState.sudutMode = mode;
-      document.getElementById("anp-sudut-manual-wrap")?.classList.toggle("hidden", mode !== "manual");
-      document.getElementById("anp-sudut-hitung-wrap")?.classList.toggle("hidden", mode !== "hitung");
+      const manWrap = document.getElementById("anp-sudut-manual-wrap");
+      const hitWrap = document.getElementById("anp-sudut-hitung-wrap");
+      if (manWrap) manWrap.style.display = mode === "manual" ? "block" : "none";
+      if (hitWrap) hitWrap.style.display = mode === "hitung" ? "block" : "none";
       const bm = document.getElementById("anp-mode-sudut-manual");
       const bh = document.getElementById("anp-mode-sudut-hitung");
       if (bm && bh) {
-        bm.className = mode === "manual" ? "px-2 py-0.5 bg-[#00529b] text-white" : "px-2 py-0.5 bg-slate-700 text-white";
-        bh.className = mode === "hitung" ? "px-2 py-0.5 bg-[#00529b] text-white" : "px-2 py-0.5 bg-slate-700 text-white";
+        bm.className = mode === "manual" ? "px-2.5 py-0.5 bg-[#00529b] text-white cursor-pointer" : "px-2.5 py-0.5 bg-slate-700 text-white cursor-pointer";
+        bh.className = mode === "hitung" ? "px-2.5 py-0.5 bg-[#00529b] text-white cursor-pointer" : "px-2.5 py-0.5 bg-slate-700 text-white cursor-pointer";
       }
       calculateAnalisaPetir();
     };
@@ -7180,25 +7224,21 @@
     window.calculateAnalisaPetir = function() {
       const tower = (document.getElementById("anp-tower")?.value || "").trim() || "-";
       const tanggal = document.getElementById("anp-tanggal")?.value || new Date().toISOString().slice(0, 10);
-      let geom = null, tipeLabel = "Manual", kv = 150;
+      let geom = null, tipeLabel = "Manual";
+      const kv = parseFloat(document.getElementById("anp-tegangan")?.value) || 150;
       if (anpState.tinggiMode === "auto") {
         const tipe = document.getElementById("anp-tipe-tower")?.value || "AA+0";
         geom = ANP_TOWER_TYPES[tipe] || ANP_TOWER_TYPES["AA+0"];
         tipeLabel = tipe;
-        kv = geom.kv;
         const gInfo = document.getElementById("anp-geom-info");
         if (gInfo) gInfo.textContent = `GSW ${geom.gsw}m • Atas ${geom.atas}m • Tengah ${geom.tengah}m • Bawah ${geom.bawah}m`;
       } else {
-        const h = parseFloat(document.getElementById("anp-tinggi-val")?.value) || 35.4;
-        kv = parseFloat(document.getElementById("anp-tegangan")?.value) || 150;
-        geom = {
-          gsw: +h.toFixed(1),
-          atas: +(h - 4.0).toFixed(1),
-          tengah: +(h - 8.5).toFixed(1),
-          bawah: +(h - 12.5).toFixed(1),
-          kv
-        };
-        tipeLabel = `${h.toFixed(1)}m (${kv} kV)`;
+        const hg = parseFloat(document.getElementById("anp-h-gsw")?.value) || 35.4;
+        const ha = parseFloat(document.getElementById("anp-h-atas")?.value) || 31.4;
+        const ht = parseFloat(document.getElementById("anp-h-tengah")?.value) || 26.9;
+        const hb = parseFloat(document.getElementById("anp-h-bawah")?.value) || 22.9;
+        geom = { gsw: +hg.toFixed(1), atas: +ha.toFixed(1), tengah: +ht.toFixed(1), bawah: +hb.toFixed(1), kv };
+        tipeLabel = `Manual ${hg.toFixed(1)}m (${kv} kV)`;
       }
 
       let dy = parseFloat(document.getElementById("anp-dy-gsw")?.value) || 4;
@@ -7309,8 +7349,102 @@
         rowsBfo, isBfoTwr, isBfoGsw, kesBfo,
         iSf: +iSf.toFixed(2), sudutSf: +sudutSf.toFixed(2), kesSf
       };
+      renderAnpTowerSvg(anpState.lastResult);
       return anpState.lastResult;
     };
+
+    function renderAnpTowerSvg(r) {
+      const wrap = document.getElementById("anp-tower-svg-wrap");
+      if (!wrap || !r) return;
+      const sub = document.getElementById("anp-svg-subtitle");
+      const kvPill = document.getElementById("anp-svg-kv-pill");
+      if (sub) sub.textContent = `${r.tipeLabel} • ${r.kv} kV • Batas BIL Min: ${r.minBil.toFixed(2)} kV`;
+      if (kvPill) kvPill.textContent = `${r.kv} kV`;
+
+      const [gswR, atasR, tengR, bawR] = r.rowsBfo;
+      const colStatus = (row) => (row.vtTwr > r.minBil || row.vtGsw > r.minBil) ? "#f43f5e" : "#10b981";
+      const levels = [
+        { y: 52,  row: gswR,  wArm: 42,  isGsw: true },
+        { y: 118, row: atasR, wArm: 72,  isGsw: false },
+        { y: 184, row: tengR, wArm: 84,  isGsw: false },
+        { y: 250, row: bawR,  wArm: 76,  isGsw: false }
+      ];
+      const cx = 145;
+      const gswTipX = cx + 42, gswTipY = 52;
+      const atasTipX = cx + 72, atasTipY = 126;
+
+      wrap.innerHTML = `
+        <svg viewBox="0 0 430 375" class="w-full max-w-[460px] h-auto select-none">
+          <defs>
+            <linearGradient id="anpTwrGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#0284c7" stop-opacity="0.7"/>
+            </linearGradient>
+          </defs>
+          <!-- Ground line & R -->
+          <line x1="25" y1="336" x2="265" y2="336" stroke="#64748b" stroke-width="2"/>
+          <line x1="${cx}" y1="336" x2="${cx}" y2="352" stroke="#f59e0b" stroke-width="2"/>
+          <line x1="${cx - 14}" y1="352" x2="${cx + 14}" y2="352" stroke="#f59e0b" stroke-width="2"/>
+          <line x1="${cx - 9}" y1="357" x2="${cx + 9}" y2="357" stroke="#f59e0b" stroke-width="2"/>
+          <line x1="${cx - 4}" y1="362" x2="${cx + 4}" y2="362" stroke="#f59e0b" stroke-width="2"/>
+          <text x="${cx + 20}" y="357" fill="#fbbf24" font-size="11" font-weight="800">R = ${r.R} Ω</text>
+
+          <!-- Tower lattice body -->
+          <polygon points="${cx},28 ${cx - 14},95 ${cx - 24},265 ${cx - 46},336 ${cx + 46},336 ${cx + 24},265 ${cx + 14},95"
+                   fill="none" stroke="url(#anpTwrGrad)" stroke-width="2.4" stroke-linejoin="round"/>
+          <!-- Cross bracing -->
+          <line x1="${cx - 14}" y1="95" x2="${cx + 18}" y2="155" stroke="#38bdf8" stroke-width="1.2" opacity="0.55"/>
+          <line x1="${cx + 14}" y1="95" x2="${cx - 18}" y2="155" stroke="#38bdf8" stroke-width="1.2" opacity="0.55"/>
+          <line x1="${cx - 18}" y1="155" x2="${cx + 22}" y2="215" stroke="#38bdf8" stroke-width="1.2" opacity="0.55"/>
+          <line x1="${cx + 18}" y1="155" x2="${cx - 22}" y2="215" stroke="#38bdf8" stroke-width="1.2" opacity="0.55"/>
+          <line x1="${cx - 22}" y1="215" x2="${cx + 24}" y2="265" stroke="#38bdf8" stroke-width="1.2" opacity="0.55"/>
+          <line x1="${cx + 22}" y1="215" x2="${cx - 24}" y2="265" stroke="#38bdf8" stroke-width="1.2" opacity="0.55"/>
+          <line x1="${cx - 24}" y1="265" x2="${cx + 46}" y2="336" stroke="#38bdf8" stroke-width="1.2" opacity="0.55"/>
+          <line x1="${cx + 24}" y1="265" x2="${cx - 46}" y2="336" stroke="#38bdf8" stroke-width="1.2" opacity="0.55"/>
+
+          <!-- Lightning strike icon at peak -->
+          <polygon points="${cx - 3},6 ${cx + 7},6 ${cx + 1},18 ${cx + 9},18 ${cx - 5},34 ${cx - 1},21 ${cx - 8},21" fill="#facc15"/>
+          <text x="${cx + 14}" y="19" fill="#facc15" font-size="11" font-weight="800">${r.I} kA • ${r.didt} kA/µs</text>
+
+          <!-- Shielding angle dashed line -->
+          <line x1="${gswTipX}" y1="${gswTipY}" x2="${gswTipX}" y2="${atasTipY + 12}" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3"/>
+          <line x1="${gswTipX}" y1="${gswTipY}" x2="${atasTipX}" y2="${atasTipY}" stroke="${r.kesSf === "SF" ? "#f43f5e" : "#34d399"}" stroke-width="1.8" stroke-dasharray="4,3"/>
+          <text x="${cx + 48}" y="94" fill="${r.kesSf === "SF" ? "#fb7185" : "#34d399"}" font-size="10" font-weight="800">α=${r.sudut.toFixed(1)}°</text>
+
+          <!-- Crossarms + Insulators + Labels -->
+          ${levels.map(lv => {
+            const c = lv.isGsw ? "#38bdf8" : colStatus(lv.row);
+            const armY = lv.y;
+            const insLen = lv.isGsw ? 0 : 12;
+            const badgeText = lv.isGsw
+              ? `VT Twr ${lv.row.vtTwr.toFixed(1)} | GSW ${lv.row.vtGsw.toFixed(1)}`
+              : `Twr ${lv.row.vtTwr.toFixed(1)} | GSW ${lv.row.vtGsw.toFixed(1)} kV`;
+            return `
+              <line x1="${cx - lv.wArm}" y1="${armY}" x2="${cx + lv.wArm}" y2="${armY}" stroke="#94a3b8" stroke-width="2.5"/>
+              ${!lv.isGsw ? `
+                <line x1="${cx - lv.wArm}" y1="${armY}" x2="${cx - lv.wArm}" y2="${armY + insLen}" stroke="#cbd5e1" stroke-width="2.2"/>
+                <line x1="${cx + lv.wArm}" y1="${armY}" x2="${cx + lv.wArm}" y2="${armY + insLen}" stroke="#cbd5e1" stroke-width="2.2"/>
+                <circle cx="${cx - lv.wArm}" cy="${armY + insLen}" r="4" fill="${c}"/>
+                <circle cx="${cx + lv.wArm}" cy="${armY + insLen}" r="4" fill="${c}"/>
+              ` : `
+                <circle cx="${cx - lv.wArm}" cy="${armY}" r="3.5" fill="#38bdf8"/>
+                <circle cx="${cx + lv.wArm}" cy="${armY}" r="3.5" fill="#38bdf8"/>
+              `}
+              <!-- Right callout box -->
+              <line x1="${cx + lv.wArm + 4}" y1="${armY + insLen}" x2="238" y2="${armY + insLen}" stroke="${c}" stroke-width="1" stroke-dasharray="2,2" opacity="0.7"/>
+              <rect x="240" y="${armY + insLen - 17}" width="184" height="34" rx="7" fill="#0f172a" stroke="${c}" stroke-width="1.3"/>
+              <text x="248" y="${armY + insLen - 3}" fill="#f8fafc" font-size="10.5" font-weight="800">${lv.row.name} (${lv.row.h}m)</text>
+              <text x="248" y="${armY + insLen + 11}" fill="${c}" font-size="10" font-weight="700">${badgeText}</text>
+            `;
+          }).join("")}
+
+          <!-- Bottom status summary pill -->
+          <rect x="240" y="302" width="184" height="38" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
+          <text x="248" y="317" fill="#cbd5e1" font-size="10" font-weight="700">BIL: ${r.minBil.toFixed(1)} kV • SF: ${r.sudutSf.toFixed(1)}°</text>
+          <text x="248" y="332" fill="${r.kesBfo === "BFO" || r.kesSf === "SF" ? "#fb7185" : "#34d399"}" font-size="11" font-weight="800">Hasil: ${r.kesBfo} • ${r.kesSf}</text>
+        </svg>
+      `;
+    }
 
     function buildAnpWaText(res, temuanOverride = null) {
       const r = res || calculateAnalisaPetir();
@@ -7544,7 +7678,7 @@
         }
       });
 
-      ["anp-tipe-tower", "anp-tinggi-val", "anp-tegangan", "anp-sudut-val", "anp-dy-gsw", "anp-tr-gsw", "anp-tr-atas", "anp-pentanahan", "anp-insulator", "anp-ah", "anp-arus", "anp-didt"].forEach(id => {
+      ["anp-tipe-tower", "anp-h-gsw", "anp-h-atas", "anp-h-tengah", "anp-h-bawah", "anp-tegangan", "anp-sudut-val", "anp-dy-gsw", "anp-tr-gsw", "anp-tr-atas", "anp-pentanahan", "anp-insulator", "anp-ah", "anp-arus", "anp-didt"].forEach(id => {
         document.getElementById(id)?.addEventListener("input", calculateAnalisaPetir);
         document.getElementById(id)?.addEventListener("change", calculateAnalisaPetir);
       });
