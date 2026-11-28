@@ -1995,28 +1995,9 @@
               </div>
             </div>
             <div id="anp-tinggi-manual-wrap" style="display: none;">
-              <div class="grid grid-cols-4 gap-1.5">
-                <div>
-                  <input id="anp-h-gsw" type="number" step="0.1" value="35.4" title="Tinggi GSW (m)"
-                         class="w-full px-2 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
-                  <span class="block text-[10px] text-slate-400 mt-0.5 text-center">GSW (m)</span>
-                </div>
-                <div>
-                  <input id="anp-h-atas" type="number" step="0.1" value="31.4" title="Tinggi Phasa Atas (m)"
-                         class="w-full px-2 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
-                  <span class="block text-[10px] text-slate-400 mt-0.5 text-center">Atas (m)</span>
-                </div>
-                <div>
-                  <input id="anp-h-tengah" type="number" step="0.1" value="26.9" title="Tinggi Phasa Tengah (m)"
-                         class="w-full px-2 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
-                  <span class="block text-[10px] text-slate-400 mt-0.5 text-center">Tengah (m)</span>
-                </div>
-                <div>
-                  <input id="anp-h-bawah" type="number" step="0.1" value="22.9" title="Tinggi Phasa Bawah (m)"
-                         class="w-full px-2 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none" />
-                  <span class="block text-[10px] text-slate-400 mt-0.5 text-center">Bawah (m)</span>
-                </div>
-              </div>
+              <input id="anp-tinggi-val" type="number" step="0.1" value="30" placeholder="Masukkan Tinggi Tower (m)"
+                     class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <p id="anp-geom-manual-info" class="text-[11px] text-sky-400 font-semibold mt-1">GSW 30m • Atas 26m • Tengah 21.5m • Bawah 17.5m</p>
             </div>
             <div id="anp-tinggi-auto-wrap">
               <select id="anp-tipe-tower" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
@@ -7233,12 +7214,24 @@
         const gInfo = document.getElementById("anp-geom-info");
         if (gInfo) gInfo.textContent = `GSW ${geom.gsw}m • Atas ${geom.atas}m • Tengah ${geom.tengah}m • Bawah ${geom.bawah}m`;
       } else {
-        const hg = parseFloat(document.getElementById("anp-h-gsw")?.value) || 35.4;
-        const ha = parseFloat(document.getElementById("anp-h-atas")?.value) || 31.4;
-        const ht = parseFloat(document.getElementById("anp-h-tengah")?.value) || 26.9;
-        const hb = parseFloat(document.getElementById("anp-h-bawah")?.value) || 22.9;
-        geom = { gsw: +hg.toFixed(1), atas: +ha.toFixed(1), tengah: +ht.toFixed(1), bawah: +hb.toFixed(1), kv };
-        tipeLabel = `Manual ${hg.toFixed(1)}m (${kv} kV)`;
+        const h = parseFloat(document.getElementById("anp-tinggi-val")?.value) || 30;
+        const stepMap = {
+          70:  [2.9, 2.9, 2.9],
+          150: [4.0, 4.5, 4.0],
+          275: [5.5, 6.0, 6.0],
+          500: [7.5, 8.5, 8.5]
+        };
+        const [d1, d2, d3] = stepMap[kv] || [4.0, 4.5, 4.0];
+        geom = {
+          gsw: +h.toFixed(1),
+          atas: +Math.max(1, h - d1).toFixed(1),
+          tengah: +Math.max(1, h - d1 - d2).toFixed(1),
+          bawah: +Math.max(1, h - d1 - d2 - d3).toFixed(1),
+          kv
+        };
+        tipeLabel = `Manual ${h.toFixed(1)}m (${kv} kV)`;
+        const gmInfo = document.getElementById("anp-geom-manual-info");
+        if (gmInfo) gmInfo.textContent = `GSW ${geom.gsw}m • Atas ${geom.atas}m • Tengah ${geom.tengah}m • Bawah ${geom.bawah}m`;
       }
 
       let dy = parseFloat(document.getElementById("anp-dy-gsw")?.value) || 4;
@@ -7725,7 +7718,7 @@
         }
       });
 
-      ["anp-tipe-tower", "anp-h-gsw", "anp-h-atas", "anp-h-tengah", "anp-h-bawah", "anp-tegangan", "anp-sudut-val", "anp-dy-gsw", "anp-tr-gsw", "anp-tr-atas", "anp-pentanahan", "anp-insulator", "anp-ah", "anp-arus", "anp-didt"].forEach(id => {
+      ["anp-tipe-tower", "anp-tinggi-val", "anp-tegangan", "anp-sudut-val", "anp-dy-gsw", "anp-tr-gsw", "anp-tr-atas", "anp-pentanahan", "anp-insulator", "anp-ah", "anp-arus", "anp-didt"].forEach(id => {
         document.getElementById(id)?.addEventListener("input", calculateAnalisaPetir);
         document.getElementById(id)?.addEventListener("change", calculateAnalisaPetir);
       });
