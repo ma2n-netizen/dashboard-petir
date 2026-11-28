@@ -2614,12 +2614,12 @@
         const dgs_k = cell(r, 11), dgs_t = cell(r, 12);
         const igsw_k = cell(r, 14), igsw_t = cell(r, 15);
         const mdg_k = cell(r, 17), mdg_t = cell(r, 18);
-        const tla1_k = cell(r, 28), tla1_ph = cell(r, 29);
-        const tla2_k = cell(r, 32), tla2_ph = cell(r, 33);
+        const tla1_k = cell(r, 28), tla1_ph = cell(r, 29), tla1_t = cell(r, 31);
+        const tla2_k = cell(r, 32), tla2_ph = cell(r, 33), tla2_t = cell(r, 35);
         const cleanList = [];
         [[36,37,"<2023"],[39,40,"2023"],[42,43,"2024"],[45,46,"2025"],[48,49,"2026"]].forEach(([ckIdx, ctIdx, lbl]) => {
           const ck = cell(r, ckIdx), ct = cell(r, ctIdx);
-          if (ck || ct) cleanList.push(ck || ct || lbl);
+          if (ck || ct) cleanList.push(ck && ct ? `${ck} (${ct})` : (ck || ct || lbl));
         });
         let kendala = "";
         if (!mrg_k && mrg_t) kendala = `MRG: ${mrg_t}`;
@@ -2633,7 +2633,10 @@
           igsw: igsw_k ? 1 : 0, igsw_i: igsw_k && igsw_t ? `${igsw_k} (${igsw_t})` : igsw_k,
           mdg: mdg_k ? 1 : 0, mdg_i: mdg_k && mdg_t ? `${mdg_k} (${mdg_t})` : mdg_k,
           tla1: tla1_k ? 1 : 0, tla2: tla2_k ? 1 : 0, tla: (tla1_k || tla2_k) ? 1 : 0,
-          tla_i: [tla1_k ? `L1:${tla1_k}(${tla1_ph})` : "", tla2_k ? `L2:${tla2_k}(${tla2_ph})` : ""].filter(Boolean).join(" / "),
+          tla_i: [
+            tla1_k ? `L1:${tla1_k}${tla1_ph ? `(${tla1_ph})` : ""}${tla1_t ? ` (${tla1_t})` : ""}` : "",
+            tla2_k ? `L2:${tla2_k}${tla2_ph ? `(${tla2_ph})` : ""}${tla2_t ? ` (${tla2_t})` : ""}` : ""
+          ].filter(Boolean).join(" / "),
           cln: cleanList.length > 0 ? 1 : 0, cln_i: cleanList.join(", "),
           kdl: kendala, k_list
         });
