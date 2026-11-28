@@ -7365,7 +7365,7 @@
       ];
 
       const flashBolt = (fx, fy) => `
-        <g transform="translate(${fx},${fy})">
+        <g class="anp-flash-bolt" transform="translate(${fx},${fy})">
           <polygon points="0,-13 -9,2 -2,2 -6,14 9,-2 2,-2" fill="#facc15" stroke="#ca8a04" stroke-width="1.2" stroke-linejoin="round"/>
           <line x1="-12" y1="-6" x2="-16" y2="-9" stroke="#facc15" stroke-width="1.5" stroke-linecap="round"/>
           <line x1="11" y1="-5" x2="15" y2="-8" stroke="#facc15" stroke-width="1.5" stroke-linecap="round"/>
@@ -7379,20 +7379,59 @@
 
       wrap.innerHTML = `
         <svg viewBox="0 0 510 470" class="w-full max-w-[540px] h-auto select-none">
+          <defs>
+            <style>
+              @keyframes anpPulseGlow {
+                0%, 100% { transform: scale(1); opacity: 0.92; }
+                50% { transform: scale(1.14); opacity: 1; }
+              }
+              @keyframes anpFlowDown {
+                from { stroke-dashoffset: 24; }
+                to { stroke-dashoffset: 0; }
+              }
+              @keyframes anpBoltFlash {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.45; transform: scale(1.12); }
+              }
+              .anp-gsw-shield { transform-box: fill-box; transform-origin: center; animation: anpPulseGlow 1.5s ease-in-out infinite; }
+              .anp-ground-flow { stroke-dasharray: 6 6; animation: anpFlowDown 0.8s linear infinite; }
+              .anp-flash-bolt { transform-box: fill-box; transform-origin: center; animation: anpBoltFlash 0.9s ease-in-out infinite; }
+            </style>
+            <radialGradient id="anpGswGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#93c5fd" stop-opacity="0.95"/>
+              <stop offset="55%" stop-color="#1d4ed8" stop-opacity="0.85"/>
+              <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
           <!-- Left height dimension line -->
           <line x1="36" y1="44" x2="36" y2="438" stroke="#10b981" stroke-width="1.3" stroke-dasharray="4,3"/>
           <line x1="30" y1="438" x2="42" y2="438" stroke="#10b981" stroke-width="1.5"/>
           <line x1="36" y1="44" x2="${cx + 150}" y2="44" stroke="#10b981" stroke-width="1.2" stroke-dasharray="3,3"/>
           <text x="12" y="40" fill="#cbd5e1" font-size="11" font-weight="700">${r.geom.gsw} m</text>
 
-          <!-- Sudut lindung label at GSW peak -->
-          <text x="${cx + 46}" y="38" fill="#f59e0b" font-size="11.5" font-weight="800">${r.sudut.toFixed(0)}°</text>
+          <!-- Sudut lindung & SF label at GSW peak -->
+          ${r.kesSf === "SF" ? `<text x="${cx + 46}" y="26" fill="#f43f5e" font-size="11.5" font-weight="800">SF</text>` : ""}
+          <text x="${cx + 46}" y="40" fill="${r.kesSf === "SF" ? "#f43f5e" : "#f59e0b"}" font-size="11.5" font-weight="800">${r.sudut.toFixed(0)}°</text>
           <line x1="${cx + 42}" y1="44" x2="${cx + 78}" y2="112" stroke="${r.kesSf === "SF" ? "#f43f5e" : "#10b981"}" stroke-width="1.4" stroke-dasharray="4,3"/>
 
           <!-- GSW crossarm & tower top -->
           <polygon points="${cx - 52},44 ${cx + 52},44 ${cx + 15},68 ${cx - 15},68" fill="none" stroke="#94a3b8" stroke-width="2"/>
           <line x1="${cx - 52}" y1="44" x2="${cx + 15}" y2="68" stroke="#94a3b8" stroke-width="1.1"/>
           <line x1="${cx + 52}" y1="44" x2="${cx - 15}" y2="68" stroke="#94a3b8" stroke-width="1.1"/>
+
+          <!-- NON BFO Animated GSW Lightning Absorption & Safe Ground Flow -->
+          ${r.kesBfo === "NON BFO" ? `
+            <line x1="${cx}" y1="44" x2="${cx}" y2="434" stroke="#38bdf8" stroke-width="2.4" class="anp-ground-flow" opacity="0.85"/>
+            <g class="anp-gsw-shield">
+              <circle cx="${cx}" cy="40" r="20" fill="url(#anpGswGlow)"/>
+              <circle cx="${cx}" cy="40" r="12" fill="#1e40af" stroke="#60a5fa" stroke-width="1.5"/>
+              <polygon points="${cx - 8},12 ${cx + 2},12 ${cx - 2},24 ${cx + 6},24 ${cx - 7},42 ${cx - 2},27 ${cx - 10},27"
+                       fill="#facc15" stroke="#ca8a04" stroke-width="0.9"/>
+            </g>
+          ` : `
+            <polygon points="${cx - 6},12 ${cx + 4},12 ${cx},24 ${cx + 8},24 ${cx - 5},42 ${cx},27 ${cx - 8},27"
+                     fill="#facc15" stroke="#ca8a04" stroke-width="0.9"/>
+          `}
 
           <!-- GSW Mini Table (top right) -->
           <rect x="330" y="28" width="168" height="40" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
